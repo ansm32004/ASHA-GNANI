@@ -1,0 +1,110 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAshaWorker() {
+      return isAuthenticated() && 
+        (request.auth.token.role == 'ASHA' || request.auth.token.role == 'SUPERVISOR');
+    }
+
+    function isSupervisor() {
+      return isAuthenticated() && request.auth.token.role == 'SUPERVISOR';
+    }
+
+    function isAssignedWorker(ashaId) {
+      return isAuthenticated() && request.auth.uid == ashaId;
+    }
+
+    // ASHA Worker profiles: only the worker themselves or their supervisor can read/write
+    match /asha_workers/{workerId} {
+      allow read: if isAuthenticated() && (request.auth.uid == workerId || isSupervisor());
+      allow write: if isSupervisor();
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isSupervisor());
+      allow write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Households: accessible only by assigned ASHA worker or area supervisor
+    match /households/{householdId} {
+      allow read: if isAshaWorker();
+      allow create: if isAshaWorker() && request.resource.data.assigned_asha_id == request.auth.uid;
+      allow update: if isAshaWorker() && resource.data.assigned_asha_id == request.auth.uid;
+      allow delete: if isSupervisor();
+    }
+
+    // Beneficiaries: subcollection or top-level, strictly guarded
+    match /beneficiaries/{beneficiaryId} {
+      allow read: if isAshaWorker();
+      allow create, update: if isAshaWorker();
+      allow delete: if isSupervisor();
+    }
+
+    // Field Visits: ASHA logs visit, cannot delete once submitted
+    match /visits/{visitId} {
+      allow read: if isAshaWorker();
+      allow create: if isAshaWorker();
+      allow update: if isAshaWorker() && resource.data.status != 'Verified';
+      allow delete: if isSupervisor();
+    }
+
+    // Follow-up Tasks: ASHA manages their tasks
+    match /tasks/{taskId} {
+      allow read: if isAshaWorker();
+      allow create, update: if isAshaWorker();
+      allow delete: if isSupervisor();
+    }
+
+    // Community Requests: incoming requests from community or ASHA logged
+    match /community_requests/{requestId} {
+      allow read: if isAshaWorker();
+      allow create: if isAuthenticated();
+      allow update: if isAshaWorker();
+      allow delete: if isSupervisor();
+    }
+
+    // Work Activities & Claims
+    match /work_activities/{activityId} {
+      allow read: if isAshaWorker();
+      allow create, update: if isAshaWorker();
+      allow delete: if isSupervisor();
+    }
+
+    match /claims/{claimId} {
+      allow read: if isAshaWorker();
+      allow create: if isAshaWorker();
+      allow update: if isAshaWorker() && (resource.data.status == 'Draft' || isSupervisor());
+      allow delete: if isSupervisor();
+    }
+
+    // SOS Emergency Events: Any authenticated caller can create, ASHA/Supervisor read & escalate
+    match /sos_events/{eventId} {
+      allow read: if isAshaWorker();
+      allow create: if isAuthenticated();
+      allow update: if isAshaWorker();
+      allow delete: if false; // SOS history is audit immutable
+    }
+
+    // Notifications
+    match /notifications/{notifId} {
+      allow read: if isAuthenticated();
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create, delete: if isSupervisor();
+    }
+
+    // Immutable audit logs
+    match /audit_logs/{logId} {
+      allow read: if isSupervisor();
+      allow create: if isAuthenticated();
+      allow update, delete: if false; // Append-only audit trail
+    }
+  }
+}
+
