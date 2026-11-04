@@ -28,7 +28,11 @@ export const syncService = {
           successCount++;
         }
       } catch (e) {
-        console.error('Failed to sync item', item, e);
+        console.warn('[syncService] Failed to sync offline item:', {
+          type: item.type,
+          recordId: item.data?.id || item.data?.household_id,
+          error: e.message
+        });
         remaining.push(item);
       }
     }

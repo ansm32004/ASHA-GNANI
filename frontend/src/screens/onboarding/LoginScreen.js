@@ -6,7 +6,7 @@ import { AppButton } from '../../components/common/AppButton';
 import { AppInput } from '../../components/common/AppInput';
 import { AppHeader } from '../../components/common/AppHeader';
 import { useAuthStore } from '../../store/authStore';
-import { apiClient } from '../../services/api/apiClient';
+import { authApi } from '../../services/api/authApi';
 import { useTranslation } from 'react-i18next';
 
 export const LoginScreen = ({ navigation }) => {
@@ -14,8 +14,8 @@ export const LoginScreen = ({ navigation }) => {
   const { loginDemoAsha, loginDemoCommunity, loginWithCredentials } = useAuthStore();
 
   const [loginMode, setLoginMode] = useState('demo'); // 'demo' | 'credentials' | 'otp'
-  const [email, setEmail] = useState('asha.demo@sahayika.test');
-  const [password, setPassword] = useState('Sahayika@123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('9876543210');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -43,7 +43,7 @@ export const LoginScreen = ({ navigation }) => {
     setLoading(false);
 
     if (!res.success) {
-      setError(res.error || 'Invalid credentials. Password is Sahayika@123');
+      setError(res.error || 'Invalid email or password.');
     }
   };
 
@@ -57,10 +57,10 @@ export const LoginScreen = ({ navigation }) => {
     setLoading(true);
 
     try {
-      const res = await apiClient.post('/auth/login', { phone_number: clean });
+      const data = await authApi.requestOtp(clean);
       setLoading(false);
       navigation.navigate('OtpVerification', {
-        sessionId: res.data.session_id,
+        sessionId: data.session_id,
         phone: clean
       });
     } catch (e) {
@@ -161,7 +161,7 @@ export const LoginScreen = ({ navigation }) => {
             />
 
             <AppInput
-              label="Password (Demo: Sahayika@123)"
+              label="Password"
               placeholder="Enter password"
               value={password}
               onChangeText={(v) => {

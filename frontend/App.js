@@ -13,11 +13,15 @@ import './src/localisation'; // initialize i18n
 export default function App() {
   const [fontsLoaded] = useFonts(Ionicons.font);
   const { initializeLanguage } = useLanguageStore();
-  const { loadOfflineQueue } = useAppStore();
+  const { loadOfflineQueue, initializeNetworkListener } = useAppStore();
 
   useEffect(() => {
     initializeLanguage();
     loadOfflineQueue();
+    const unsubscribeNet = initializeNetworkListener();
+    return () => {
+      if (typeof unsubscribeNet === 'function') unsubscribeNet();
+    };
   }, []);
 
   const isWeb = Platform.OS === 'web';

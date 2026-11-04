@@ -16,6 +16,14 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.token.role == 'SUPERVISOR';
     }
 
+    function isCommunityMember() {
+      return isAuthenticated() && request.auth.token.role == 'COMMUNITY';
+    }
+
+    function isMemberOfHousehold(householdId) {
+      return isCommunityMember() && request.auth.token.household_id == householdId;
+    }
+
     function isAssignedWorker(ashaId) {
       return isAuthenticated() && request.auth.uid == ashaId;
     }
@@ -32,17 +40,18 @@ service cloud.firestore {
       allow write: if isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Households: accessible only by assigned ASHA worker or area supervisor
+    // Households: accessible by assigned ASHA worker, area supervisor, or verified household member via server-controlled JWT claims
     match /households/{householdId} {
-      allow read: if isAshaWorker();
+      allow read: if isAshaWorker() || isMemberOfHousehold(householdId);
       allow create: if isAshaWorker() && request.resource.data.assigned_asha_id == request.auth.uid;
       allow update: if isAshaWorker() && resource.data.assigned_asha_id == request.auth.uid;
       allow delete: if isSupervisor();
     }
 
-    // Beneficiaries: subcollection or top-level, strictly guarded
+    // Beneficiaries: subcollection or top-level, strictly guarded clinical records
     match /beneficiaries/{beneficiaryId} {
-      allow read: if isAshaWorker();
+      allow read: if isAshaWorker() || 
+        (isCommunityMember() && resource.data.household_id == request.auth.token.household_id);
       allow create, update: if isAshaWorker();
       allow delete: if isSupervisor();
     }

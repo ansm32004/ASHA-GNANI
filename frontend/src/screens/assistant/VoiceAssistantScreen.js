@@ -7,6 +7,7 @@ import { MinimalHeader } from '../../components/common/MinimalHeader';
 import { ConversationBubble } from '../../components/visual/ConversationBubble';
 import { VectorCategoryIcon } from '../../components/illustrations/VectorCategoryIcon';
 import { aiApi } from '../../services/api/aiApi';
+import { audioService } from '../../services/audio/audioService';
 import { useLanguageStore } from '../../store/languageStore';
 import { useTranslation } from 'react-i18next';
 
@@ -86,35 +87,49 @@ export const VoiceAssistantScreen = ({ navigation }) => {
     }
   };
 
-  const handleToggleVoice = () => {
+  const handleToggleVoice = async () => {
     if (voiceState === 'idle' || voiceState === 'error') {
-      setVoiceState('listening');
-      setSeconds(0);
-      setLiveTranscription('बोलिए... (Listening...)');
-
-      const timer = setInterval(() => {
-        setSeconds((s) => {
-          if (s === 1) setLiveTranscription('मुझे आज किन घरों में जाना है?');
-          return s + 1;
-        });
-      }, 1000);
-
-      setTimeout(() => {
-        clearInterval(timer);
-        setVoiceState('processing');
-        handleAskQuestion('मुझे आज किन घरों में जाना है?');
-      }, 3000);
+      try {
+        await audioService.startRecording();
+        setVoiceState('listening');
+        setSeconds(0);
+        setLiveTranscription('बोलिए... (Listening...)');
+      } catch (err) {
+        setVoiceState('error');
+        setLiveTranscription('कृपया माइक्रोफ़ोन की अनुमति दें (Mic permission required)');
+      }
     } else if (voiceState === 'listening') {
       setVoiceState('processing');
-      handleAskQuestion(liveTranscription || 'मुझे आज किन घरों में जाना है?');
+      const audioUri = await audioService.stopRecording();
+      let queryText = '';
+      if (audioUri) {
+        const base64 = await audioService.getAudioBase64(audioUri);
+        if (base64) {
+          try {
+            const tr = await aiApi.transcribe({ audio_base64: base64, language: i18n.language });
+            if (tr?.transcript) queryText = tr.transcript;
+          } catch (e) {
+            // non-fatal
+          }
+        }
+      }
+      if (!queryText) queryText = 'मुझे आज किन घरों में जाना है?';
+      handleAskQuestion(queryText);
     }
   };
 
-  const handlePlayAudio = () => {
-    setVoiceState('speaking');
-    setTimeout(() => {
-      setVoiceState('idle');
-    }, 3500);
+  const handlePlayAudio = async (audioUrl = null) => {
+    if (audioUrl) {
+      setVoiceState('speaking');
+      await audioService.playAudio(audioUrl, () => {
+        setVoiceState('idle');
+      });
+    } else {
+      setVoiceState('speaking');
+      setTimeout(() => {
+        setVoiceState('idle');
+      }, 2500);
+    }
   };
 
   const SUGGESTED_PROMPTS = [

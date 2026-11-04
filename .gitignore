@@ -1,0 +1,28 @@
+# Git Ignore for SAHAYIKA
+
+# Dependencies
+node_modules/
+.venv/
+
+# Expo and Build artifacts
+.expo/
+dist/
+web-build/
+/tmp/expo-dist/
+
+# Environment Variables
+.env
+.env.local
+.env*.local
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# OS and Editor
+.DS_Store
+Thumbs.db
+*.log
+

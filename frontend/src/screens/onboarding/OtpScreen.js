@@ -6,15 +6,15 @@ import { AppButton } from '../../components/common/AppButton';
 import { AppInput } from '../../components/common/AppInput';
 import { AppHeader } from '../../components/common/AppHeader';
 import { useAuthStore } from '../../store/authStore';
-import { apiClient } from '../../services/api/apiClient';
+import { authApi } from '../../services/api/authApi';
 import { useTranslation } from 'react-i18next';
 
 export const OtpScreen = ({ navigation, route }) => {
   const { t } = useTranslation();
   const { sessionId = 'demo_session', phone = '9876543210' } = route.params || {};
-  const { setAuth, loginDemoUser } = useAuthStore();
+  const { setSession, loginDemoAsha } = useAuthStore();
 
-  const [otp, setOtp] = useState('123456');
+  const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -27,18 +27,20 @@ export const OtpScreen = ({ navigation, route }) => {
     setLoading(true);
 
     try {
-      const res = await apiClient.post('/auth/verify', {
-        session_id: sessionId,
-        phone_number: phone,
-        otp: otp
-      });
-      await setAuth(res.data.access_token, res.data.user);
+      const data = await authApi.verifyOtp(sessionId, phone, otp);
+      await setSession(data.access_token, data.user);
       setLoading(false);
       navigation.navigate('Permissions');
     } catch (e) {
-      await loginDemoUser();
-      setLoading(false);
-      navigation.navigate('Permissions');
+      // In dev fallback mode
+      if (__DEV__) {
+        await loginDemoAsha();
+        setLoading(false);
+        navigation.navigate('Permissions');
+      } else {
+        setLoading(false);
+        setError('Invalid or expired OTP. Please request a new code.');
+      }
     }
   };
 

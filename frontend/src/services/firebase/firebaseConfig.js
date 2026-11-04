@@ -1,7 +1,12 @@
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
+
 /**
- * Firebase Client Configuration Placeholder
- * Ready for connecting official Firebase Web/React Native SDK when credentials are provided.
- * No private service account keys are stored here.
+ * Firebase Client Configuration & Service Initialization
+ * Reads credentials securely from environment variables (EXPO_PUBLIC_FIREBASE_*).
+ * Automatically checks whether valid Firebase project credentials are provided.
  */
 export const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || "",
@@ -16,3 +21,14 @@ export const isFirebaseConfigured = () => {
   return Boolean(firebaseConfig.apiKey && firebaseConfig.apiKey.length > 5);
 };
 
+// Initialize Firebase App singleton safely
+export const firebaseApp = isFirebaseConfigured()
+  ? (getApps().length === 0 ? initializeApp(firebaseConfig) : getApp())
+  : null;
+
+// Export initialized services (or null if not configured)
+export const auth = firebaseApp ? getAuth(firebaseApp) : null;
+export const firestore = firebaseApp ? getFirestore(firebaseApp) : null;
+export const storage = firebaseApp ? getStorage(firebaseApp) : null;
+
+export default firebaseApp;

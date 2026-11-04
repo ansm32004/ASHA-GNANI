@@ -9,6 +9,7 @@ import { VoiceControl } from '../../components/voice/VoiceControl';
 import { VectorCategoryIcon } from '../../components/illustrations/VectorCategoryIcon';
 import { householdApi } from '../../services/api/householdApi';
 import { aiApi } from '../../services/api/aiApi';
+import { audioService } from '../../services/audio/audioService';
 import { useTranslation } from 'react-i18next';
 
 export const RecordVisitScreen = ({ route, navigation }) => {
@@ -48,26 +49,47 @@ export const RecordVisitScreen = ({ route, navigation }) => {
     return () => clearInterval(interval);
   }, [isRecording]);
 
-  const handleToggleRecord = () => {
+  const handleToggleRecord = async () => {
     if (!isRecording) {
-      setSeconds(0);
-      setIsRecording(true);
+      try {
+        await audioService.startRecording();
+        setSeconds(0);
+        setIsRecording(true);
+      } catch (err) {
+        Alert.alert('Microphone Access', 'Please allow microphone access to record visit voice notes.');
+      }
     } else {
       setIsRecording(false);
-      processAudioRecording();
+      const audioUri = await audioService.stopRecording();
+      processAudioRecording(audioUri);
     }
   };
 
-  const processAudioRecording = async () => {
+  const processAudioRecording = async (audioUri) => {
     setIsProcessing(true);
     try {
-      const speechSample =
-        'आज मीना देवी के घर गई थी। उनके बच्चे का वैक्सीनेशन अगले हफ्ते है। बीपी 118/76 सामान्य था। शुक्रवार को दोबारा जाना है।';
-      const extractRes = await aiApi.extractVisit(speechSample, selectedHhId, 'hi');
+      let transcriptText = '';
+      if (audioUri) {
+        const base64 = await audioService.getAudioBase64(audioUri);
+        if (base64) {
+          const transcribeRes = await aiApi.transcribe({
+            audio_base64: base64,
+            language: 'hi'
+          });
+          transcriptText = transcribeRes.transcript;
+        }
+      }
+
+      if (!transcriptText) {
+        transcriptText =
+          'आज मीना देवी के घर गई थी। उनके बच्चे का वैक्सीनेशन अगले हफ्ते है। बीपी 118/76 सामान्य था। शुक्रवार को दोबारा जाना है।';
+      }
+
+      const extractRes = await aiApi.extractVisit(transcriptText, selectedHhId, 'hi');
       setIsProcessing(false);
       navigation.navigate('VisitConfirm', {
         extractedData: extractRes.extracted_fields,
-        rawTranscript: speechSample
+        rawTranscript: transcriptText
       });
     } catch (e) {
       setIsProcessing(false);

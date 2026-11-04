@@ -1,6 +1,10 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { apiClient } from '../services/api/apiClient';
+import { secureStorage } from '../services/storage/secureStorage';
+import { authApi } from '../services/api/authApi';
+
+// Explicit development configuration for demo accounts
+const IS_DEMO_ENABLED = __DEV__ || process.env.EXPO_PUBLIC_ENABLE_DEMO_LOGIN === 'true';
 
 export const DEMO_ASHA_PROFILE = {
   id: 'asha_sunita_001',
@@ -69,7 +73,7 @@ export const DEMO_COMMUNITY_PROFILE = {
 };
 
 export const useAuthStore = create((set, get) => ({
-  user: DEMO_ASHA_PROFILE, // Default demo user
+  user: DEMO_ASHA_PROFILE, // Default active dev profile
   token: 'demo_token_asha_sunita_001',
   isAuthenticated: true,
   isLoading: false,
@@ -77,7 +81,8 @@ export const useAuthStore = create((set, get) => ({
 
   initializeAuth: async () => {
     try {
-      const storedToken = await AsyncStorage.getItem('@sahayika_token');
+      // Securely read JWT token from hardware-backed keystore
+      const storedToken = await secureStorage.getItem('@sahayika_token');
       const storedUser = await AsyncStorage.getItem('@sahayika_user');
 
       if (storedToken && storedUser) {
@@ -88,7 +93,8 @@ export const useAuthStore = create((set, get) => ({
           isOnboardingCompleted: true,
           isLoading: false
         });
-      } else {
+      } else if (IS_DEMO_ENABLED) {
+        // Dev convenience default
         set({
           user: DEMO_ASHA_PROFILE,
           token: 'demo_token_asha_sunita_001',
@@ -96,39 +102,45 @@ export const useAuthStore = create((set, get) => ({
           isOnboardingCompleted: true,
           isLoading: false
         });
+      } else {
+        set({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          isLoading: false
+        });
       }
     } catch (e) {
-      console.error('Error loading auth from storage', e);
+      console.warn('[authStore] Error restoring session:', e.message);
       set({ isLoading: false });
     }
   },
 
-  loginDemoAsha: async () => {
+  setSession: async (token, user) => {
     try {
-      const token = 'demo_token_asha_sunita_001';
-      const user = DEMO_ASHA_PROFILE;
-      await AsyncStorage.setItem('@sahayika_token', token);
-      await AsyncStorage.setItem('@sahayika_user', JSON.stringify(user));
-      await AsyncStorage.setItem('@sahayika_onboarded', 'true');
+      if (token) await secureStorage.setItem('@sahayika_token', token);
+      if (user) await AsyncStorage.setItem('@sahayika_user', JSON.stringify(user));
       set({
         token,
         user,
         isAuthenticated: true,
-        isOnboardingCompleted: true,
-        isLoading: false
+        isOnboardingCompleted: true
       });
       return true;
     } catch (e) {
-      console.error('Error logging in demo ASHA', e);
+      console.warn('[authStore] Error setting session:', e.message);
       return false;
     }
   },
 
-  loginDemoCommunity: async () => {
+  loginDemoAsha: async () => {
+    if (!IS_DEMO_ENABLED) {
+      return { success: false, error: 'Demo logins are disabled in production builds.' };
+    }
     try {
-      const token = 'demo_token_comm_meena_001';
-      const user = DEMO_COMMUNITY_PROFILE;
-      await AsyncStorage.setItem('@sahayika_token', token);
+      const token = 'demo_token_asha_sunita_001';
+      const user = DEMO_ASHA_PROFILE;
+      await secureStorage.setItem('@sahayika_token', token);
       await AsyncStorage.setItem('@sahayika_user', JSON.stringify(user));
       await AsyncStorage.setItem('@sahayika_onboarded', 'true');
       set({
@@ -138,55 +150,99 @@ export const useAuthStore = create((set, get) => ({
         isOnboardingCompleted: true,
         isLoading: false
       });
-      return true;
+      return { success: true, user };
     } catch (e) {
-      console.error('Error logging in demo community', e);
-      return false;
+      return { success: false, error: e.message };
+    }
+  },
+
+  loginDemoCommunity: async () => {
+    if (!IS_DEMO_ENABLED) {
+      return { success: false, error: 'Demo logins are disabled in production builds.' };
+    }
+    try {
+      const token = 'demo_token_comm_meena_001';
+      const user = DEMO_COMMUNITY_PROFILE;
+      await secureStorage.setItem('@sahayika_token', token);
+      await AsyncStorage.setItem('@sahayika_user', JSON.stringify(user));
+      await AsyncStorage.setItem('@sahayika_onboarded', 'true');
+      set({
+        token,
+        user,
+        isAuthenticated: true,
+        isOnboardingCompleted: true,
+        isLoading: false
+      });
+      return { success: true, user };
+    } catch (e) {
+      return { success: false, error: e.message };
     }
   },
 
   loginWithCredentials: async (email, password) => {
     try {
       const cleanEmail = (email || '').trim().toLowerCase();
+      if (!password) {
+        return { success: false, error: 'Password is required' };
+      }
+
+      // 1. Attempt remote backend authentication
       try {
-        const res = await apiClient.post('/auth/login-credentials', {
-          email: cleanEmail,
-          password: password || 'Sahayika@123'
-        });
-        if (res.data?.user) {
-          const user = res.data.user;
-          const token = res.data.access_token || 'demo_token';
-          await AsyncStorage.setItem('@sahayika_token', token);
-          await AsyncStorage.setItem('@sahayika_user', JSON.stringify(user));
+        const res = await authApi.loginWithCredentials(cleanEmail, password);
+        if (res?.user && res?.access_token) {
+          await secureStorage.setItem('@sahayika_token', res.access_token);
+          await AsyncStorage.setItem('@sahayika_user', JSON.stringify(res.user));
           set({
-            token,
-            user,
+            token: res.access_token,
+            user: res.user,
             isAuthenticated: true,
             isOnboardingCompleted: true
           });
-          return { success: true, user };
+          return { success: true, user: res.user };
         }
       } catch (apiErr) {
-        // Fallback to local profile check
+        // Backend failed or unreachable
       }
 
-      // Local credential check
-      if (cleanEmail === 'community.demo@sahayika.test' || cleanEmail.includes('community')) {
-        await get().loginDemoCommunity();
-        return { success: true, user: DEMO_COMMUNITY_PROFILE };
-      } else {
-        await get().loginDemoAsha();
-        return { success: true, user: DEMO_ASHA_PROFILE };
+      // 2. Demo fallback strictly in development mode
+      if (IS_DEMO_ENABLED) {
+        if (cleanEmail === 'community.demo@sahayika.test' || cleanEmail.includes('community')) {
+          return await get().loginDemoCommunity();
+        } else if (cleanEmail === 'asha.demo@sahayika.test' || cleanEmail.includes('asha')) {
+          return await get().loginDemoAsha();
+        }
       }
+
+      return { success: false, error: 'Invalid credentials or server unreachable' };
     } catch (e) {
-      console.error('Credentials login error', e);
       return { success: false, error: e.message };
     }
   },
 
   logout: async () => {
-    await AsyncStorage.removeItem('@sahayika_token');
-    await AsyncStorage.removeItem('@sahayika_user');
+    try {
+      await authApi.logout();
+    } catch (e) {
+      // Non-blocking
+    }
+
+    // 1. Purge secure credentials
+    await secureStorage.deleteItem('@sahayika_token');
+
+    // 2. Purge private user records to prevent cross-role data leaks on shared devices
+    const privateKeys = [
+      '@sahayika_user',
+      '@sahayika_households',
+      '@sahayika_visits',
+      '@sahayika_tasks',
+      '@sahayika_requests',
+      '@sahayika_claims',
+      '@sahayika_notifications'
+    ];
+    await AsyncStorage.multiRemove(privateKeys);
+
+    // NOTE: @sahayika_offline_queue is intentionally preserved so un-synced offline records are not lost.
+
     set({
       user: null,
       token: null,
