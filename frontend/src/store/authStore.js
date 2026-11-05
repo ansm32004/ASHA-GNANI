@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { secureStorage } from '../services/storage/secureStorage';
 import { authApi } from '../services/api/authApi';
+import { notificationService } from '../services/notifications/notificationService';
 
 // Explicit development configuration for demo accounts
 const IS_DEMO_ENABLED = __DEV__ || process.env.EXPO_PUBLIC_ENABLE_DEMO_LOGIN === 'true';
@@ -93,6 +94,7 @@ export const useAuthStore = create((set, get) => ({
           isOnboardingCompleted: true,
           isLoading: false
         });
+        notificationService.registerForPushNotificationsAsync().catch(() => {});
       } else if (IS_DEMO_ENABLED) {
         // Dev convenience default
         set({
@@ -126,6 +128,7 @@ export const useAuthStore = create((set, get) => ({
         isAuthenticated: true,
         isOnboardingCompleted: true
       });
+      notificationService.registerForPushNotificationsAsync().catch(() => {});
       return true;
     } catch (e) {
       console.warn('[authStore] Error setting session:', e.message);
@@ -150,6 +153,7 @@ export const useAuthStore = create((set, get) => ({
         isOnboardingCompleted: true,
         isLoading: false
       });
+      notificationService.registerForPushNotificationsAsync().catch(() => {});
       return { success: true, user };
     } catch (e) {
       return { success: false, error: e.message };
@@ -173,6 +177,7 @@ export const useAuthStore = create((set, get) => ({
         isOnboardingCompleted: true,
         isLoading: false
       });
+      notificationService.registerForPushNotificationsAsync().catch(() => {});
       return { success: true, user };
     } catch (e) {
       return { success: false, error: e.message };
@@ -182,11 +187,10 @@ export const useAuthStore = create((set, get) => ({
   loginWithCredentials: async (email, password) => {
     try {
       const cleanEmail = (email || '').trim().toLowerCase();
-      if (!password) {
-        return { success: false, error: 'Password is required' };
+      if (!cleanEmail || !password) {
+        return { success: false, error: 'Email and password are required' };
       }
 
-      // 1. Attempt remote backend authentication
       try {
         const res = await authApi.loginWithCredentials(cleanEmail, password);
         if (res?.user && res?.access_token) {
@@ -196,37 +200,118 @@ export const useAuthStore = create((set, get) => ({
             token: res.access_token,
             user: res.user,
             isAuthenticated: true,
-            isOnboardingCompleted: true
+            isOnboardingCompleted: true,
+            isLoading: false
           });
+          notificationService.registerForPushNotificationsAsync().catch(() => {});
           return { success: true, user: res.user };
         }
+        return { success: false, error: 'Unexpected response from server' };
       } catch (apiErr) {
-        // Backend failed or unreachable
-      }
+        const serverMsg =
+          apiErr.response?.data?.message ||
+          apiErr.response?.data?.detail?.message ||
+          (typeof apiErr.response?.data?.detail === 'string' ? apiErr.response?.data?.detail : null);
 
-      // 2. Demo fallback strictly in development mode
-      if (IS_DEMO_ENABLED) {
-        if (cleanEmail === 'community.demo@sahayika.test' || cleanEmail.includes('community')) {
-          return await get().loginDemoCommunity();
-        } else if (cleanEmail === 'asha.demo@sahayika.test' || cleanEmail.includes('asha')) {
-          return await get().loginDemoAsha();
+        if (serverMsg) {
+          return { success: false, error: serverMsg };
         }
+
+        if (apiErr.response?.status === 401) {
+          return { success: false, error: 'Invalid email or password.' };
+        }
+
+        if (apiErr.response?.status >= 500) {
+          return { success: false, error: 'Authentication service temporarily unavailable. Please try again.' };
+        }
+
+        if (apiErr.isNetworkError || !apiErr.response) {
+          return {
+            success: false,
+            error: apiErr.userFriendlyMessage || 'Cannot connect to SAHAYIKA server. Please verify your connection.'
+          };
+        }
+
+        return { success: false, error: apiErr.message || 'Authentication failed. Please check credentials.' };
+      }
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  },
+
+  register: async (registrationData) => {
+    try {
+      if (!registrationData?.email || !registrationData?.password) {
+        return { success: false, error: 'Email and password are required' };
       }
 
-      return { success: false, error: 'Invalid credentials or server unreachable' };
+      try {
+        const res = await authApi.register(registrationData);
+        if (res?.user && res?.access_token) {
+          await secureStorage.setItem('@sahayika_token', res.access_token);
+          await AsyncStorage.setItem('@sahayika_user', JSON.stringify(res.user));
+          set({
+            token: res.access_token,
+            user: res.user,
+            isAuthenticated: true,
+            isOnboardingCompleted: true,
+            isLoading: false
+          });
+          notificationService.registerForPushNotificationsAsync().catch(() => {});
+          return { success: true, user: res.user };
+        }
+        return { success: false, error: 'Unexpected registration response from server' };
+      } catch (apiErr) {
+        const serverMsg =
+          apiErr.response?.data?.message ||
+          apiErr.response?.data?.detail?.message ||
+          (typeof apiErr.response?.data?.detail === 'string' ? apiErr.response?.data?.detail : null);
+
+        if (serverMsg) {
+          return { success: false, error: serverMsg };
+        }
+
+        if (apiErr.response?.status === 409) {
+          return { success: false, error: 'An account with this email address already exists. Please sign in instead.' };
+        }
+
+        if (apiErr.response?.status === 422) {
+          return { success: false, error: 'Please check your input fields and try again.' };
+        }
+
+        if (apiErr.response?.status >= 500) {
+          return { success: false, error: 'Registration service temporarily unavailable. Please try again.' };
+        }
+
+        if (apiErr.isNetworkError || !apiErr.response) {
+          return {
+            success: false,
+            error: apiErr.userFriendlyMessage || 'Cannot connect to SAHAYIKA server. Please verify your connection.'
+          };
+        }
+
+        return { success: false, error: apiErr.message || 'Registration failed.' };
+      }
     } catch (e) {
       return { success: false, error: e.message };
     }
   },
 
   logout: async () => {
+    // 1. Unregister device token with backend before wiping credentials
+    try {
+      await notificationService.unregisterPushNotificationsAsync();
+    } catch (e) {
+      // Non-blocking
+    }
+
     try {
       await authApi.logout();
     } catch (e) {
       // Non-blocking
     }
 
-    // 1. Purge secure credentials
+    // 2. Purge secure credentials
     await secureStorage.deleteItem('@sahayika_token');
 
     // 2. Purge private user records to prevent cross-role data leaks on shared devices

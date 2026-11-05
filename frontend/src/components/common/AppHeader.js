@@ -27,6 +27,7 @@ export const AppHeader = ({
             style={styles.backButton}
             accessibilityLabel="Back"
             activeOpacity={0.7}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
             <Ionicons name="arrow-back" size={20} color={colors.textPrimary} />
           </TouchableOpacity>

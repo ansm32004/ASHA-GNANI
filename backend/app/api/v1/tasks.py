@@ -61,3 +61,11 @@ def reschedule_task(task_id: str, payload: RescheduleTaskRequest, current_user: 
     """
     return task_service.reschedule_task(task_id, payload.new_due_date, payload.notes)
 
+@router.delete("/{task_id}")
+def delete_task(task_id: str, current_user: str = Depends(get_current_user_id)):
+    """
+    Delete a scheduled task.
+    """
+    task_service.delete_task(task_id)
+    return {"message": "Task deleted successfully", "id": task_id}
+

@@ -1,3 +1,4 @@
+import firebaseApp from './src/services/firebase/firebaseConfig';
 import React, { useEffect } from 'react';
 import { StyleSheet, View, Platform, StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
@@ -8,7 +9,9 @@ import { RootNavigator } from './src/navigation/RootNavigator';
 import { useLanguageStore } from './src/store/languageStore';
 import { useAppStore } from './src/store/appStore';
 import { colors } from './src/theme';
+import { notificationService } from './src/services/notifications/notificationService';
 import './src/localisation'; // initialize i18n
+
 
 export default function App() {
   const [fontsLoaded] = useFonts(Ionicons.font);
@@ -19,8 +22,18 @@ export default function App() {
     initializeLanguage();
     loadOfflineQueue();
     const unsubscribeNet = initializeNetworkListener();
+    const unsubscribeNotifications = notificationService.initialize(
+      (notification) => {
+        console.log('[App] Foreground alert received:', notification?.request?.content?.title);
+      },
+      (response) => {
+        console.log('[App] Notification tapped by user:', response?.notification?.request?.content?.title);
+      }
+    );
+
     return () => {
       if (typeof unsubscribeNet === 'function') unsubscribeNet();
+      if (typeof unsubscribeNotifications === 'function') unsubscribeNotifications();
     };
   }, []);
 

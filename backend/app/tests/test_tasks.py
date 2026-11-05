@@ -30,39 +30,53 @@ async def test_task_operations():
 
 @pytest.mark.asyncio
 async def test_claims_simulation():
+    from app.repositories.claim_repository import claim_repo
+    claim_id = "claim_2026_november_2026"
+    claim_repo.delete(claim_id)
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        # 1. Prepare draft claim for November 2026
-        prep_res = await ac.post("/api/v1/claims/prepare", json={"month": "November 2026"})
-        assert prep_res.status_code == 200
-        claim = prep_res.json()
-        assert claim["status"] == "Draft"
-        assert claim["total_estimated_amount"] > 0
-        claim_id = claim["id"]
+        try:
+            # 1. Prepare draft claim for November 2026
+            prep_res = await ac.post("/api/v1/claims/prepare", json={"month": "November 2026"})
+            assert prep_res.status_code == 200
+            claim = prep_res.json()
+            assert claim["status"] == "Draft"
+            assert claim["total_estimated_amount"] > 0
+            claim_id = claim["id"]
 
-        # 2. Submit claim to simulated supervisor
-        sub_res = await ac.post(f"/api/v1/claims/{claim_id}/submit")
-        assert sub_res.status_code == 200
-        assert sub_res.json()["status"] == "Submitted for Review"
+            # 2. Submit claim to simulated supervisor
+            sub_res = await ac.post(f"/api/v1/claims/{claim_id}/submit")
+            assert sub_res.status_code == 200
+            assert sub_res.json()["status"] == "Submitted for Review"
+        finally:
+            claim_repo.delete(claim_id)
 
 @pytest.mark.asyncio
 async def test_sos_simulation():
+    from app.repositories.sos_repository import sos_repo
+    created_id = None
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        # Trigger safe simulated emergency alert
-        sos_res = await ac.post("/api/v1/sos", json={
-            "household_id": "hh_001",
-            "emergency_type": "Immediate Emergency",
-            "description": "Simulation test: High fever and severe dehydration in infant",
-            "consent_given": True
-        })
-        assert sos_res.status_code == 201
-        event = sos_res.json()
-        assert event["call_112_initiated"] is True
-        assert event["status"] == "Triggered"
+        try:
+            # Trigger safe simulated emergency alert
+            sos_res = await ac.post("/api/v1/sos", json={
+                "household_id": "hh_001",
+                "emergency_type": "Immediate Emergency",
+                "description": "Simulation test: High fever and severe dehydration in infant",
+                "consent_given": True
+            })
+            assert sos_res.status_code == 201
+            event = sos_res.json()
+            created_id = event["id"]
+            assert event["call_112_initiated"] is True
+            assert event["status"] == "Triggered"
 
-        # Acknowledge
-        ack_res = await ac.post(f"/api/v1/sos/{event['id']}/acknowledge", json={"notes": "ASHA on way with ORS"})
-        assert ack_res.status_code == 200
-        assert ack_res.json()["status"] == "Acknowledged"
+            # Acknowledge
+            ack_res = await ac.post(f"/api/v1/sos/{event['id']}/acknowledge", json={"notes": "ASHA on way with ORS"})
+            assert ack_res.status_code == 200
+            assert ack_res.json()["status"] == "Acknowledged"
+        finally:
+            if created_id and sos_repo._firestore.is_connected:
+                sos_repo._firestore.delete(created_id)
+                sos_repo._events = [e for e in sos_repo._events if e.get("id") != created_id]
 

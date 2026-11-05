@@ -27,6 +27,8 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Initializing SAHAYIKA Backend...")
     firebase_manager.initialize()
+    from app.repositories.user_repository import user_repository
+    user_repository._ensure_initialized()
     asyncio.create_task(reminder_worker.start(interval_seconds=3600))
     asyncio.create_task(sync_worker.start(interval_seconds=300))
     yield

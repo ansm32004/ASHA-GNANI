@@ -4,11 +4,13 @@ import { useAuthStore } from '../store/authStore';
 
 // Onboarding & Auth Screens
 import { LoginScreen } from '../screens/onboarding/LoginScreen';
+import { SignupScreen } from '../screens/onboarding/SignupScreen';
 import { OtpScreen } from '../screens/onboarding/OtpScreen';
 import { SplashScreen } from '../screens/onboarding/SplashScreen';
 import { WelcomeScreen } from '../screens/onboarding/WelcomeScreen';
 import { LanguageScreen } from '../screens/onboarding/LanguageScreen';
 import { PermissionsScreen } from '../screens/onboarding/PermissionsScreen';
+
 
 // Phase 1: ASHA Worker App Navigation
 import { MainTabNavigator } from './MainTabNavigator';
@@ -41,6 +43,7 @@ export const RootNavigator = () => {
         // Unauthenticated Stack (Login & Onboarding)
         <Stack.Group>
           <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Signup" component={SignupScreen} />
           <Stack.Screen name="OtpVerification" component={OtpScreen} />
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
           <Stack.Screen name="LanguageSelection" component={LanguageScreen} />

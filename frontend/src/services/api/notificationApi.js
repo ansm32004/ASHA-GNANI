@@ -74,6 +74,25 @@ export const notificationApi = {
       const updated = list.map(n => ({ ...n, is_read: true }));
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     }
+  },
+
+  registerDeviceToken: async (token, platform = 'android') => {
+    try {
+      const res = await apiClient.post('/notifications/device-token', { token, platform });
+      return res.data;
+    } catch (e) {
+      console.log('Device token registration warning:', e.message);
+      return null;
+    }
+  },
+
+  unregisterDeviceToken: async () => {
+    try {
+      const res = await apiClient.delete('/notifications/device-token');
+      return res.data;
+    } catch (e) {
+      return null;
+    }
   }
 };
 

@@ -18,18 +18,24 @@ class HouseholdService:
             raise NotFoundException("Household", household_id)
         return hh
 
-    def create_household(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def create_household(self, data: Dict[str, Any], asha_id: Optional[str] = None) -> Dict[str, Any]:
         if not data.get("primary_contact_name"):
             raise ValidationException("Primary contact name is required")
         if not data.get("contact_number"):
             raise ValidationException("Contact number is required")
-        return household_repo.create(data)
+        return household_repo.create(data, asha_id=asha_id)
 
     def update_household(self, household_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         updated = household_repo.update(household_id, data)
         if not updated:
             raise NotFoundException("Household", household_id)
         return updated
+
+    def delete_household(self, household_id: str) -> bool:
+        deleted = household_repo.delete(household_id)
+        if not deleted:
+            raise NotFoundException("Household", household_id)
+        return True
 
 household_service = HouseholdService()
 

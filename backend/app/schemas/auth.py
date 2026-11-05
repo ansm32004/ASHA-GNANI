@@ -10,6 +10,32 @@ class CredentialsLoginRequest(BaseModel):
     password: str = Field("Sahayika@123", description="Password")
     role: Optional[str] = Field(None, description="ASHA or COMMUNITY")
 
+class RegisterRequest(BaseModel):
+    role: str = Field(..., description="Role: ASHA or COMMUNITY")
+    name: str = Field(..., min_length=2, description="Full Name")
+    email: str = Field(..., description="Email address")
+    phone: str = Field(..., min_length=10, max_length=15, description="Phone number")
+    password: str = Field(..., min_length=8, description="Password (min 8 chars)")
+    
+    # Common demographics
+    dob: Optional[str] = Field(None, description="Date of birth")
+    gender: Optional[str] = Field(None, description="Gender")
+    address: Optional[str] = Field(None, description="Street address")
+    state: str = Field(default="Uttar Pradesh", description="State")
+    district: str = Field(default="Varanasi", description="District")
+    village_name: str = Field(..., description="Village / Assigned Area")
+    
+    # ASHA-specific fields
+    asha_id: Optional[str] = Field(None, description="ASHA Worker ID / Badge ID")
+    block: Optional[str] = Field(None, description="Block / Sub-district")
+    sub_centre: Optional[str] = Field(None, description="Sub-Centre name")
+    phc_name: Optional[str] = Field(None, description="Primary Health Centre")
+    
+    # Community-specific fields
+    household_code: Optional[str] = Field(None, description="Household Code or Family ID")
+    sub_area: Optional[str] = Field(None, description="Ward or Sub-area")
+
+
 class LoginResponse(BaseModel):
     session_id: str
     message: str

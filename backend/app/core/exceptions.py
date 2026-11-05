@@ -21,3 +21,8 @@ class ValidationException(SahayikaException):
     def __init__(self, message: str, errors: dict = None):
         super().__init__(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, message=message, details=errors)
 
+class ConflictException(SahayikaException):
+    def __init__(self, message: str = "A resource with these details already exists"):
+        super().__init__(status_code=status.HTTP_409_CONFLICT, message=message)
+
+

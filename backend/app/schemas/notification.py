@@ -13,3 +13,18 @@ class NotificationResponse(BaseModel):
     action_id: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
 
+class DeviceTokenRegisterRequest(BaseModel):
+    token: str
+    platform: Optional[str] = "android"
+
+class TestPushRequest(BaseModel):
+    title: Optional[str] = "SAHAYIKA Test Alert"
+    body: Optional[str] = "This is a test notification from SAHAYIKA Cloud Messaging."
+    data: Optional[Dict[str, str]] = None
+
+class TestPushResponse(BaseModel):
+    status: str
+    delivered: bool
+    message: str
+    recipient_id: str
+    token_used: Optional[str] = None

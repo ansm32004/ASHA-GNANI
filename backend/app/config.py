@@ -30,6 +30,13 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: List[str] = ["*"]
 
-    model_config = {"env_file": ".env", "case_sensitive": True}
+    model_config = {
+        "env_file": [
+            ".env",
+            str(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"))
+        ],
+        "case_sensitive": True,
+        "extra": "ignore"
+    }
 
 settings = Settings()

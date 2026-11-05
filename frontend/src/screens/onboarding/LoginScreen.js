@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert, BackHandler } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius, shadows } from '../../theme';
 import { AppButton } from '../../components/common/AppButton';
@@ -11,14 +11,32 @@ import { useTranslation } from 'react-i18next';
 
 export const LoginScreen = ({ navigation }) => {
   const { t } = useTranslation();
-  const { loginDemoAsha, loginDemoCommunity, loginWithCredentials } = useAuthStore();
+  const { loginDemoAsha, loginDemoCommunity, loginWithCredentials, register } = useAuthStore();
 
-  const [loginMode, setLoginMode] = useState('demo'); // 'demo' | 'credentials' | 'otp'
+  const [formMode, setFormMode] = useState('signin'); // 'signin' | 'signup'
+  const [signupRole, setSignupRole] = useState('ASHA'); // 'ASHA' | 'COMMUNITY'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('9876543210');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // In-place signup fields
+  const [signupName, setSignupName] = useState('');
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupPhone, setSignupPhone] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
+  const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
+  const [signupDob, setSignupDob] = useState('');
+  const [signupGender, setSignupGender] = useState('Female');
+  const [signupAddress, setSignupAddress] = useState('');
+  const [signupState, setSignupState] = useState('Uttar Pradesh');
+  const [signupDistrict, setSignupDistrict] = useState('Varanasi');
+  const [signupVillageName, setSignupVillageName] = useState('Rampur Kalan');
+  const [signupAshaId, setSignupAshaId] = useState('');
+  const [signupBlock, setSignupBlock] = useState('Kashi Block');
+  const [signupHouseholdCode, setSignupHouseholdCode] = useState('');
+  const [signupSubArea, setSignupSubArea] = useState('');
 
   const handleDemoAshaLogin = async () => {
     setLoading(true);
@@ -47,6 +65,68 @@ export const LoginScreen = ({ navigation }) => {
     }
   };
 
+  const handleSignup = async () => {
+    if (!signupName.trim()) {
+      setError('Please enter your full name.');
+      return;
+    }
+    if (!signupEmail.trim() || !/\S+@\S+\.\S+/.test(signupEmail.trim())) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+    const cleanPhone = signupPhone.replace(/\D/g, '');
+    if (cleanPhone.length !== 10) {
+      setError('Please enter a valid 10-digit Indian mobile number.');
+      return;
+    }
+    if (!signupVillageName.trim()) {
+      setError('Please specify your village or assigned area.');
+      return;
+    }
+    if (!signupPassword || signupPassword.length < 8) {
+      setError('Password must be at least 8 characters long.');
+      return;
+    }
+    if (signupPassword !== signupConfirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    setError(null);
+    setLoading(true);
+
+    const payload = {
+      role: signupRole,
+      name: signupName.trim(),
+      email: signupEmail.trim().toLowerCase(),
+      phone: cleanPhone,
+      password: signupPassword,
+      dob: signupDob.trim() || undefined,
+      gender: signupGender,
+      address: signupAddress.trim() || undefined,
+      state: signupState.trim() || 'Uttar Pradesh',
+      district: signupDistrict.trim() || 'Varanasi',
+      village_name: signupVillageName.trim(),
+      ...(signupRole === 'ASHA'
+        ? {
+            asha_id: signupAshaId.trim() || undefined,
+            block: signupBlock.trim() || undefined
+          }
+        : {
+            household_code: signupHouseholdCode.trim() || undefined,
+            sub_area: signupSubArea.trim() || undefined
+          })
+    };
+
+    const res = await register(payload);
+    setLoading(false);
+
+    if (!res.success) {
+      setError(res.error || 'Registration failed. Please check details.');
+    }
+  };
+
+
   const handleRequestOtp = async () => {
     const clean = phone.trim().replace(/\D/g, '');
     if (clean.length !== 10) {
@@ -72,9 +152,36 @@ export const LoginScreen = ({ navigation }) => {
     }
   };
 
+  useEffect(() => {
+    const onBackPress = () => {
+      if (formMode === 'signup') {
+        setFormMode('signin');
+        setError(null);
+        return true;
+      }
+      return false;
+    };
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => subscription.remove();
+  }, [formMode]);
+
+  const handleHeaderBack = () => {
+    if (formMode === 'signup') {
+      setFormMode('signin');
+      setError(null);
+      return;
+    }
+    if (navigation?.canGoBack && navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate('Welcome');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <AppHeader title="SAHAYIKA Access" showBack onBack={() => navigation.goBack()} />
+      <AppHeader title="SAHAYIKA Access" showBack onBack={handleHeaderBack} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -143,41 +250,322 @@ export const LoginScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
-          {/* Credentials Sign In Card */}
+          {/* Credentials Card (In-place Sign In or Sign Up Form) */}
           <View style={styles.formCard}>
-            <Text style={styles.formCardTitle}>Or Sign In with Credentials</Text>
+            <Text style={styles.formCardTitle}>
+              {formMode === 'signin' ? 'Or Sign In with Credentials' : 'Create New Account'}
+            </Text>
+
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-            <AppInput
-              label="Email Address"
-              placeholder="e.g. asha.demo@sahayika.test"
-              value={email}
-              onChangeText={(v) => {
-                setEmail(v);
-                setError(null);
-              }}
-              autoCapitalize="none"
-              keyboardType="email-address"
-            />
+            {formMode === 'signin' ? (
+              <>
+                <AppInput
+                  label="Email Address"
+                  placeholder="e.g. asha.demo@sahayika.test"
+                  value={email}
+                  onChangeText={(v) => {
+                    setEmail(v);
+                    setError(null);
+                  }}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                />
 
-            <AppInput
-              label="Password"
-              placeholder="Enter password"
-              value={password}
-              onChangeText={(v) => {
-                setPassword(v);
-                setError(null);
-              }}
-              secureTextEntry
-            />
+                <AppInput
+                  label="Password"
+                  placeholder="Enter password"
+                  value={password}
+                  onChangeText={(v) => {
+                    setPassword(v);
+                    setError(null);
+                  }}
+                  secureTextEntry
+                />
 
-            <AppButton
-              title="Sign In with Email"
-              onPress={handleCredentialsLogin}
-              loading={loading}
-              size="large"
-              style={{ marginTop: spacing.sm }}
-            />
+                <AppButton
+                  title="Sign In with Email"
+                  onPress={handleCredentialsLogin}
+                  loading={loading}
+                  size="large"
+                  style={{ marginTop: spacing.sm }}
+                />
+
+                <View style={styles.signupPromptRow}>
+                  <Text style={styles.signupPromptText}>Don't have an account? </Text>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setFormMode('signup');
+                      setError(null);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.signupLinkText}>Sign Up</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            ) : (
+              <>
+                {/* Role Tabs for in-place signup */}
+                <View style={styles.roleSelector}>
+                  <TouchableOpacity
+                    style={[
+                      styles.roleTab,
+                      signupRole === 'ASHA' && [
+                        styles.roleTabActive,
+                        { borderColor: colors.primary, backgroundColor: colors.primaryLight }
+                      ]
+                    ]}
+                    onPress={() => {
+                      setSignupRole('ASHA');
+                      setError(null);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons
+                      name="clipboard-outline"
+                      size={16}
+                      color={signupRole === 'ASHA' ? colors.primary : colors.textMuted}
+                    />
+                    <Text
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.8}
+                      style={[
+                        styles.roleTabText,
+                        signupRole === 'ASHA' && { color: colors.primary, fontWeight: '700' }
+                      ]}
+                    >
+                      ASHA Worker
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.roleTab,
+                      signupRole === 'COMMUNITY' && [
+                        styles.roleTabActive,
+                        { borderColor: colors.teal, backgroundColor: colors.tealLight }
+                      ]
+                    ]}
+                    onPress={() => {
+                      setSignupRole('COMMUNITY');
+                      setError(null);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons
+                      name="heart-outline"
+                      size={16}
+                      color={signupRole === 'COMMUNITY' ? colors.teal : colors.textMuted}
+                    />
+                    <Text
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.8}
+                      style={[
+                        styles.roleTabText,
+                        signupRole === 'COMMUNITY' && { color: colors.teal, fontWeight: '700' }
+                      ]}
+                    >
+                      Community Member
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.formCardHeader}>
+                  <View
+                    style={[
+                      styles.badgePill,
+                      { backgroundColor: signupRole === 'ASHA' ? colors.primaryLight : colors.tealLight }
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.badgeText,
+                        { color: signupRole === 'ASHA' ? colors.primary : colors.teal }
+                      ]}
+                    >
+                      {signupRole === 'ASHA'
+                        ? 'ASHA WORKER REGISTRATION'
+                        : 'COMMUNITY MEMBER REGISTRATION'}
+                    </Text>
+                  </View>
+                </View>
+
+                <AppInput
+                  label="Full Name *"
+                  placeholder="e.g. Sunita Devi"
+                  value={signupName}
+                  onChangeText={(v) => {
+                    setSignupName(v);
+                    setError(null);
+                  }}
+                />
+
+                <AppInput
+                  label="Email Address *"
+                  placeholder="e.g. name@example.com"
+                  value={signupEmail}
+                  onChangeText={(v) => {
+                    setSignupEmail(v);
+                    setError(null);
+                  }}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                />
+
+                <AppInput
+                  label="10-Digit Mobile Number *"
+                  placeholder="e.g. 9876543210"
+                  value={signupPhone}
+                  onChangeText={(v) => {
+                    setSignupPhone(v);
+                    setError(null);
+                  }}
+                  keyboardType="phone-pad"
+                  maxLength={10}
+                />
+
+                <View style={styles.rowInputs}>
+                  <View style={{ flex: 1, marginRight: 6 }}>
+                    <AppInput
+                      label="Date of Birth"
+                      placeholder="YYYY-MM-DD"
+                      value={signupDob}
+                      onChangeText={setSignupDob}
+                    />
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 6 }}>
+                    <AppInput
+                      label="Gender"
+                      placeholder="Female / Male"
+                      value={signupGender}
+                      onChangeText={setSignupGender}
+                    />
+                  </View>
+                </View>
+
+                {signupRole === 'ASHA' ? (
+                  <>
+                    <AppInput
+                      label="ASHA Worker ID / Badge"
+                      placeholder="e.g. ASHA-UP-VNS-2026-001"
+                      value={signupAshaId}
+                      onChangeText={setSignupAshaId}
+                    />
+                    <AppInput
+                      label="Block / Sub-District"
+                      placeholder="e.g. Kashi Block"
+                      value={signupBlock}
+                      onChangeText={setSignupBlock}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <AppInput
+                      label="Household / Family Code"
+                      placeholder="e.g. HH-RK-042"
+                      value={signupHouseholdCode}
+                      onChangeText={setSignupHouseholdCode}
+                    />
+                    <AppInput
+                      label="Ward / Sub-Area"
+                      placeholder="e.g. Ward 3, Near Primary School"
+                      value={signupSubArea}
+                      onChangeText={setSignupSubArea}
+                    />
+                  </>
+                )}
+
+                <AppInput
+                  label="Village / Assigned Area *"
+                  placeholder="e.g. Rampur Kalan"
+                  value={signupVillageName}
+                  onChangeText={(v) => {
+                    setSignupVillageName(v);
+                    setError(null);
+                  }}
+                />
+
+                <View style={styles.rowInputs}>
+                  <View style={{ flex: 1, marginRight: 6 }}>
+                    <AppInput
+                      label="District"
+                      placeholder="District"
+                      value={signupDistrict}
+                      onChangeText={setSignupDistrict}
+                    />
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 6 }}>
+                    <AppInput
+                      label="State"
+                      placeholder="State"
+                      value={signupState}
+                      onChangeText={setSignupState}
+                    />
+                  </View>
+                </View>
+
+                <AppInput
+                  label="Street Address"
+                  placeholder="House number, street or landmark"
+                  value={signupAddress}
+                  onChangeText={setSignupAddress}
+                />
+
+                <AppInput
+                  label="Password (min 8 characters) *"
+                  placeholder="Create strong password"
+                  value={signupPassword}
+                  onChangeText={(v) => {
+                    setSignupPassword(v);
+                    setError(null);
+                  }}
+                  secureTextEntry
+                />
+
+                <AppInput
+                  label="Confirm Password *"
+                  placeholder="Re-enter password"
+                  value={signupConfirmPassword}
+                  onChangeText={(v) => {
+                    setSignupConfirmPassword(v);
+                    setError(null);
+                  }}
+                  secureTextEntry
+                />
+
+                <AppButton
+                  title={`Register as ${signupRole === 'ASHA' ? 'ASHA Worker' : 'Community Member'}`}
+                  onPress={handleSignup}
+                  loading={loading}
+                  size="large"
+                  variant={signupRole === 'ASHA' ? 'primary' : 'teal'}
+                  style={{ marginTop: spacing.md }}
+                />
+
+                <View style={styles.signupPromptRow}>
+                  <Text style={styles.signupPromptText}>Already have an account? </Text>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setFormMode('signin');
+                      setError(null);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.signupLinkText,
+                        { color: signupRole === 'ASHA' ? colors.primary : colors.teal }
+                      ]}
+                    >
+                      Sign In
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
           </View>
 
           <Text style={styles.footerNote}>
@@ -303,7 +691,8 @@ const styles = StyleSheet.create({
   formCard: {
     backgroundColor: colors.surface,
     borderRadius: 20,
-    padding: spacing.cardPadding,
+    paddingHorizontal: 16,
+    paddingVertical: spacing.cardPadding,
     width: '100%',
     borderWidth: 1,
     borderColor: colors.border,
@@ -325,6 +714,69 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     textAlign: 'center',
     marginTop: spacing.lg
+  },
+  signupPromptRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: spacing.md
+  },
+  signupPromptText: {
+    fontSize: 13,
+    color: colors.secondaryText
+  },
+  signupLinkText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.primary
+  },
+  roleSelector: {
+    flexDirection: 'row',
+    width: '100%',
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: 12,
+    padding: 3,
+    marginBottom: spacing.md,
+    gap: 6
+  },
+  roleTab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 9,
+    paddingHorizontal: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'transparent',
+    overflow: 'hidden'
+  },
+  roleTabActive: {
+    ...shadows.soft
+  },
+  roleTabText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    marginLeft: 5,
+    flexShrink: 1
+  },
+  formCardHeader: {
+    marginBottom: spacing.sm,
+    alignItems: 'center'
+  },
+  badgePill: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5
+  },
+  rowInputs: {
+    flexDirection: 'row'
   }
 });
 

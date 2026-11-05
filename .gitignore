@@ -26,3 +26,13 @@ __pycache__/
 Thumbs.db
 *.log
 
+
+# Firebase private credentials
+backend/secrets/
+secrets/
+*service-account*.json
+*.jsonjson
+serviceAccountKey.json
+*.pem
+*.key
+frontend/google-services.json

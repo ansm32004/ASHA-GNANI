@@ -14,11 +14,25 @@ class FirebaseManager:
             return self._app
 
         cred_path = settings.FIREBASE_CREDENTIALS_PATH
-        if cred_path and os.path.exists(cred_path):
+        resolved_cred = None
+        if cred_path:
+            from pathlib import Path
+            backend_dir = Path(__file__).resolve().parents[3]
+            candidates = [
+                Path(cred_path),
+                backend_dir / cred_path,
+                backend_dir / "secrets" / "firebase-service-account.json",
+            ]
+            for p in candidates:
+                if p.is_file():
+                    resolved_cred = str(p)
+                    break
+
+        if resolved_cred:
             try:
                 import firebase_admin
                 from firebase_admin import credentials, firestore
-                cred = credentials.Certificate(cred_path)
+                cred = credentials.Certificate(resolved_cred)
                 self._app = firebase_admin.initialize_app(cred, {
                     'projectId': settings.FIREBASE_PROJECT_ID,
                     'storageBucket': settings.FIREBASE_STORAGE_BUCKET

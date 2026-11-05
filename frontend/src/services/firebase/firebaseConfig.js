@@ -1,34 +1,41 @@
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
 
-/**
- * Firebase Client Configuration & Service Initialization
- * Reads credentials securely from environment variables (EXPO_PUBLIC_FIREBASE_*).
- * Automatically checks whether valid Firebase project credentials are provided.
- */
-export const firebaseConfig = {
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || "",
-  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || "sahayika-asha-dev.firebaseapp.com",
-  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || "sahayika-asha-dev",
-  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || "sahayika-asha-dev.appspot.com",
-  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "",
-  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || ""
+import { initializeApp, getApps, getApp } from "firebase/app";
+import {
+  initializeAuth,
+  getAuth,
+  getReactNativePersistence
+} from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
+
+const firebaseConfig = {
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || "AIzaSyDT77Q8IXwDpCpDGsbsveX3ljLxDdFGH1k",
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || "asha-997cd.firebaseapp.com",
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || "asha-997cd",
+  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || "asha-997cd.firebasestorage.app",
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "301164131725",
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || "1:301164131725:web:7d85475e0354457d1539c4"
 };
 
-export const isFirebaseConfigured = () => {
-  return Boolean(firebaseConfig.apiKey && firebaseConfig.apiKey.length > 5);
-};
+const firebaseApp = getApps().length
+  ? getApp()
+  : initializeApp(firebaseConfig);
 
-// Initialize Firebase App singleton safely
-export const firebaseApp = isFirebaseConfigured()
-  ? (getApps().length === 0 ? initializeApp(firebaseConfig) : getApp())
-  : null;
+let auth;
 
-// Export initialized services (or null if not configured)
-export const auth = firebaseApp ? getAuth(firebaseApp) : null;
-export const firestore = firebaseApp ? getFirestore(firebaseApp) : null;
-export const storage = firebaseApp ? getStorage(firebaseApp) : null;
+try {
+  auth = initializeAuth(firebaseApp, {
+    persistence: getReactNativePersistence(AsyncStorage)
+  });
+} catch {
+  auth = getAuth(firebaseApp);
+}
 
+const firestore = getFirestore(firebaseApp);
+const storage = getStorage(firebaseApp);
+
+console.log("Firebase connected to:", firebaseApp.options.projectId);
+
+export { firebaseApp, auth, firestore, storage };
 export default firebaseApp;

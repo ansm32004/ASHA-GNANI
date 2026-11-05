@@ -24,10 +24,6 @@ service cloud.firestore {
       return isCommunityMember() && request.auth.token.household_id == householdId;
     }
 
-    function isAssignedWorker(ashaId) {
-      return isAuthenticated() && request.auth.uid == ashaId;
-    }
-
     // ASHA Worker profiles: only the worker themselves or their supervisor can read/write
     match /asha_workers/{workerId} {
       allow read: if isAuthenticated() && (request.auth.uid == workerId || isSupervisor());

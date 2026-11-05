@@ -44,6 +44,16 @@ export const authApi = {
   },
 
   /**
+   * Role-based user registration
+   * Endpoint: POST /api/v1/auth/register
+   */
+  register: async (registrationData) => {
+    const res = await apiClient.post('/auth/register', registrationData);
+    return res.data;
+  },
+
+
+  /**
    * Get current authenticated user profile
    * Endpoint: GET /api/v1/auth/me
    */

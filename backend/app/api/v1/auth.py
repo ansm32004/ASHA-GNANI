@@ -1,11 +1,20 @@
 from fastapi import APIRouter, Depends, status
-from app.schemas.auth import LoginRequest, LoginResponse, VerifyOtpRequest, VerifyOtpResponse, UserProfile, CredentialsLoginRequest
+from app.schemas.auth import LoginRequest, LoginResponse, VerifyOtpRequest, VerifyOtpResponse, UserProfile, CredentialsLoginRequest, RegisterRequest
 from app.services.auth_service import auth_service
 from app.core.dependencies import get_current_user_id
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
+@router.post("/register", status_code=status.HTTP_201_CREATED)
+def register(payload: RegisterRequest):
+    """
+    Role-based signup for ASHA Worker or Community Member.
+    Immediate registration and JWT issuance upon success.
+    """
+    return auth_service.register(payload)
+
 @router.post("/login-credentials")
+
 def login_credentials(payload: CredentialsLoginRequest):
     """
     Direct credentials login for ASHA and Community demo accounts.

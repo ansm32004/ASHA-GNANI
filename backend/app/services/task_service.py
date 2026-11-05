@@ -44,5 +44,11 @@ class TaskService:
             raise NotFoundException("Task", task_id)
         return task
 
+    def delete_task(self, task_id: str) -> bool:
+        deleted = task_repo.delete(task_id)
+        if not deleted:
+            raise NotFoundException("Task", task_id)
+        return True
+
 task_service = TaskService()
 
