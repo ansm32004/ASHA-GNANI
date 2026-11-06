@@ -45,7 +45,7 @@ class TaskRepository:
         results = self._tasks.copy()
 
         if assigned_asha_id:
-            results = [t for t in results if t.get("assigned_asha_id") == assigned_asha_id]
+            results = [t for t in results if not t.get("assigned_asha_id") or t.get("assigned_asha_id") == assigned_asha_id]
 
         if status and status != "All":
             results = [t for t in results if t.get("status", "").lower() == status.lower()]

@@ -125,7 +125,7 @@ export const FloatingTabBar = ({ state, descriptors, navigation }) => {
   };
 
   return (
-    <View style={styles.floatingContainer} pointerEvents="box-none">
+    <View style={styles.floatingContainer}>
       <View style={styles.bar}>
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
@@ -187,6 +187,7 @@ export const FloatingTabBar = ({ state, descriptors, navigation }) => {
 
 const styles = StyleSheet.create({
   floatingContainer: {
+    pointerEvents: 'box-none',
     position: 'absolute',
     bottom: Platform.OS === 'ios' ? 24 : 16,
     left: 0,

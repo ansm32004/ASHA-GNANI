@@ -1,27 +1,21 @@
 import axios from 'axios';
-import { Platform } from 'react-native';
 import { secureStorage } from '../storage/secureStorage';
+import {
+  API_BASE_URL,
+  API_ORIGIN,
+  resolveApiBaseUrl,
+  resolveMediaUrl,
+  getNetworkDiagnostics
+} from '../../config/apiConfig';
 
-// Base URL resolution priority:
-// 1. Explicit EXPO_PUBLIC_API_URL environment variable (from .env)
-// 2. Platform default: Android Emulator (10.0.2.2), iOS/Web (localhost)
-export const resolveBaseUrl = (overrideEnv = process.env.EXPO_PUBLIC_API_URL, platformOs = Platform.OS) => {
-  if (overrideEnv && overrideEnv.trim()) {
-    return overrideEnv.trim();
-  }
+// Backwards-compatible alias for existing imports
+export const resolveBaseUrl = resolveApiBaseUrl;
+export { API_BASE_URL, API_ORIGIN, resolveMediaUrl, getNetworkDiagnostics };
 
-  if (platformOs === 'android') {
-    return 'http://10.0.2.2:8008/api/v1';
-  }
-  return 'http://localhost:8008/api/v1';
-};
-
-const RESOLVED_BASE_URL = resolveBaseUrl();
-
-const TIMEOUT_MS = Number(process.env.EXPO_PUBLIC_API_TIMEOUT_MS) || 10000;
+const TIMEOUT_MS = Number(process.env.EXPO_PUBLIC_API_TIMEOUT_MS) || 12000;
 
 export const apiClient = axios.create({
-  baseURL: RESOLVED_BASE_URL,
+  baseURL: API_BASE_URL,
   timeout: TIMEOUT_MS,
   headers: {
     'Content-Type': 'application/json',
@@ -52,25 +46,40 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor: handle timeouts, 401s and standardize network errors
+// Response interceptor: handle timeouts, 401s, 403s, and standardize network errors
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
+    const targetUrl = error?.config?.url || 'server';
+
     if (error.response) {
-      // Server responded with an error status (4xx, 5xx)
-      if (error.response.status === 401) {
-        // Token expired or invalid
+      const status = error.response.status;
+      error.isServerError = status >= 500;
+      error.isAuthError = status === 401 || status === 403;
+
+      if (status === 401) {
+        error.userFriendlyMessage = 'Session expired. Please log in again.';
         if (typeof onUnauthorizedHandler === 'function') {
           onUnauthorizedHandler();
         }
+      } else if (status === 403) {
+        error.userFriendlyMessage = 'Access denied. You do not have permission for this action.';
+      } else if (status >= 500) {
+        error.userFriendlyMessage = 'Server error. Please try again in a few moments.';
+      } else {
+        error.userFriendlyMessage = error.response?.data?.detail || error.response?.data?.message || 'Request failed.';
       }
-    } else if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+    } else if (error.code === 'ECONNABORTED' || error.message?.toLowerCase().includes('timeout')) {
       error.isTimeout = true;
-      error.userFriendlyMessage = 'Request timed out. Please check your network connection.';
-    } else if (!error.response) {
       error.isNetworkError = true;
-      error.userFriendlyMessage = 'Cannot connect to SAHAYIKA server. Please verify your connection.';
+      error.userFriendlyMessage = `Connection to SAHAYIKA server timed out. Please check your network and verify the server is running at ${API_BASE_URL}.`;
+    } else {
+      // No response received - Network failure (e.g. ECONNREFUSED, ENOTFOUND, offline)
+      error.isNetworkError = true;
+      error.userFriendlyMessage = `Cannot connect to SAHAYIKA server at ${API_BASE_URL}. Please check your Wi-Fi/data connection.`;
     }
+
+    error.targetUrl = targetUrl;
     return Promise.reject(error);
   }
 );

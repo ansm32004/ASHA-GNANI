@@ -66,7 +66,8 @@ def test_ai_speak_tts():
         assert data["voice"] == "Shivani"
         # If Gnani live network is accessible, audio_url has data:audio/wav;base64,...
         if not data["is_simulated"]:
-            assert data["audio_url"].startswith("data:audio/wav;base64,")
+            assert data["audio_url"].startswith("/api/v1/ai/audio/") or data["audio_url"].startswith("http")
+            assert (data.get("audio_content") or data["audio_url"]).startswith("data:audio/wav;base64,")
             assert data["cache_file"] is not None
             # Also test GET /audio/{filename}
             audio_get = client.get(f"/api/v1/ai/audio/{data['cache_file']}")
@@ -89,7 +90,8 @@ def test_ai_live_end_to_end_voice_roundtrip():
         assert speak_res.status_code == 200
         speak_data = speak_res.json()
         if not speak_data["is_simulated"]:
-            raw_b64 = speak_data["audio_url"].split(",", 1)[1]
+            audio_source = speak_data.get("audio_content") or speak_data["audio_url"]
+            raw_b64 = audio_source.split(",", 1)[1] if "," in audio_source else audio_source
             transcribe_res = client.post("/api/v1/ai/transcribe", json={
                 "audio_base64": raw_b64,
                 "language": "hi"

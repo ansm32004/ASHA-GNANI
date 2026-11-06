@@ -2,6 +2,7 @@ import base64
 import hashlib
 import os
 from typing import Optional, Dict, Any
+from app.config import settings
 from app.integrations.gnani.client import gnani_client
 from app.core.logging import logger
 
@@ -15,6 +16,19 @@ class TimbreTTSService:
     """
     def __init__(self):
         self.client = gnani_client
+
+    def _get_audio_url(self, cache_filename: str) -> str:
+        """
+        Construct a network-independent audio URL.
+        Returns relative media path /api/v1/ai/audio/{cache_filename} by default,
+        or absolute URL if PUBLIC_BASE_URL / BACKEND_PUBLIC_URL is explicitly configured.
+        Never emits hardcoded local LAN or container IPs.
+        """
+        relative_path = f"/api/v1/ai/audio/{cache_filename}"
+        public_origin = (settings.PUBLIC_BASE_URL or settings.BACKEND_PUBLIC_URL or "").strip().rstrip("/")
+        if public_origin:
+            return f"{public_origin}{relative_path}"
+        return relative_path
 
     async def speak(
         self,
@@ -54,7 +68,7 @@ class TimbreTTSService:
                 b64_str = base64.b64encode(audio_bytes).decode("utf-8")
                 data_uri = f"data:audio/wav;base64,{b64_str}"
                 duration_sec = round(len(audio_bytes) / 96000.0, 2)
-                direct_url = f"http://192.168.0.7:8008/api/v1/ai/audio/{cache_filename}"
+                direct_url = self._get_audio_url(cache_filename)
                 logger.info(f"Gnani Timbre TTS instant cache hit: {cache_filename} ({duration_sec}s)")
                 return {
                     "audio_url": direct_url,
@@ -90,7 +104,7 @@ class TimbreTTSService:
                     b64_str = base64.b64encode(audio_bytes).decode("utf-8")
                     data_uri = f"data:audio/wav;base64,{b64_str}"
                     duration_sec = round(len(audio_bytes) / 96000.0, 2)
-                    direct_url = f"http://192.168.0.7:8008/api/v1/ai/audio/{cache_filename}"
+                    direct_url = self._get_audio_url(cache_filename)
 
                     logger.info(f"Gnani Timbre TTS synthesized {len(audio_bytes)} bytes ({duration_sec}s) for voice '{selected_voice}'")
                     return {

@@ -15,7 +15,7 @@ client = TestClient(app)
 def test_gemini_valid_model_configuration():
     """Test GeminiService initializes with configured or default model."""
     svc = GeminiService()
-    assert svc.model_name in ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-flash-8b"]
+    assert svc.model_name in ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-flash-8b", "gemini-3.5-flash"]
     candidates = svc._get_candidate_models()
     assert svc.model_name in candidates
     assert "gemini-1.5-flash" in candidates

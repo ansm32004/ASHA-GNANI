@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Platform } from 'react-native';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
+import { resolveMediaUrl } from '../../config/apiConfig';
 
 /**
  * Optimized speech recognition recording preset.
@@ -454,6 +455,7 @@ class AudioService {
       return null;
     }
 
+    const resolvedUrl = resolveMediaUrl(audioUriOrUrl) || audioUriOrUrl;
     const targetId = audioId || audioUriOrUrl;
 
     // 1. If this exact audio is already playing, return active sound
@@ -471,7 +473,7 @@ class AudioService {
     await this.stopAudio();
 
     this.playbackState = 'loading';
-    this.currentAudioUrl = audioUriOrUrl;
+    this.currentAudioUrl = resolvedUrl;
     this.currentAudioId = targetId;
     this.activeOnFinish = onFinish;
     this._notifyListeners();
@@ -485,7 +487,7 @@ class AudioService {
         playThroughEarpieceAndroid: false
       });
 
-      let uriToPlay = audioUriOrUrl;
+      let uriToPlay = resolvedUrl;
 
       // On native Android / iOS, native MediaPlayer cannot directly load large data: URIs
       // Decode and persist to a temporary cached .wav file for seamless hardware decoding

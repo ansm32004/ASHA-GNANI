@@ -32,6 +32,12 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: Optional[str] = None
     GEMINI_MODEL: str = "gemini-1.5-flash"
 
+    # Network, Hosting & Public Origin Configuration
+    HOST: str = "0.0.0.0"
+    PORT: int = 8008
+    PUBLIC_BASE_URL: Optional[str] = None
+    BACKEND_PUBLIC_URL: Optional[str] = None
+
     # CORS
     CORS_ORIGINS: List[str] = ["*"]
 

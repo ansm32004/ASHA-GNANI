@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, TextInput, Platform, Alert } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius, shadows } from '../../theme';
@@ -41,8 +41,21 @@ export const VoiceAssistantScreen = ({ navigation }) => {
     }
   }, [audioPlayback.isIdle]);
 
-  const GREETING_AUDIO_HI = 'http://192.168.0.7:8008/api/v1/ai/audio/e36fe86111fe134de3ace5342e507b40.wav';
-  const GREETING_AUDIO_EN = 'http://192.168.0.7:8008/api/v1/ai/audio/40a769cd08e733fd395f062541796b5b.wav';
+  // Elapsed recording seconds timer
+  useEffect(() => {
+    let timer;
+    if (voiceState === 'listening') {
+      timer = setInterval(() => {
+        setSeconds((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [voiceState]);
+
+  const GREETING_AUDIO_HI = '/api/v1/ai/audio/e36fe86111fe134de3ace5342e507b40.wav';
+  const GREETING_AUDIO_EN = '/api/v1/ai/audio/40a769cd08e733fd395f062541796b5b.wav';
 
   const [conversation, setConversation] = useState([
     {
@@ -164,53 +177,86 @@ export const VoiceAssistantScreen = ({ navigation }) => {
           setLiveTranscription(
             i18n.language === 'hi' ? 'बोलिए... (सुन रहे हैं)' : 'Listening... Speak now'
           );
+        } else {
+          setVoiceState('error');
+          setLiveTranscription(
+            i18n.language === 'hi'
+              ? 'रिकॉर्डर प्रारंभ करने में विफल। कृपया पुनः प्रयास करें।'
+              : 'Recorder initialization failed. Please try again.'
+          );
         }
       } catch (err) {
         setVoiceState('error');
         setLiveTranscription(
           err.permanentlyDenied
             ? (i18n.language === 'hi' ? 'माइक्रोफ़ोन अनुमति हमेशा के लिए अस्वीकृत है। सेटिंग्स में चालू करें।' : 'Microphone permission permanently denied. Enable in Settings.')
-            : (i18n.language === 'hi' ? 'कृपया माइक्रोफ़ोन की अनुमति दें' : 'Please allow microphone access')
+            : (i18n.language === 'hi' ? 'माइक्रोफ़ोन अनुमति अस्वीकृत। कृपया अनुमति दें।' : 'Microphone permission denied. Please allow microphone access.')
         );
       }
     } else if (voiceState === 'listening') {
       setVoiceState('processing');
-      const recResult = await audioService.stopRecording();
-      const audioUri = typeof recResult === 'object' ? recResult?.uri : recResult;
-      let queryText = '';
-      let sttError = null;
+      try {
+        const recResult = await audioService.stopRecording();
+        const audioUri = typeof recResult === 'object' ? recResult?.uri : recResult;
+        let queryText = '';
+        let sttError = null;
 
-      if (audioUri) {
+        if (!audioUri) {
+          setVoiceState('error');
+          setLiveTranscription(
+            i18n.language === 'hi'
+              ? 'ऑडियो रिकॉर्डिंग विफल रही। कोई आवाज़ रिकॉर्ड नहीं हुई।'
+              : 'Recording failed. No audio recorded.'
+          );
+          return;
+        }
+
         const base64 = await audioService.getAudioBase64(audioUri);
         await audioService.cleanupAudioFile(audioUri);
-        if (base64) {
-          try {
-            const audioFormat = audioUri?.endsWith('.m4a') ? 'm4a' : (audioUri?.endsWith('.webm') ? 'webm' : 'wav');
-            const tr = await aiApi.transcribe({ audio_base64: base64, audio_format: audioFormat, language: i18n.language });
-            if (tr?.transcript) queryText = tr.transcript;
-            if (tr?.error) sttError = tr.error;
-          } catch (e) {
-            sttError = e.userFriendlyMessage || e.response?.data?.detail || e.message || 'Error communicating with STT service';
-          }
+
+        if (!base64) {
+          setVoiceState('error');
+          setLiveTranscription(
+            i18n.language === 'hi'
+              ? 'ऑडियो डेटा पढ़ने में विफल।'
+              : 'Recording failed: Unable to read audio data.'
+          );
+          return;
         }
-      }
 
-      if (sttError) {
+        try {
+          const isWebm = Platform.OS === 'web' || audioUri?.endsWith('.webm');
+          const isM4a = Platform.OS === 'android' || audioUri?.endsWith('.m4a');
+          const audioFormat = isWebm ? 'webm' : (isM4a ? 'm4a' : 'wav');
+          const tr = await aiApi.transcribe({ audio_base64: base64, audio_format: audioFormat, language: i18n.language });
+          if (tr?.transcript) queryText = tr.transcript;
+          if (tr?.error) sttError = tr.error;
+        } catch (e) {
+          sttError = e.userFriendlyMessage || e.response?.data?.detail || e.message || 'Prisma transcription failed';
+        }
+
+        if (sttError) {
+          setVoiceState('error');
+          setLiveTranscription(sttError);
+          return;
+        }
+
+        if (!queryText || !queryText.trim()) {
+          setVoiceState('idle');
+          setLiveTranscription(
+            i18n.language === 'hi'
+              ? 'कोई आवाज़ नहीं पहचानी गई। कृपया स्पष्ट बोलें या लिखकर पूछें।'
+              : 'No speech detected. Please speak clearly or type your question.'
+          );
+          return;
+        }
+        handleAskQuestion(queryText, true);
+      } catch (procErr) {
         setVoiceState('error');
-        setLiveTranscription(sttError);
-        return;
-      }
-
-      if (!queryText || !queryText.trim()) {
-        setVoiceState('idle');
         setLiveTranscription(
-          i18n.language === 'hi'
-            ? 'कोई आवाज़ नहीं पहचानी गई। कृपया स्पष्ट बोलें या लिखकर पूछें।'
-            : 'No speech detected. Please speak clearly or type your question.'
+          procErr.userFriendlyMessage || procErr.message || 'Recording processing failed'
         );
-        return;
       }
-      handleAskQuestion(queryText, true);
     }
   };
 
@@ -260,10 +306,13 @@ export const VoiceAssistantScreen = ({ navigation }) => {
         targetId
       );
     } else {
-      setVoiceState('speaking');
-      setTimeout(() => {
-        setVoiceState('idle');
-      }, 2500);
+      setVoiceState('idle');
+      Alert.alert(
+        i18n.language === 'hi' ? 'ऑडियो अनुपलब्ध' : 'Audio Unavailable',
+        i18n.language === 'hi'
+          ? 'इस संदेश का ऑडियो उत्पन्न नहीं हो सका। कृपया पुनः प्रयास करें।'
+          : 'Could not generate speech audio for this message. Please try again.'
+      );
     }
   };
 

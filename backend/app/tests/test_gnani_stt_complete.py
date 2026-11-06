@@ -272,3 +272,22 @@ def test_language_normalization():
     assert service._normalize_lang_code("auto") == "indic-auto"
     assert service._normalize_lang_code("mr") == "mr-IN"
     assert service._normalize_lang_code("ta") == "ta-IN"
+
+# 13. WebM Binary Magic Signature Takes Precedence Over Faulty Format Hint
+def test_webm_magic_signature_detection():
+    service = PrismaSTTService()
+    # WebM starts with \x1a\x45\xdf\xa3
+    webm_dummy = b"\x1a\x45\xdf\xa3\x9f\x42\x86\x81\x01\x42" + (b"\x00" * 30)
+    # Even if hint says 'wav', binary check detects webm
+    fn, mime = service._detect_audio_type(webm_dummy, hint_format="wav")
+    assert fn == "audio.webm"
+    assert mime == "audio/webm"
+
+# 14. Audio Normalization to 16kHz Mono WAV
+def test_audio_normalization_conversion():
+    service = PrismaSTTService()
+    # Check is_valid_16k_pcm_wav on valid header
+    assert service._is_valid_16k_pcm_wav(VALID_WAV_HEADER) is True
+    # Corrupted / non-wav returns False
+    assert service._is_valid_16k_pcm_wav(b"\x1a\x45\xdf\xa3" + b"\x00"*40) is False
+

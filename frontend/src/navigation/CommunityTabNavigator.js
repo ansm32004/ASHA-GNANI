@@ -42,7 +42,7 @@ const CommunityFloatingTabBar = ({ state, descriptors, navigation }) => {
   };
 
   return (
-    <View style={styles.floatingContainer} pointerEvents="box-none">
+    <View style={styles.floatingContainer}>
       <View style={styles.bar}>
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
@@ -103,6 +103,7 @@ export const CommunityTabNavigator = () => {
 
 const styles = StyleSheet.create({
   floatingContainer: {
+    pointerEvents: 'box-none',
     position: 'absolute',
     left: 0,
     right: 0,

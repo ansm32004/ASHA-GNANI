@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius } from '../../theme';
 import { MinimalHeader } from '../../components/common/MinimalHeader';
@@ -101,7 +101,9 @@ export const RecordVisitScreen = ({ route, navigation }) => {
         const base64 = await audioService.getAudioBase64(audioUri);
         await audioService.cleanupAudioFile(audioUri);
         if (base64) {
-          const audioFormat = audioUri?.endsWith('.m4a') ? 'm4a' : (audioUri?.endsWith('.webm') ? 'webm' : 'wav');
+          const isWebm = Platform.OS === 'web' || audioUri?.endsWith('.webm');
+          const isM4a = Platform.OS === 'android' || audioUri?.endsWith('.m4a');
+          const audioFormat = isWebm ? 'webm' : (isM4a ? 'm4a' : 'wav');
           const transcribeRes = await aiApi.transcribe({
             audio_base64: base64,
             audio_format: audioFormat,

@@ -47,12 +47,35 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS
+# CORS Configuration
+# Standard W3C CORS forbids allow_credentials=True with wildcard allow_origins=["*"].
+# In production, explicit origins are required. In development, explicit origins + LAN regex are supported.
+if settings.ENVIRONMENT == "production":
+    allowed_origins = [o.strip() for o in settings.CORS_ORIGINS if o.strip() and o != "*"]
+    origin_regex = None
+else:
+    allowed_origins = [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:8081",
+        "http://localhost:19006",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+        "http://127.0.0.1:8081",
+        "http://10.0.2.2:3000",
+        "http://10.0.2.2:3001",
+    ]
+    for origin in settings.CORS_ORIGINS:
+        if origin != "*" and origin not in allowed_origins:
+            allowed_origins.append(origin)
+    origin_regex = r"^https?://(localhost|127\.0\.0\.1|10\.0\.2\.2|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$"
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=allowed_origins,
+    allow_origin_regex=origin_regex,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert, Modal, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert, Modal, TextInput, Platform } from 'react-native';
 import Svg, { Path, Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius, shadows } from '../../theme';
@@ -41,6 +41,19 @@ export const CommunityHomeScreen = ({ navigation }) => {
       audioService.stopAudio();
     };
   }, [navigation]);
+
+  // Elapsed recording seconds timer
+  useEffect(() => {
+    let timer;
+    if (isRecording) {
+      timer = setInterval(() => {
+        setSeconds((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [isRecording]);
 
   // Request Visit Modal State
   const [requestModalVisible, setRequestModalVisible] = useState(false);
@@ -96,13 +109,22 @@ export const CommunityHomeScreen = ({ navigation }) => {
           setIsRecording(true);
           setSeconds(0);
           setLiveTranscription(i18n.language === 'hi' ? 'बोलिए... (सुन रहा हूँ)' : 'Listening...');
+        } else {
+          Alert.alert(
+            i18n.language === 'hi' ? 'रिकॉर्डर त्रुटि' : 'Recorder Initialization Error',
+            i18n.language === 'hi'
+              ? 'रिकॉर्डर प्रारंभ करने में विफल। कृपया पुनः प्रयास करें।'
+              : 'Recorder initialization failed. Please try again.'
+          );
         }
       } catch (err) {
         Alert.alert(
           'Microphone Permission Required',
           err.permanentlyDenied
             ? 'Microphone permission has been permanently denied. Please enable it in Settings.'
-            : 'Please allow microphone access to ask health questions by voice.'
+            : (i18n.language === 'hi'
+                ? 'माइक्रोफ़ोन अनुमति आवश्यक है। स्वास्थ्य प्रश्न पूछने के लिए अनुमति दें।'
+                : 'Please allow microphone access to ask health questions by voice.')
         );
       }
     } else {
@@ -113,21 +135,48 @@ export const CommunityHomeScreen = ({ navigation }) => {
         const audioUri = typeof recResult === 'object' ? recResult?.uri : recResult;
         let queryText = '';
         let sttError = null;
-        if (audioUri) {
-          const base64 = await audioService.getAudioBase64(audioUri);
-          await audioService.cleanupAudioFile(audioUri);
-          if (base64) {
-            const audioFormat = audioUri?.endsWith('.m4a') ? 'm4a' : (audioUri?.endsWith('.webm') ? 'webm' : 'wav');
-            const tr = await aiApi.transcribe({ audio_base64: base64, audio_format: audioFormat, language: i18n.language });
-            if (tr?.transcript) queryText = tr.transcript;
-            if (tr?.error) sttError = tr.error;
-          }
+
+        if (!audioUri) {
+          setIsThinking(false);
+          setLiveTranscription(
+            i18n.language === 'hi'
+              ? 'ऑडियो रिकॉर्डिंग विफल रही। कोई आवाज़ रिकॉर्ड नहीं हुई।'
+              : 'Recording failed. No audio recorded.'
+          );
+          return;
         }
+
+        const base64 = await audioService.getAudioBase64(audioUri);
+        await audioService.cleanupAudioFile(audioUri);
+
+        if (!base64) {
+          setIsThinking(false);
+          setLiveTranscription(
+            i18n.language === 'hi'
+              ? 'ऑडियो डेटा पढ़ने में विफल।'
+              : 'Recording failed: Unable to read audio data.'
+          );
+          return;
+        }
+
+        const isWebm = Platform.OS === 'web' || audioUri?.endsWith('.webm');
+        const isM4a = Platform.OS === 'android' || audioUri?.endsWith('.m4a');
+        const audioFormat = isWebm ? 'webm' : (isM4a ? 'm4a' : 'wav');
+
+        try {
+          const tr = await aiApi.transcribe({ audio_base64: base64, audio_format: audioFormat, language: i18n.language });
+          if (tr?.transcript) queryText = tr.transcript;
+          if (tr?.error) sttError = tr.error;
+        } catch (apiErr) {
+          sttError = apiErr.userFriendlyMessage || apiErr.response?.data?.detail || apiErr.message || 'Prisma transcription failed';
+        }
+
         if (sttError) {
           setIsThinking(false);
           setLiveTranscription(sttError);
           return;
         }
+
         if (!queryText || !queryText.trim()) {
           setIsThinking(false);
           setLiveTranscription(
@@ -137,11 +186,12 @@ export const CommunityHomeScreen = ({ navigation }) => {
           );
           return;
         }
+
         setLiveTranscription(queryText);
         handleVoiceQuery(queryText);
       } catch (e) {
         setIsThinking(false);
-        const msg = e.userFriendlyMessage || e.response?.data?.detail || e.message || 'Error communicating with STT service';
+        const msg = e.userFriendlyMessage || e.response?.data?.detail || e.message || 'Recording processing failed';
         setLiveTranscription(msg);
       }
     }
