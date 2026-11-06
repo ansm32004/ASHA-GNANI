@@ -15,7 +15,7 @@ import { ConversationBubble } from '../../components/visual/ConversationBubble';
 import { useAuthStore } from '../../store/authStore';
 import { requestApi } from '../../services/api/requestApi';
 import { aiApi } from '../../services/api/aiApi';
-import { audioService } from '../../services/audio/audioService';
+import { audioService, useAudioPlayback } from '../../services/audio/audioService';
 import { useTranslation } from 'react-i18next';
 
 export const CommunityHomeScreen = ({ navigation }) => {
@@ -25,10 +25,22 @@ export const CommunityHomeScreen = ({ navigation }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [isThinking, setIsThinking] = useState(false);
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [liveTranscription, setLiveTranscription] = useState('');
   const [assistantReply, setAssistantReply] = useState(null);
   const [textQuery, setTextQuery] = useState('');
+
+  const audioPlayback = useAudioPlayback('community_reply');
+
+  // Stop playback when navigating away or unmounting
+  useEffect(() => {
+    const unsub = navigation.addListener('blur', () => {
+      audioService.stopAudio();
+    });
+    return () => {
+      unsub();
+      audioService.stopAudio();
+    };
+  }, [navigation]);
 
   // Request Visit Modal State
   const [requestModalVisible, setRequestModalVisible] = useState(false);
@@ -60,10 +72,7 @@ export const CommunityHomeScreen = ({ navigation }) => {
       });
 
       if (res.audio_url) {
-        setIsPlayingAudio(true);
-        await audioService.playAudio(res.audio_url, () => {
-          setIsPlayingAudio(false);
-        });
+        await audioService.playAudio(res.audio_url, null, 'community_reply');
       }
     } catch (e) {
       setIsThinking(false);
@@ -103,6 +112,7 @@ export const CommunityHomeScreen = ({ navigation }) => {
         const recResult = await audioService.stopRecording();
         const audioUri = typeof recResult === 'object' ? recResult?.uri : recResult;
         let queryText = '';
+        let sttError = null;
         if (audioUri) {
           const base64 = await audioService.getAudioBase64(audioUri);
           await audioService.cleanupAudioFile(audioUri);
@@ -110,7 +120,13 @@ export const CommunityHomeScreen = ({ navigation }) => {
             const audioFormat = audioUri?.endsWith('.m4a') ? 'm4a' : (audioUri?.endsWith('.webm') ? 'webm' : 'wav');
             const tr = await aiApi.transcribe({ audio_base64: base64, audio_format: audioFormat, language: i18n.language });
             if (tr?.transcript) queryText = tr.transcript;
+            if (tr?.error) sttError = tr.error;
           }
+        }
+        if (sttError) {
+          setIsThinking(false);
+          setLiveTranscription(sttError);
+          return;
         }
         if (!queryText || !queryText.trim()) {
           setIsThinking(false);
@@ -125,32 +141,51 @@ export const CommunityHomeScreen = ({ navigation }) => {
         handleVoiceQuery(queryText);
       } catch (e) {
         setIsThinking(false);
+        const msg = e.userFriendlyMessage || e.response?.data?.detail || e.message || 'Error communicating with STT service';
+        setLiveTranscription(msg);
       }
     }
   };
 
   const handlePlayAudio = async () => {
     if (!assistantReply) return;
+
+    // If currently playing, pause it
+    if (audioPlayback.isPlaying && audioPlayback.audioId === 'community_reply') {
+      await audioService.pauseAudio();
+      return;
+    }
+
+    // If currently paused, resume it
+    if (audioPlayback.isPaused && audioPlayback.audioId === 'community_reply') {
+      await audioService.resumeAudio();
+      return;
+    }
+
     try {
-      await audioService.stopAudio();
       let urlToPlay = assistantReply.audio_url;
       if (!urlToPlay && assistantReply.text) {
         setIsThinking(true);
         const tts = await aiApi.speak({ text: assistantReply.text, language: i18n.language });
         setIsThinking(false);
-        urlToPlay = tts?.audio_url;
+        urlToPlay = tts?.audio_url || tts?.audio_content;
         setAssistantReply(prev => ({ ...prev, audio_url: urlToPlay }));
       }
 
       if (urlToPlay) {
-        setIsPlayingAudio(true);
-        await audioService.playAudio(urlToPlay, () => {
-          setIsPlayingAudio(false);
-        });
+        await audioService.playAudio(urlToPlay, null, 'community_reply');
       }
     } catch (e) {
-      setIsPlayingAudio(false);
+      setIsThinking(false);
     }
+  };
+
+  const handlePauseAudio = async () => {
+    await audioService.pauseAudio();
+  };
+
+  const handleResumeAudio = async () => {
+    await audioService.resumeAudio();
   };
 
   const handleSubmitVisitRequest = async () => {
@@ -320,8 +355,13 @@ export const CommunityHomeScreen = ({ navigation }) => {
                 text={assistantReply.text}
                 timestamp="Just now"
                 audioPlayable
-                isPlayingAudio={isPlayingAudio}
+                isLoadingAudio={isThinking}
+                isPlayingAudio={audioPlayback.isPlaying && audioPlayback.audioId === 'community_reply'}
+                isPausedAudio={audioPlayback.isPaused && audioPlayback.audioId === 'community_reply'}
                 onPlayAudio={handlePlayAudio}
+                onPauseAudio={handlePauseAudio}
+                onResumeAudio={handleResumeAudio}
+                onToggleAudio={handlePlayAudio}
               />
             </View>
           )}

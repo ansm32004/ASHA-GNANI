@@ -30,16 +30,17 @@ class Settings(BaseSettings):
 
     # Gemini AI Configuration
     GEMINI_API_KEY: Optional[str] = None
-    GEMINI_MODEL: str = "gemini-3.5-flash"
+    GEMINI_MODEL: str = "gemini-1.5-flash"
 
     # CORS
     CORS_ORIGINS: List[str] = ["*"]
 
     model_config = {
         "env_file": [
-            ".env",
-            str(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"))
+            str(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")),
+            ".env"
         ],
+        "env_file_encoding": "utf-8",
         "case_sensitive": True,
         "extra": "ignore"
     }

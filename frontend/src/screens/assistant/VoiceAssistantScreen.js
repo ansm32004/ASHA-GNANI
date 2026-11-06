@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,7 +7,7 @@ import { MinimalHeader } from '../../components/common/MinimalHeader';
 import { ConversationBubble } from '../../components/visual/ConversationBubble';
 import { VectorCategoryIcon } from '../../components/illustrations/VectorCategoryIcon';
 import { aiApi } from '../../services/api/aiApi';
-import { audioService } from '../../services/audio/audioService';
+import { audioService, useAudioPlayback } from '../../services/audio/audioService';
 import { useLanguageStore } from '../../store/languageStore';
 import { useTranslation } from 'react-i18next';
 
@@ -19,6 +19,30 @@ export const VoiceAssistantScreen = ({ navigation }) => {
   const [seconds, setSeconds] = useState(0);
   const [liveTranscription, setLiveTranscription] = useState('');
   const [textQuery, setTextQuery] = useState('');
+  const [loadingAudioId, setLoadingAudioId] = useState(null);
+
+  const audioPlayback = useAudioPlayback();
+
+  // Stop playback when navigating away or unmounting
+  useEffect(() => {
+    const unsubBlur = navigation.addListener('blur', () => {
+      audioService.stopAudio();
+    });
+    return () => {
+      unsubBlur();
+      audioService.stopAudio();
+    };
+  }, [navigation]);
+
+  // Synchronize voice state if audio completes or is stopped externally
+  useEffect(() => {
+    if (audioPlayback.isIdle && voiceState === 'speaking') {
+      setVoiceState('idle');
+    }
+  }, [audioPlayback.isIdle]);
+
+  const GREETING_AUDIO_HI = 'http://192.168.0.7:8008/api/v1/ai/audio/e36fe86111fe134de3ace5342e507b40.wav';
+  const GREETING_AUDIO_EN = 'http://192.168.0.7:8008/api/v1/ai/audio/40a769cd08e733fd395f062541796b5b.wav';
 
   const [conversation, setConversation] = useState([
     {
@@ -28,15 +52,41 @@ export const VoiceAssistantScreen = ({ navigation }) => {
         i18n.language === 'hi'
           ? 'नमस्ते सुनीता जी! आप बोलकर आज के विजिट, गर्भवती महिलाओं की लिस्ट, टीकाकरण या जेएसवाई योजना की जानकारी पूछ सकती हैं।'
           : "Hello Sunita ji! Speak naturally to ask about today's visits, pregnant mothers, vaccination camps, or JSY guidelines.",
+      audioUrl: i18n.language === 'hi' ? GREETING_AUDIO_HI : GREETING_AUDIO_EN,
       timestamp: 'Just now',
       actions: ["Today's Visits", 'ANC Checkup List', 'Vaccination Schedule']
     }
   ]);
 
+  // Pre-fetch initial greeting TTS audio if missing
+  useEffect(() => {
+    const initialMsg = conversation[0];
+    if (initialMsg && !initialMsg.audioUrl && initialMsg.text) {
+      aiApi.speak({ text: initialMsg.text, language: i18n.language })
+        .then((res) => {
+          const url = res?.audio_url || res?.audio_content;
+          if (url) {
+            setConversation((prev) =>
+              prev.map((m) => (m.id === initialMsg.id ? { ...m, audioUrl: url } : m))
+            );
+          }
+        })
+        .catch(() => {});
+    }
+  }, [i18n.language]);
+
   const handleLanguageToggle = () => {
     const nextLang = i18n.language === 'hi' ? 'en' : 'hi';
     i18n.changeLanguage(nextLang);
     setUiLanguage(nextLang);
+    const nextAudio = nextLang === 'hi' ? GREETING_AUDIO_HI : GREETING_AUDIO_EN;
+    const nextText =
+      nextLang === 'hi'
+        ? 'नमस्ते सुनीता जी! आप बोलकर आज के विजिट, गर्भवती महिलाओं की लिस्ट, टीकाकरण या जेएसवाई योजना की जानकारी पूछ सकती हैं।'
+        : "Hello Sunita ji! Speak naturally to ask about today's visits, pregnant mothers, vaccination camps, or JSY guidelines.";
+    setConversation((prev) =>
+      prev.map((m) => (m.id === 'msg-0' ? { ...m, text: nextText, audioUrl: nextAudio } : m))
+    );
   };
 
   const handleAskQuestion = async (queryText, voiceEnabled = false) => {
@@ -69,8 +119,22 @@ export const VoiceAssistantScreen = ({ navigation }) => {
       };
       setConversation((prev) => [...prev, asstMsg]);
 
+      // Pre-fetch TTS audio in background if not already present
+      if (!res.audio_url && res.reply_text) {
+        aiApi.speak({ text: res.reply_text, language: i18n.language })
+          .then((speakRes) => {
+            const url = speakRes?.audio_url || speakRes?.audio_content;
+            if (url) {
+              setConversation((prev) =>
+                prev.map((m) => (m.id === asstMsg.id ? { ...m, audioUrl: url } : m))
+              );
+            }
+          })
+          .catch(() => {});
+      }
+
       if (voiceEnabled && res.audio_url) {
-        handlePlayAudio(res.audio_url, res.reply_text);
+        handlePlayAudio(res.audio_url, res.reply_text, asstMsg.id);
       }
     } catch (e) {
       setVoiceState('idle');
@@ -114,6 +178,8 @@ export const VoiceAssistantScreen = ({ navigation }) => {
       const recResult = await audioService.stopRecording();
       const audioUri = typeof recResult === 'object' ? recResult?.uri : recResult;
       let queryText = '';
+      let sttError = null;
+
       if (audioUri) {
         const base64 = await audioService.getAudioBase64(audioUri);
         await audioService.cleanupAudioFile(audioUri);
@@ -122,11 +188,19 @@ export const VoiceAssistantScreen = ({ navigation }) => {
             const audioFormat = audioUri?.endsWith('.m4a') ? 'm4a' : (audioUri?.endsWith('.webm') ? 'webm' : 'wav');
             const tr = await aiApi.transcribe({ audio_base64: base64, audio_format: audioFormat, language: i18n.language });
             if (tr?.transcript) queryText = tr.transcript;
+            if (tr?.error) sttError = tr.error;
           } catch (e) {
-            // non-fatal
+            sttError = e.userFriendlyMessage || e.response?.data?.detail || e.message || 'Error communicating with STT service';
           }
         }
       }
+
+      if (sttError) {
+        setVoiceState('error');
+        setLiveTranscription(sttError);
+        return;
+      }
+
       if (!queryText || !queryText.trim()) {
         setVoiceState('idle');
         setLiveTranscription(
@@ -140,28 +214,82 @@ export const VoiceAssistantScreen = ({ navigation }) => {
     }
   };
 
-  const handlePlayAudio = async (audioUrl = null, text = null) => {
+  const handlePlayAudio = async (audioUrl = null, text = null, msgId = null) => {
+    const targetId = msgId || audioUrl || text;
+    const currentStatus = audioService.getPlaybackStatus();
+
+    // If currently playing, pause it immediately
+    if ((currentStatus.isPlaying || voiceState === 'speaking') && !currentStatus.isPaused) {
+      await audioService.pauseAudio();
+      return;
+    }
+
+    // If currently paused, resume it immediately
+    if (currentStatus.isPaused) {
+      await audioService.resumeAudio();
+      setVoiceState('speaking');
+      return;
+    }
+
     let urlToPlay = audioUrl;
     if (!urlToPlay && text) {
+      setLoadingAudioId(targetId);
       try {
         const tts = await aiApi.speak({ text, language: i18n.language });
-        urlToPlay = tts?.audio_url;
+        urlToPlay = tts?.audio_url || tts?.audio_content;
+        if (urlToPlay && msgId) {
+          // Cache directly on conversation item so subsequent plays are 0ms!
+          setConversation((prev) =>
+            prev.map((m) => (m.id === msgId ? { ...m, audioUrl: urlToPlay } : m))
+          );
+        }
       } catch (e) {
         // non-fatal
+      } finally {
+        setLoadingAudioId(null);
       }
     }
 
     if (urlToPlay) {
       setVoiceState('speaking');
-      await audioService.playAudio(urlToPlay, () => {
-        setVoiceState('idle');
-      });
+      await audioService.playAudio(
+        urlToPlay,
+        () => {
+          setVoiceState('idle');
+        },
+        targetId
+      );
     } else {
       setVoiceState('speaking');
       setTimeout(() => {
         setVoiceState('idle');
       }, 2500);
     }
+  };
+
+  const handlePauseAudio = async () => {
+    await audioService.pauseAudio();
+  };
+
+  const handleResumeAudio = async () => {
+    await audioService.resumeAudio();
+    setVoiceState('speaking');
+  };
+
+  const handleToggleAudio = async (audioUrl = null, text = null, msgId = null) => {
+    const targetId = msgId || audioUrl || text;
+    const currentStatus = audioService.getPlaybackStatus();
+
+    if ((currentStatus.isPlaying || voiceState === 'speaking') && !currentStatus.isPaused) {
+      await audioService.pauseAudio();
+      return;
+    }
+    if (currentStatus.isPaused) {
+      await audioService.resumeAudio();
+      setVoiceState('speaking');
+      return;
+    }
+    await handlePlayAudio(audioUrl, text, msgId);
   };
 
   const SUGGESTED_PROMPTS = [
@@ -178,6 +306,9 @@ export const VoiceAssistantScreen = ({ navigation }) => {
       case 'processing':
         return { text: 'Analyzing with AI...', bg: colors.warningLight, color: colors.warning, dot: colors.warning };
       case 'speaking':
+        if (audioPlayback.isPaused) {
+          return { text: 'Voice paused (tap Resume)', bg: '#FEF3C7', color: '#B45309', dot: '#D97706' };
+        }
         return { text: 'Playing voice response...', bg: colors.tealLight, color: colors.teal, dot: colors.teal };
       case 'error':
         return { text: 'Retry microphone', bg: colors.dangerLight, color: colors.danger, dot: colors.danger };
@@ -241,16 +372,26 @@ export const VoiceAssistantScreen = ({ navigation }) => {
 
         {/* Conversation Dialog Stream */}
         <View style={styles.conversationStream}>
-          {conversation.map((msg) => (
-            <React.Fragment key={msg.id}>
-              <ConversationBubble
-                role={msg.role}
-                text={msg.text}
-                timestamp={msg.timestamp}
-                audioPlayable={msg.role === 'assistant'}
-                isPlayingAudio={voiceState === 'speaking'}
-                onPlayAudio={() => handlePlayAudio(msg.audioUrl, msg.text)}
-              />
+          {conversation.map((msg) => {
+            const isTarget = audioPlayback.audioId === msg.id || (!audioPlayback.audioId && conversation[conversation.length - 1]?.id === msg.id);
+            const isPlayingThis = (audioPlayback.isPlaying || (voiceState === 'speaking' && !audioPlayback.isPaused)) && isTarget;
+            const isPausedThis = audioPlayback.isPaused && isTarget;
+
+            return (
+              <React.Fragment key={msg.id}>
+                <ConversationBubble
+                  role={msg.role}
+                  text={msg.text}
+                  timestamp={msg.timestamp}
+                  audioPlayable={msg.role === 'assistant'}
+                  isLoadingAudio={loadingAudioId === msg.id}
+                  isPlayingAudio={isPlayingThis}
+                  isPausedAudio={isPausedThis}
+                  onPlayAudio={() => handlePlayAudio(msg.audioUrl, msg.text, msg.id)}
+                  onPauseAudio={handlePauseAudio}
+                  onResumeAudio={handleResumeAudio}
+                  onToggleAudio={() => handleToggleAudio(msg.audioUrl, msg.text, msg.id)}
+                />
 
               {/* Action suggestion pills */}
               {msg.actions && msg.actions.length > 0 && (
@@ -275,7 +416,8 @@ export const VoiceAssistantScreen = ({ navigation }) => {
                 </View>
               )}
             </React.Fragment>
-          ))}
+          );
+        })}
         </View>
 
         {/* Frequently Asked Questions (Compact Chips) */}

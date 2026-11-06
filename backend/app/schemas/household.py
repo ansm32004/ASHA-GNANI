@@ -5,10 +5,10 @@ from datetime import date, datetime
 class BeneficiaryMember(BaseModel):
     id: str
     name: str
-    age: int
-    gender: str  # Female, Male, Other
-    relation: str  # Head, Wife, Son, Daughter, Mother, etc.
-    category: str  # Pregnant Woman, Lactating Mother, Infant, Child (1-5), Adolescent, Elder, General
+    age: Optional[int] = 0
+    gender: str = "Female"  # Female, Male, Other
+    relation: str = "Self"  # Head, Wife, Son, Daughter, Mother, etc.
+    category: Optional[str] = "General"  # Pregnant Woman, Lactating Mother, Infant, Child (1-5), Adolescent, Elder, General
     rch_id: Optional[str] = None  # Reproductive & Child Health ID
     is_high_risk: bool = False
     high_risk_reason: Optional[str] = None

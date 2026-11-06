@@ -107,6 +107,11 @@ export const RecordVisitScreen = ({ route, navigation }) => {
             audio_format: audioFormat,
             language: 'hi'
           });
+          if (transcribeRes?.error) {
+            setIsProcessing(false);
+            Alert.alert('Speech Recognition Notice', transcribeRes.error);
+            return;
+          }
           transcriptText = transcribeRes?.transcript || '';
         }
       }
@@ -123,10 +128,8 @@ export const RecordVisitScreen = ({ route, navigation }) => {
       setIsProcessing(false);
     } catch (e) {
       setIsProcessing(false);
-      Alert.alert(
-        'Transcription Error',
-        'Could not transcribe voice. You can retry speaking or switch to typing.'
-      );
+      const msg = e.userFriendlyMessage || e.response?.data?.detail || e.message || 'Could not transcribe voice. You can retry speaking or switch to typing.';
+      Alert.alert('Transcription Error', msg);
     }
   };
 
@@ -233,6 +236,7 @@ export const RecordVisitScreen = ({ route, navigation }) => {
               onChangeText={setCapturedTranscript}
               multiline
               numberOfLines={4}
+              style={styles.transcriptInput}
             />
 
             <PrimaryButton
@@ -284,6 +288,7 @@ export const RecordVisitScreen = ({ route, navigation }) => {
               onChangeText={setManualText}
               multiline
               numberOfLines={4}
+              style={styles.transcriptInput}
             />
 
             <PrimaryButton
@@ -510,5 +515,9 @@ const styles = StyleSheet.create({
     color: colors.danger,
     fontWeight: '700',
     marginLeft: 4
+  },
+  transcriptInput: {
+    width: '100%',
+    alignSelf: 'stretch'
   }
 });

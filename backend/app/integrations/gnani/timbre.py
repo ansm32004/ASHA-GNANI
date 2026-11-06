@@ -42,6 +42,33 @@ class TimbreTTSService:
                 # Female Hindi natural voice
                 selected_voice = "Shivani"
 
+        # Check local audio cache first before making remote network call
+        hash_key = hashlib.md5(f"{clean_text}_{selected_voice}".encode("utf-8")).hexdigest()
+        cache_filename = f"{hash_key}.wav"
+        cache_path = os.path.join(CACHE_DIR, cache_filename)
+
+        if os.path.exists(cache_path) and os.path.getsize(cache_path) > 44:
+            try:
+                with open(cache_path, "rb") as f:
+                    audio_bytes = f.read()
+                b64_str = base64.b64encode(audio_bytes).decode("utf-8")
+                data_uri = f"data:audio/wav;base64,{b64_str}"
+                duration_sec = round(len(audio_bytes) / 96000.0, 2)
+                direct_url = f"http://192.168.0.7:8008/api/v1/ai/audio/{cache_filename}"
+                logger.info(f"Gnani Timbre TTS instant cache hit: {cache_filename} ({duration_sec}s)")
+                return {
+                    "audio_url": direct_url,
+                    "audio_content": data_uri,
+                    "cache_file": cache_filename,
+                    "text": clean_text,
+                    "language": language,
+                    "voice": selected_voice,
+                    "duration_seconds": duration_sec,
+                    "is_simulated": False
+                }
+            except Exception as read_err:
+                logger.warning(f"Could not read cached audio: {read_err}")
+
         if self.client.is_configured:
             payload = {
                 "text": clean_text,
@@ -56,11 +83,6 @@ class TimbreTTSService:
             try:
                 audio_bytes = await self.client.post_tts(payload)
                 if audio_bytes and len(audio_bytes) > 44:  # Valid WAV with data
-                    # Generate stable cache filename based on text + voice
-                    hash_key = hashlib.md5(f"{clean_text}_{selected_voice}".encode("utf-8")).hexdigest()
-                    cache_filename = f"{hash_key}.wav"
-                    cache_path = os.path.join(CACHE_DIR, cache_filename)
-                    
                     with open(cache_path, "wb") as f:
                         f.write(audio_bytes)
 
@@ -68,10 +90,12 @@ class TimbreTTSService:
                     b64_str = base64.b64encode(audio_bytes).decode("utf-8")
                     data_uri = f"data:audio/wav;base64,{b64_str}"
                     duration_sec = round(len(audio_bytes) / 96000.0, 2)
+                    direct_url = f"http://192.168.0.7:8008/api/v1/ai/audio/{cache_filename}"
 
                     logger.info(f"Gnani Timbre TTS synthesized {len(audio_bytes)} bytes ({duration_sec}s) for voice '{selected_voice}'")
                     return {
-                        "audio_url": data_uri,
+                        "audio_url": direct_url,
+                        "audio_content": data_uri,
                         "cache_file": cache_filename,
                         "text": clean_text,
                         "language": language,

@@ -86,6 +86,11 @@ export const CreateTaskScreen = ({ route, navigation }) => {
           if (base64) {
             const audioFormat = audioUri?.endsWith('.m4a') ? 'm4a' : (audioUri?.endsWith('.webm') ? 'webm' : 'wav');
             const tr = await aiApi.transcribe({ audio_base64: base64, audio_format: audioFormat, language: 'hi' });
+            if (tr?.error) {
+              setIsProcessingVoice(false);
+              Alert.alert('Speech Recognition Notice', tr.error);
+              return;
+            }
             transcript = tr?.transcript;
           }
         }
@@ -118,7 +123,8 @@ export const CreateTaskScreen = ({ route, navigation }) => {
         setIsProcessingVoice(false);
       } catch (e) {
         setIsProcessingVoice(false);
-        Alert.alert('Notice', 'Could not auto-fill from voice. Please enter details manually.');
+        const msg = e.userFriendlyMessage || e.response?.data?.detail || e.message || 'Could not auto-fill from voice. Please enter details manually.';
+        Alert.alert('Notice', msg);
       }
     }
   };

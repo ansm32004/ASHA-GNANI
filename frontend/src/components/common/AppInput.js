@@ -54,7 +54,8 @@ export const AppInput = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: spacing.xs
+    marginVertical: spacing.xs,
+    width: '100%'
   },
   label: {
     ...typography.bodySmall,
@@ -70,7 +71,8 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: radius.medium,
     minHeight: 48,
-    paddingHorizontal: spacing.base
+    paddingHorizontal: spacing.base,
+    width: '100%'
   },
   errorWrapper: {
     borderColor: colors.danger

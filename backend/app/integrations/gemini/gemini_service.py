@@ -11,6 +11,86 @@ try:
     GENAI_AVAILABLE = True
 except ImportError:
     GENAI_AVAILABLE = False
+    genai = None
+    types = None
+
+DEVA_TO_LATIN = {
+    "राजेश": "Rajesh", "कुमार": "Kumar", "मीना": "Meena", "देवी": "Devi",
+    "सुनीता": "Sunita", "रेखा": "Rekha", "शर्मा": "Sharma", "सीता": "Sita",
+    "वर्मा": "Verma", "पूजा": "Pooja", "सिंह": "Singh", "कमला": "Kamla",
+    "यादव": "Yadav", "आरव": "Aarav", "प्रिया": "Priya", "रमेश": "Ramesh",
+    "सुरेश": "Suresh", "महेश": "Mahesh", "दिनेश": "Dinesh", "अमित": "Amit",
+    "राहुल": "Rahul", "विकास": "Vikas", "संजय": "Sanjay", "अजय": "Ajay",
+    "विजय": "Vijay", "अनीता": "Anita", "अनिता": "Anita", "गीता": "Geeta",
+    "राधा": "Radha", "आरती": "Aarti", "ममता": "Mamta", "सुमन": "Suman",
+    "कविता": "Kavita", "उषा": "Usha", "पटेल": "Patel", "गुप्ता": "Gupta",
+    "मिश्रा": "Mishra", "तिवारी": "Tiwari", "पांडे": "Pandey", "चौहान": "Chauhan",
+    "ठाकुर": "Thakur", "रामपुर": "Rampur", "कलां": "Kalan"
+}
+
+INDIAN_STOP_WORDS = {
+    "आज", "कल", "परसों", "सुबह", "शाम", "दोपहर", "परिवार", "बच्चे", "बच्चा",
+    "मरीज", "आशा", "दीदी", "डॉक्टर", "अस्पताल", "दवा", "गोली", "टीका", "जांच",
+    "विजिट", "काम", "टास्क", "वार्ड", "गाँव", "गांव", "घर", "सदस्य", "रिपोर्ट",
+    "फॉलो", "ब्लड", "प्रेशर", "बुखार", "दस्त", "खांसी", "महीने", "साल", "दिन",
+    "today", "tomorrow", "family", "child", "baby", "patient", "asha", "didi",
+    "doctor", "hospital", "medicine", "visit", "task", "ward", "village",
+    "house", "member", "blood", "pressure", "fever", "diarrhea"
+}
+
+def devanagari_to_latin(text: str) -> str:
+    vowels = {
+        "अ": "a", "आ": "aa", "इ": "i", "ई": "ee", "उ": "u", "ऊ": "oo",
+        "ऋ": "ri", "ए": "e", "ऐ": "ai", "ओ": "o", "औ": "au",
+        "अं": "an", "अः": "ah"
+    }
+    matras = {
+        "ा": "a", "ि": "i", "ी": "i", "ु": "u", "ू": "u",
+        "ृ": "ri", "े": "e", "ै": "ai", "ो": "o", "ौ": "au",
+        "ं": "n", "ः": "h", "्": ""
+    }
+    consonants = {
+        "क": "k", "ख": "kh", "ग": "g", "घ": "gh", "ङ": "ng",
+        "च": "ch", "छ": "chh", "ज": "j", "झ": "jh", "ञ": "ny",
+        "ट": "t", "ठ": "th", "ड": "d", "ढ": "dh", "ण": "n",
+        "त": "t", "थ": "th", "द": "d", "ध": "dh", "न": "n",
+        "प": "p", "फ": "ph", "ब": "b", "भ": "bh", "म": "m",
+        "य": "y", "र": "r", "ल": "l", "व": "v", "श": "sh",
+        "ष": "sh", "स": "s", "ह": "h", "ड़": "d", "ढ़": "dh",
+        "क्ष": "ksh", "त्र": "tr", "ज्ञ": "gy"
+    }
+    words = text.split()
+    res = []
+    for w in words:
+        if w in DEVA_TO_LATIN:
+            res.append(DEVA_TO_LATIN[w])
+            continue
+        out = []
+        i = 0
+        n = len(w)
+        while i < n:
+            c = w[i]
+            if c in vowels:
+                out.append(vowels[c])
+            elif c in consonants:
+                cons = consonants[c]
+                if i + 1 < n and w[i+1] in matras:
+                    m = matras[w[i+1]]
+                    out.append(cons + m)
+                    i += 1
+                else:
+                    if i + 1 < n and w[i+1] not in [" ", "।", ",", "."]:
+                        out.append(cons + "a")
+                    else:
+                        out.append(cons)
+            elif c in matras:
+                out.append(matras[c])
+            else:
+                out.append(c)
+            i += 1
+        capitalized = "".join(out).capitalize()
+        res.append(capitalized)
+    return " ".join(res)
 
 class GeminiService:
     """
@@ -18,7 +98,8 @@ class GeminiService:
     Handles task-specific structured entity extraction and grounded health question answering.
     """
     def __init__(self):
-        self.model_name = settings.GEMINI_MODEL or "gemini-2.5-flash"
+        self.model_name = getattr(settings, "GEMINI_MODEL", "gemini-1.5-flash") or "gemini-1.5-flash"
+        self.last_used_model = "semantic-rule-engine"
         self._client = None
         self._init_client()
 
@@ -34,6 +115,16 @@ class GeminiService:
     @property
     def is_configured(self) -> bool:
         return bool(self._client is not None)
+
+    def _get_candidate_models(self) -> List[str]:
+        """
+        Ordered list of verified production Google Gemini models to attempt.
+        """
+        candidates = [self.model_name]
+        for fallback in ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-flash-8b"]:
+            if fallback not in candidates:
+                candidates.append(fallback)
+        return candidates
 
     async def extract_structured_fields(
         self,
@@ -52,10 +143,7 @@ class GeminiService:
 
         # 1. Try Live Gemini API if configured
         if self.is_configured:
-            candidate_models = [self.model_name]
-            if "flash-lite" not in self.model_name:
-                candidate_models.append("gemini-3.5-flash-lite")
-
+            candidate_models = self._get_candidate_models()
             prompt = self._build_extraction_prompt(clean_text, task_type, household_id)
             for m in candidate_models:
                 try:
@@ -64,22 +152,28 @@ class GeminiService:
                         "response_mime_type": "application/json",
                         "max_output_tokens": 1500
                     }
-                    if "flash-lite" not in m:
-                        cfg_kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
+                    if types is not None:
+                        if "flash-lite" not in m:
+                            cfg_kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
+                        call_config = types.GenerateContentConfig(**cfg_kwargs)
+                    else:
+                        call_config = cfg_kwargs
 
                     response = self._client.models.generate_content(
                         model=m,
                         contents=prompt,
-                        config=types.GenerateContentConfig(**cfg_kwargs)
+                        config=call_config
                     )
                     if response and response.text:
                         parsed = json.loads(response.text)
+                        self.last_used_model = m
                         logger.info(f"Gemini ({m}) extracted structured fields for task '{task_type}'")
                         return parsed
                 except Exception as e:
                     logger.warning(f"Gemini extraction call with model '{m}' failed: {e}")
 
         # 2. Robust Domain-Specific Semantic Fallback Extractor
+        self.last_used_model = "semantic-rule-engine"
         return self._semantic_fallback_extraction(clean_text, task_type, household_id)
 
     async def answer_health_query(
@@ -107,9 +201,7 @@ class GeminiService:
         kb_text = "\n\n".join(kb_context_lines) if kb_context_lines else "No specific approved document found in knowledge base."
 
         if self.is_configured:
-            candidate_models = [self.model_name]
-            if "flash-lite" not in self.model_name:
-                candidate_models.append("gemini-3.5-flash-lite")
+            candidate_models = self._get_candidate_models()
 
             sys_prompt = (
                 "You are SAHAYIKA, a trusted, warm, culturally respectful community health AI companion for rural India. "
@@ -132,20 +224,26 @@ class GeminiService:
                         "temperature": 0.2,
                         "max_output_tokens": 1500
                     }
-                    if "flash-lite" not in m:
-                        cfg_kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
+                    if types is not None:
+                        if "flash-lite" not in m:
+                            cfg_kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
+                        call_config = types.GenerateContentConfig(**cfg_kwargs)
+                    else:
+                        call_config = cfg_kwargs
 
                     response = self._client.models.generate_content(
                         model=m,
                         contents=[sys_prompt, user_prompt],
-                        config=types.GenerateContentConfig(**cfg_kwargs)
+                        config=call_config
                     )
                     if response and response.text:
+                        self.last_used_model = m
                         return response.text.strip()
                 except Exception as e:
                     logger.warning(f"Gemini query answering with model '{m}' failed: {e}")
 
         # Fallback knowledge-grounded response
+        self.last_used_model = "semantic-rule-engine"
         return self._grounded_fallback_answer(clean_query, retrieved_knowledge, language)
 
     def _build_extraction_prompt(self, transcript: str, task_type: str, household_id: Optional[str]) -> str:
@@ -268,22 +366,40 @@ class GeminiService:
         hh_id = household_id
         hh_name = None
 
-        names = [
+        predefined_names = [
             ("meena devi", "मीना देवी", "hh_001", "Meena Devi"),
             ("sunita devi", "सुनीता देवी", "hh_001", "Sunita Devi"),
             ("rekha sharma", "रेखा शर्मा", "hh_002", "Rekha Sharma"),
             ("sita verma", "सीता वर्मा", "hh_003", "Sita Verma"),
             ("pooja singh", "पूजा सिंह", "hh_004", "Pooja Singh"),
             ("kamla yadav", "कमला यादव", "hh_005", "Kamla Yadav"),
+            ("aarav kumar", "आरव कुमार", "hh_001", "Aarav Kumar"),
             ("aarav", "आरव", "hh_001", "Aarav Kumar"),
+            ("priya sharma", "प्रिया शर्मा", "hh_002", "Priya Sharma"),
             ("priya", "प्रिया", "hh_002", "Priya Sharma")
         ]
-        for en_n, hi_n, hid, full_n in names:
+        for en_n, hi_n, hid, full_n in predefined_names:
             if en_n in lower or hi_n in text:
                 beneficiary = full_n
                 hh_id = hh_id or hid
                 hh_name = full_n
                 break
+
+        # If not found in predefined list, perform dynamic Indian name extraction
+        if not beneficiary:
+            name_match = re.search(
+                r"([A-Z\u0900-\u097F][a-zA-Z\u0900-\u097F]+(?:\s+[A-Z\u0900-\u097F][a-zA-Z\u0900-\u097F]+)?)\s*(?:जी|ji)?\s*(?:का\s*घर|के\s*घर|का\s*परिवार|का\s*चेकअप|की\s*जांच|का\s*वजन|का\s*बीपी|का\s*ब्लड|को\s*देखा|का\s*रिकॉर्ड|की\s*जानकारी|ka\s*ghar|ke\s*ghar|ka\s*checkup)",
+                text
+            )
+            if name_match:
+                candidate = name_match.group(1).strip()
+                tokens = candidate.split()
+                if not any(t.lower() in INDIAN_STOP_WORDS or t in INDIAN_STOP_WORDS for t in tokens):
+                    if re.search(r"[\u0900-\u097F]", candidate):
+                        beneficiary = devanagari_to_latin(candidate)
+                    else:
+                        beneficiary = " ".join(t.capitalize() for t in tokens)
+                    hh_name = beneficiary
 
         # 2. Follow up requirement & date calculation
         follow_up_req = any(w in lower or w in text for w in [
@@ -406,13 +522,29 @@ class GeminiService:
             }
 
         elif task_type == "household_registration":
+            mem_match = re.search(r"(\d+)\s*(?:सदस्य|members?|लोग|log|person|persons)", text, re.IGNORECASE)
+            if not mem_match:
+                mem_match = re.search(r"(?:परिवार\s*में|family\s*(?:has|size\s*is)?)\s*(\d+)", text, re.IGNORECASE)
+            member_count = int(mem_match.group(1)) if mem_match else (1 if beneficiary else None)
+
+            addr_match = re.search(r"(?:वार्ड|ward)\s*([0-9a-zA-Z]+)", text, re.IGNORECASE)
+            address = f"Ward {addr_match.group(1)}" if addr_match else None
+
+            vil_match = re.search(r"(?:ग्राम|गांव|गाँव|village)\s*([a-zA-Z\u0900-\u097F]+(?:\s+[a-zA-Z\u0900-\u097F]+)?)", text, re.IGNORECASE)
+            if not vil_match:
+                vil_match = re.search(r"(रामपुर\s*कलां|rampur\s*kalan|सुल्तानपुर|sultanpur)", text, re.IGNORECASE)
+            village = vil_match.group(1).strip() if vil_match else None
+
+            ph_match = re.search(r"\b([6-9]\d{9})\b", text)
+            contact_number = ph_match.group(1) if ph_match else None
+
             members = [{"name": beneficiary, "age": None, "gender": None, "relation": "Head", "category": "General", "is_high_risk": False}] if beneficiary else []
             return {
                 "household_head_name": beneficiary or None,
-                "address": None,
-                "village": None,
-                "contact_number": None,
-                "member_count": len(members),
+                "address": address,
+                "village": village,
+                "contact_number": contact_number,
+                "member_count": member_count,
                 "members": members,
                 "notes": text
             }

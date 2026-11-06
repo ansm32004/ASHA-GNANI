@@ -91,5 +91,5 @@ class ExtractionResponse(BaseModel):
     raw_transcript: str
     requires_user_confirmation: bool = True
     missing_fields: List[str] = []
-    model_used: str = "gemini-2.5-flash"
+    model_used: str = "gemini-1.5-flash"
 

@@ -21,6 +21,12 @@ __pycache__/
 *$py.class
 .pytest_cache/
 
+# Runtime data and caches
+backend/data/
+data/
+backend/app/static/audio/
+*.wav
+
 # OS and Editor
 .DS_Store
 Thumbs.db

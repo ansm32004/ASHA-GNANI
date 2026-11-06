@@ -53,6 +53,11 @@ export const AddHouseholdScreen = ({ navigation }) => {
 
         const transRes = await aiApi.transcribeAudio(audioUri, 'hi-IN');
         await audioService.cleanupAudioFile(audioUri);
+        if (transRes?.error) {
+          setIsProcessingVoice(false);
+          Alert.alert('Speech Recognition Notice', transRes.error);
+          return;
+        }
         const transcript = transRes?.transcript || transRes?.data?.transcript || '';
 
         if (!transcript.trim()) {

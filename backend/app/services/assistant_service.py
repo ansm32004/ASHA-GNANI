@@ -32,7 +32,8 @@ class AssistantService:
         user_name = ""
         if user_id:
             try:
-                user_profile = user_repository.get_by_id(user_id)
+                from app.services.auth_service import auth_service
+                user_profile = auth_service.get_current_user_profile(user_id)
                 if user_profile:
                     user_name = user_profile.get("name", "")
             except Exception as e:
@@ -96,9 +97,15 @@ class AssistantService:
 
         # 4. ASHA Operational Task Scheduling Intent (Acceptance Test E)
         # E.g. "Meena Devi ke ghar Friday ko blood pressure check karna hai"
-        schedule_action_keywords = ["karna hai", "schedule", "task banao", "याद दिलाना", "चेक करना", "शेड्यूल", "विजिट जोड़ें", "टास्क जोड़ो"]
+        schedule_action_keywords = [
+            "karna hai", "schedule karo", "schedule karna", "task banao", "याद दिलाना",
+            "चेक करना है", "शेड्यूल करो", "शेड्यूल करना है", "विजिट जोड़ें", "टास्क जोड़ो",
+            "टास्क बनाओ", "create task", "add task", "task add"
+        ]
+        is_query_for_schedule = any(q in lower_q for q in ["kya hai", "what is", "batao", "dikhao", "show", "list", "कौन", "क्या"])
         is_task_instruction = (
             user_role == "ASHA"
+            and not is_query_for_schedule
             and any(k in lower_q for k in schedule_action_keywords)
             and any(w in lower_q for w in ["ghar", "home", "check", "visit", "bp", "blood pressure", "tika", "friday", "शुक्रवार", "monday", "सोमवार", "kal", "tomorrow"])
         )
@@ -158,10 +165,22 @@ class AssistantService:
                 logger.error(f"Error handling voice task scheduling: {e}")
 
         # 5. Operational Status Queries: Today's visits / Pending follow-ups (Acceptance Test F)
-        is_today_query = any(w in lower_q for w in ["aaj", "today", "aaj ka", "aaj ke", "kin gharon", "today's"])
-        is_upcoming_query = any(w in lower_q for w in ["kal", "tomorrow", "pending", "follow-up", "follow up", "फॉलो-अप", "aane wale"])
+        is_today_query = any(w in lower_q for w in [
+            "aaj", "today", "aaj ka", "aaj ke", "aaj ki", "kin gharon", "today's",
+            "आज", "किन घरों", "आज का", "आज के", "आज की", "आज कौन", "आज मुझे"
+        ])
+        is_upcoming_query = any(w in lower_q for w in [
+            "kal", "tomorrow", "pending", "follow-up", "follow up", "फॉलो-अप", "aane wale",
+            "कल", "लंबित", "आने वाले", "आगे के"
+        ])
 
-        if is_today_query and any(w in lower_q for w in ["visit", "task", "schedule", "जाना", "काम", "visiting", "विजिट"]):
+        today_action_keywords = [
+            "visit", "task", "schedule", "जाना", "काम", "visiting", "विजिट",
+            "घर", "घरों", "शेड्यूल", "देखना", "जाना है", "राउंड", "सूची", "list"
+        ]
+        is_kin_gharon = any(w in lower_q for w in ["kin gharon", "किन घरों", "कौन से घर", "कौन-से घर", "kis ghar"])
+
+        if (is_today_query and any(w in lower_q for w in today_action_keywords)) or is_kin_gharon:
             today_str = datetime.now().strftime("%Y-%m-%d")
             all_user_tasks = task_repo.list_all(assigned_asha_id=user_id if user_role == "ASHA" else None, household_id=household_id if user_role == "COMMUNITY" else None)
             today_tasks = [t for t in all_user_tasks if t.get("status") == "Due today" or t.get("due_date") == today_str]
@@ -187,7 +206,7 @@ class AssistantService:
             self._log_audit(query, reply_text, user_id, household_id, language, "Operational Schedule", resp.get("audio_url"))
             return resp
 
-        elif is_upcoming_query and any(w in lower_q for w in ["visit", "task", "pending", "लंबित", "फॉलो", "काम", "schedule"]):
+        elif is_upcoming_query and any(w in lower_q for w in ["visit", "task", "pending", "लंबित", "फॉलो", "काम", "schedule", "विजिट", "जाना"]):
             today_str = datetime.now().strftime("%Y-%m-%d")
             all_user_tasks = task_repo.list_all(assigned_asha_id=user_id if user_role == "ASHA" else None, household_id=household_id if user_role == "COMMUNITY" else None)
             upcoming = [t for t in all_user_tasks if t.get("status") in ["Upcoming", "Overdue"] or (t.get("due_date") and t.get("due_date") > today_str)][:3]

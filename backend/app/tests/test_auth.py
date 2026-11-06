@@ -253,5 +253,60 @@ async def test_role_based_signup():
                 for doc in coll.where(filter=FieldFilter("email", "==", em)).stream():
                     doc.reference.delete()
 
+@pytest.mark.asyncio
+async def test_token_revocation_security_and_hashing():
+    """
+    Phase 1 Verification:
+    - Token creation and expiration
+    - Revoked token rejection
+    - Storage of ONLY SHA-256 hashes (never raw JWTs)
+    - Logout endpoint invalidation
+    """
+    import json
+    import os
+    from datetime import timedelta
+    from app.core.security import create_access_token, verify_token, revoke_token, is_token_revoked, _is_sha256, REVOCATION_FILE, REVOKED_TOKENS
+
+    # 1. Token Creation & Validation
+    token = create_access_token(subject="user_test_revocation", role="ASHA")
+    assert verify_token(token) == "user_test_revocation"
+    assert is_token_revoked(token) is False
+
+    # 2. Expired Token Rejection
+    expired_token = create_access_token(subject="user_expired", role="ASHA", expires_delta=timedelta(seconds=-10))
+    assert verify_token(expired_token) is None
+
+    # 3. Explicit Revocation & Hashing
+    revoke_token(token)
+    assert is_token_revoked(token) is True
+    assert verify_token(token) is None
+
+    # 4. Storage Security: Ensure raw token is NOT in memory set or persisted file
+    assert token not in REVOKED_TOKENS
+    if os.path.exists(REVOCATION_FILE):
+        with open(REVOCATION_FILE, "r", encoding="utf-8") as f:
+            persisted_entries = json.load(f)
+            assert isinstance(persisted_entries, list)
+            # Verify no entry is a raw JWT (i.e. all must be 64-char SHA256 hex strings)
+            assert token not in persisted_entries
+            for entry in persisted_entries:
+                assert _is_sha256(entry), f"Found non-SHA256 entry in revocation store: {entry[:10]}..."
+
+    # 5. Logout endpoint invalidation
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        new_token = create_access_token(subject="asha_sunita_001", role="ASHA")
+        # Me before logout
+        me_res = await ac.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {new_token}"})
+        assert me_res.status_code == 200
+
+        # Call logout
+        logout_res = await ac.post("/api/v1/auth/logout", headers={"Authorization": f"Bearer {new_token}"})
+        assert logout_res.status_code == 200
+
+        # Me after logout must be rejected with 401
+        me_after = await ac.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {new_token}"})
+        assert me_after.status_code == 401
+
 
 

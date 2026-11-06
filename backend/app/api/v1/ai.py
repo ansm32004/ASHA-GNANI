@@ -104,7 +104,7 @@ async def extract_structured_fields_endpoint(
         raw_transcript=payload.transcript,
         requires_user_confirmation=True,
         missing_fields=missing,
-        model_used=gemini_service.model_name if gemini_service.is_configured else "semantic-rule-engine"
+        model_used=getattr(gemini_service, "last_used_model", "semantic-rule-engine")
     )
 
 @router.post("/extract-visit", response_model=ExtractVisitResponse)

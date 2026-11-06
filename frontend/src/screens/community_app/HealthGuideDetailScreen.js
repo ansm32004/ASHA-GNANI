@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, radius, shadows, spacing } from '../../theme';
 import { requestApi } from '../../services/api/requestApi';
+import { aiApi } from '../../services/api/aiApi';
+import { audioService, useAudioPlayback } from '../../services/audio/audioService';
 
 const GUIDE_DATA = {
   pregnancy: {
@@ -178,13 +180,79 @@ export const HealthGuideDetailScreen = ({ route, navigation }) => {
   const categoryKey = route.params?.category || 'pregnancy';
   const data = GUIDE_DATA[categoryKey] || GUIDE_DATA.pregnancy;
 
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const guideAudioId = `guide_${data.id}`;
+  const audioPlayback = useAudioPlayback(guideAudioId);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+  const [cachedAudioUri, setCachedAudioUri] = useState(null);
+
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [requestText, setRequestText] = useState(`कृपया ${data.title.split(' ')[0]} के संबंध में गृह भेंट करें।`);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleToggleAudio = () => {
-    setIsPlayingAudio(!isPlayingAudio);
+  // Stop playback when navigating away from this screen
+  useEffect(() => {
+    const unsubBlur = navigation.addListener('blur', () => {
+      audioService.stopAudio();
+    });
+    return unsubBlur;
+  }, [navigation]);
+
+  useEffect(() => {
+    return () => {
+      audioService.stopAudio();
+    };
+  }, []);
+
+  const handlePlayAudio = async () => {
+    if (audioPlayback.isPaused) {
+      await audioService.resumeAudio();
+      return;
+    }
+
+    try {
+      setIsLoadingAudio(true);
+      let audioUrl = cachedAudioUri;
+      if (!audioUrl) {
+        const res = await aiApi.speak({
+          text: data.audioText,
+          language: 'hi',
+          voice: 'Shivani'
+        });
+        audioUrl = res?.audio_url || res?.audio_content;
+        if (audioUrl) {
+          setCachedAudioUri(audioUrl);
+        }
+      }
+
+      if (audioUrl) {
+        await audioService.playAudio(audioUrl, null, guideAudioId);
+      } else {
+        Alert.alert('सूचना', 'ऑडियो प्राप्त नहीं हो सका। कृपया पुनः प्रयास करें।');
+      }
+    } catch (e) {
+      console.warn('[HealthGuide] Audio playback error:', e);
+      Alert.alert('ऑडियो त्रुटि', 'ऑडियो चलाने में समस्या आई।');
+    } finally {
+      setIsLoadingAudio(false);
+    }
+  };
+
+  const handlePauseAudio = async () => {
+    await audioService.pauseAudio();
+  };
+
+  const handleResumeAudio = async () => {
+    await audioService.resumeAudio();
+  };
+
+  const handleToggleAudio = async () => {
+    if (audioPlayback.isPlaying) {
+      await handlePauseAudio();
+    } else if (audioPlayback.isPaused) {
+      await handleResumeAudio();
+    } else {
+      await handlePlayAudio();
+    }
   };
 
   const handleSendRequest = async () => {
@@ -258,30 +326,106 @@ export const HealthGuideDetailScreen = ({ route, navigation }) => {
           </View>
           <Text style={styles.overviewText}>{data.overview}</Text>
 
-          {/* Interactive Audio Player */}
-          <TouchableOpacity
-            style={[styles.audioPlayer, isPlayingAudio && styles.audioPlayerActive]}
-            onPress={handleToggleAudio}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-            accessibilityLabel="Listen to audio guidelines"
+          {/* Interactive Audio Player with Pause / Resume */}
+          <View
+            style={[
+              styles.audioPlayer,
+              audioPlayback.isPlaying && styles.audioPlayerActive,
+              audioPlayback.isPaused && styles.audioPlayerPaused
+            ]}
           >
-            <View style={[styles.playButtonCircle, isPlayingAudio && { backgroundColor: data.accentColor }]}>
-              <Ionicons
-                name={isPlayingAudio ? 'pause' : 'volume-high'}
-                size={20}
-                color={isPlayingAudio ? '#FFFFFF' : colors.primary}
-              />
-            </View>
-            <View style={styles.audioTextWrapper}>
+            <TouchableOpacity
+              style={[
+                styles.playButtonCircle,
+                audioPlayback.isPlaying && { backgroundColor: data.accentColor },
+                audioPlayback.isPaused && { backgroundColor: '#F59E0B' }
+              ]}
+              onPress={handleToggleAudio}
+              disabled={isLoadingAudio}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={
+                audioPlayback.isPlaying
+                  ? 'Pause audio'
+                  : audioPlayback.isPaused
+                  ? 'Resume audio'
+                  : 'Listen to audio guidelines'
+              }
+            >
+              {isLoadingAudio ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
+                <Ionicons
+                  name={
+                    audioPlayback.isPlaying
+                      ? 'pause'
+                      : audioPlayback.isPaused
+                      ? 'play'
+                      : 'volume-high'
+                  }
+                  size={20}
+                  color={
+                    audioPlayback.isPlaying || audioPlayback.isPaused
+                      ? '#FFFFFF'
+                      : colors.primary
+                  }
+                />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.audioTextWrapper}
+              onPress={handleToggleAudio}
+              disabled={isLoadingAudio}
+              activeOpacity={0.7}
+            >
               <Text style={styles.audioLabel}>
-                {isPlayingAudio ? 'ऑडियो बज रहा है (सुनें)...' : 'ऑडियो में सुनें (Listen in Hindi)'}
+                {isLoadingAudio
+                  ? 'ऑडियो तैयार हो रहा है...'
+                  : audioPlayback.isPlaying
+                  ? 'ऑडियो बज रहा है (Pause के लिए टैप करें)'
+                  : audioPlayback.isPaused
+                  ? 'ऑडियो रुका हुआ है (Resume के लिए टैप करें)'
+                  : 'ऑडियो में सुनें (Listen in Hindi)'}
               </Text>
-              <Text style={styles.audioHint} numberOfLines={isPlayingAudio ? 3 : 1}>
-                {isPlayingAudio ? `"${data.audioText}"` : 'टैप करके दिशानिर्देश आवाज में सुनें'}
+              <Text
+                style={styles.audioHint}
+                numberOfLines={audioPlayback.isPlaying || audioPlayback.isPaused ? 3 : 1}
+              >
+                {audioPlayback.isPlaying || audioPlayback.isPaused
+                  ? `"${data.audioText}"`
+                  : 'टैप करके दिशानिर्देश आवाज में सुनें'}
               </Text>
-            </View>
-          </TouchableOpacity>
+            </TouchableOpacity>
+
+            {/* Clear Pause Button alongside existing speaker/play control */}
+            {audioPlayback.isPlaying && (
+              <TouchableOpacity
+                style={styles.controlPillPause}
+                onPress={handlePauseAudio}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel="Pause audio playback"
+              >
+                <Ionicons name="pause" size={13} color="#92400E" />
+                <Text style={styles.controlPillPauseText}>Pause</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Clear Resume Button alongside existing speaker/play control */}
+            {audioPlayback.isPaused && (
+              <TouchableOpacity
+                style={styles.controlPillResume}
+                onPress={handleResumeAudio}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel="Resume audio playback"
+              >
+                <Ionicons name="play" size={13} color="#15803D" />
+                <Text style={styles.controlPillResumeText}>Resume</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         {/* Section 1: Danger Signs (खतरे के लक्षण) */}
@@ -525,6 +669,42 @@ const styles = StyleSheet.create({
   audioPlayerActive: {
     backgroundColor: '#EBF4FE',
     borderColor: colors.primary
+  },
+  audioPlayerPaused: {
+    backgroundColor: '#FFFBEB',
+    borderColor: '#F59E0B'
+  },
+  controlPillPause: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#FCD34D',
+    gap: 4
+  },
+  controlPillPauseText: {
+    ...typography.caption,
+    color: '#92400E',
+    fontWeight: '700'
+  },
+  controlPillResume: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#86EFAC',
+    gap: 4
+  },
+  controlPillResumeText: {
+    ...typography.caption,
+    color: '#15803D',
+    fontWeight: '700'
   },
   playButtonCircle: {
     width: 40,

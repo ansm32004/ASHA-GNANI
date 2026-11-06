@@ -13,6 +13,7 @@ class TranscribeResponse(BaseModel):
     confidence: float
     duration_seconds: float
     source: Optional[str] = None
+    error: Optional[str] = None
 
 class AssistantQueryRequest(BaseModel):
     query: str
@@ -47,6 +48,7 @@ class SpeakRequest(BaseModel):
 
 class SpeakResponse(BaseModel):
     audio_url: Optional[str] = None
+    audio_content: Optional[str] = None
     cache_file: Optional[str] = None
     text: str
     language: str

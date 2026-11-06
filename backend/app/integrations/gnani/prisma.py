@@ -39,6 +39,14 @@ class PrismaSTTService:
         if not lang:
             return "hi-IN"
         l = lang.strip().lower()
+        if l in ["hinglish", "hi-en", "en-hi"]:
+            return "hi-IN,en-IN"
+        if l in ["auto", "indic-auto", "all"]:
+            return "indic-auto"
+        if l in ["hindi", "hi"]:
+            return "hi-IN"
+        if l in ["english", "en"]:
+            return "en-IN"
         if "-" in l:
             parts = l.split("-")
             return f"{parts[0]}-{parts[1].upper()}"
@@ -70,7 +78,7 @@ class PrismaSTTService:
                 ext_hint = parts[-1].lower()
 
         if ext_hint in ["m4a", "mp4"]:
-            return "audio.m4a", "audio/mp4"
+            return "audio.m4a", "audio/m4a"
         if ext_hint in ["wav", "wave"]:
             return "audio.wav", "audio/wav"
         if ext_hint in ["aac"]:
@@ -84,7 +92,7 @@ class PrismaSTTService:
         if len(data) > 12 and data[:4] == b"RIFF" and data[8:12] == b"WAVE":
             return "audio.wav", "audio/wav"
         if len(data) > 8 and (b"ftyp" in data[:64] or b"moov" in data[:64] or b"mdat" in data[:64]):
-            return "audio.m4a", "audio/mp4"
+            return "audio.m4a", "audio/m4a"
         if len(data) > 2 and (data[:3] == b"ID3" or (data[0] == 0xFF and (data[1] & 0xE0) == 0xE0)):
             return "audio.mp3", "audio/mpeg"
         if len(data) > 2 and data[0] == 0xFF and (data[1] & 0xF0) == 0xF0:
@@ -112,90 +120,123 @@ class PrismaSTTService:
                 "detected_language": language,
                 "confidence": 0.98,
                 "duration_seconds": 6.4,
-                "source": "mock_input_text"
+                "source": "mock_input_text",
+                "error": None
             }
 
-        if self.client.is_configured and audio_base64:
-            try:
-                # Strip potential data URL prefix
-                raw_b64 = audio_base64
-                if "," in raw_b64:
-                    raw_b64 = raw_b64.split(",", 1)[1]
-                
-                audio_bytes = base64.b64decode(raw_b64)
-                if len(audio_bytes) > 0:
-                    detected_filename, mime = self._detect_audio_type(
-                        audio_bytes,
-                        hint_format=audio_format,
-                        hint_filename=filename
-                    )
-                    if content_type:
-                        mime = content_type
-                    if filename:
-                        detected_filename = filename
-
-                    lang_code = self._normalize_lang_code(language)
-                    
-                    # WebM is not supported directly by Prisma v3; normalize to WAV
-                    if mime in ["audio/webm", "video/webm"] or detected_filename.endswith(".webm"):
-                        converted = self._convert_to_pcm_wav(audio_bytes)
-                        if converted:
-                            audio_bytes = converted
-                            detected_filename = "audio.wav"
-                            mime = "audio/wav"
-
-                    res = await self.client.post_stt(
-                        audio_bytes=audio_bytes,
-                        filename=detected_filename,
-                        content_type=mime,
-                        model="prisma-v3.0",
-                        language_code=lang_code
-                    )
-
-                    # If first attempt was unsuccessful and we did not already convert to WAV, auto-normalize to WAV and retry
-                    if (not res or not res.get("success")) and mime != "audio/wav":
-                        logger.info(f"Gnani Prisma STT failed with {mime}. Retrying with ffmpeg 16kHz mono WAV normalization...")
-                        converted = self._convert_to_pcm_wav(audio_bytes)
-                        if converted:
-                            res = await self.client.post_stt(
-                                audio_bytes=converted,
-                                filename="audio.wav",
-                                content_type="audio/wav",
-                                model="prisma-v3.0",
-                                language_code=lang_code
-                            )
-
-                    if res and res.get("success"):
-                        transcript = (res.get("transcript") or "").strip()
-                        logger.info(f"Gnani Prisma STT transcribed: '{transcript}'")
-                        return {
-                            "transcript": transcript,
-                            "detected_language": res.get("detected_language_code", lang_code),
-                            "confidence": 0.98 if transcript else 0.0,
-                            "duration_seconds": round(res.get("processing_time", 0.0), 2),
-                            "source": "gnani_prisma_live"
-                        }
-                    else:
-                        logger.warning(f"Gnani Prisma STT returned unsuccessful response: {res}")
-            except Exception as e:
-                logger.error(f"Error during Gnani Prisma transcription: {e}")
-
-        # If audio was provided but could not be transcribed, do not fabricate fake transcripts
-        if audio_base64:
+        if not audio_base64 or not audio_base64.strip():
             return {
                 "transcript": "",
                 "detected_language": language or "hi",
                 "confidence": 0.0,
                 "duration_seconds": 0.0,
-                "source": "gnani_prisma_failed"
+                "source": "empty_input",
+                "error": "No audio data provided."
             }
 
-        return {
-            "transcript": "",
-            "detected_language": language or "hi",
-            "confidence": 0.0,
-            "duration_seconds": 0.0,
-            "source": "empty_input"
-        }
+        if not self.client.is_configured:
+            logger.warning("Gnani Prisma STT called but GNANI_API_KEY is not configured.")
+            return {
+                "transcript": "",
+                "detected_language": language or "hi",
+                "confidence": 0.0,
+                "duration_seconds": 0.0,
+                "source": "gnani_not_configured",
+                "error": "Gnani API key is not configured. Please set GNANI_API_KEY in backend/.env"
+            }
+
+        try:
+            # Strip potential data URL prefix
+            raw_b64 = audio_base64
+            if "," in raw_b64:
+                raw_b64 = raw_b64.split(",", 1)[1]
+            
+            audio_bytes = base64.b64decode(raw_b64)
+            if len(audio_bytes) < 32:
+                return {
+                    "transcript": "",
+                    "detected_language": language or "hi",
+                    "confidence": 0.0,
+                    "duration_seconds": 0.0,
+                    "source": "empty_input",
+                    "error": "Audio recording is too short or empty."
+                }
+
+            detected_filename, mime = self._detect_audio_type(
+                audio_bytes,
+                hint_format=audio_format,
+                hint_filename=filename
+            )
+            if content_type:
+                mime = content_type
+            if filename:
+                detected_filename = filename
+
+            lang_code = self._normalize_lang_code(language)
+            format_type = "code-mix" if ("hi-IN,en-IN" in lang_code or lang_code == "indic-auto") else "transcribe"
+            
+            # WebM is not supported natively by Prisma v3; normalize to WAV if ffmpeg is available
+            if (mime in ["audio/webm", "video/webm"] or detected_filename.endswith(".webm")) and shutil.which("ffmpeg"):
+                converted = self._convert_to_pcm_wav(audio_bytes)
+                if converted:
+                    audio_bytes = converted
+                    detected_filename = "audio.wav"
+                    mime = "audio/wav"
+
+            res = await self.client.post_stt(
+                audio_bytes=audio_bytes,
+                filename=detected_filename,
+                content_type=mime,
+                model="prisma-v3.0",
+                language_code=lang_code,
+                format_type=format_type
+            )
+
+            # If first attempt was unsuccessful and we did not already convert to WAV, retry with WAV if ffmpeg available
+            if (not res or not res.get("success")) and mime != "audio/wav" and shutil.which("ffmpeg"):
+                logger.info(f"Gnani Prisma STT failed with {mime}. Retrying with ffmpeg 16kHz mono WAV normalization...")
+                converted = self._convert_to_pcm_wav(audio_bytes)
+                if converted:
+                    res = await self.client.post_stt(
+                        audio_bytes=converted,
+                        filename="audio.wav",
+                        content_type="audio/wav",
+                        model="prisma-v3.0",
+                        language_code=lang_code,
+                        format_type=format_type
+                    )
+
+            if res and res.get("success"):
+                transcript = (res.get("transcript") or "").strip()
+                logger.info(f"Gnani Prisma STT transcribed: '{transcript}'")
+                return {
+                    "transcript": transcript,
+                    "detected_language": res.get("detected_language_code", lang_code),
+                    "confidence": 0.98 if transcript else 0.0,
+                    "duration_seconds": round(res.get("processing_time", 0.0), 2),
+                    "source": "gnani_prisma_live",
+                    "error": None
+                }
+            else:
+                err_msg = (res.get("error_message") if isinstance(res, dict) else None) or "Gnani STT was unable to transcribe the audio."
+                logger.warning(f"Gnani Prisma STT returned unsuccessful response: {res}")
+                return {
+                    "transcript": "",
+                    "detected_language": language or "hi",
+                    "confidence": 0.0,
+                    "duration_seconds": 0.0,
+                    "source": "gnani_prisma_failed",
+                    "error": err_msg
+                }
+        except Exception as e:
+            logger.error(f"Error during Gnani Prisma transcription: {e}")
+            return {
+                "transcript": "",
+                "detected_language": language or "hi",
+                "confidence": 0.0,
+                "duration_seconds": 0.0,
+                "source": "gnani_prisma_failed",
+                "error": f"Audio processing error: {str(e)}"
+            }
 
 prisma_stt = PrismaSTTService()
