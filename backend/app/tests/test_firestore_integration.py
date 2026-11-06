@@ -10,6 +10,13 @@ from app.core.security import create_access_token
 
 client = TestClient(app)
 
+# Ensure initialized
+firebase_manager.initialize()
+pytestmark = pytest.mark.skipif(
+    not firebase_manager.is_connected,
+    reason="Requires live Firebase credentials (FIREBASE_CREDENTIALS_PATH)"
+)
+
 def test_firebase_manager_connected():
     firebase_manager.initialize()
     assert firebase_manager.is_connected is True

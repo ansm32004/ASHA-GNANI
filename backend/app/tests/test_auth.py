@@ -100,8 +100,9 @@ async def test_credentials_authentication_full():
         assert upper_res.status_code == 200
         assert upper_res.json()["user"]["name"] == "Sunita Devi"
 
-        # 7. Firebase unavailable fails safely with 503
-        with patch.object(type(user_repository), "is_connected", new=False):
+        # 7. Firebase unavailable in production mode fails safely with 503
+        with patch.object(type(user_repository), "is_connected", new=False), \
+             patch("app.services.auth_service.settings.DEMO_MODE", False):
             unavail_res = await ac.post("/api/v1/auth/login-credentials", json={
                 "email": "asha.demo@sahayika.test",
                 "password": "Sahayika@123"

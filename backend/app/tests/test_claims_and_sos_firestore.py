@@ -19,6 +19,8 @@ def test_claims_firestore_crud_and_persistence():
     Verifies that claims persist into Cloud Firestore, survive repository re-instantiation,
     and update properly.
     """
+    if not firebase_manager.is_connected:
+        pytest.skip("Requires live Firebase connection")
     repo = FirestoreRepository("claims")
     test_claim_id = "test_claim_audit_persist_999"
     test_claim_data = {
@@ -109,6 +111,8 @@ def test_claims_firestore_failure_handling():
     """
     Verifies that Firestore errors during claim writes are raised safely and not silently hidden.
     """
+    if not firebase_manager.is_connected:
+        pytest.skip("Requires live Firebase connection")
     test_repo = ClaimRepository()
     test_repo._initialized_db = True
     test_repo._claims = []
@@ -122,6 +126,8 @@ def test_sos_firestore_crud_and_persistence():
     Verifies that SOS events persist into Cloud Firestore, survive repository re-instantiation,
     and support acknowledge and escalation workflows.
     """
+    if not firebase_manager.is_connected:
+        pytest.skip("Requires live Firebase connection")
     repo = FirestoreRepository("sos_events")
     test_sos_id = "test_sos_audit_persist_999"
     test_sos_data = {
@@ -237,6 +243,8 @@ def test_sos_firestore_failure_handling():
     Verifies that SOS creation fails safely and loudly if Firestore is down.
     SOS must NEVER silently report success if the database write failed.
     """
+    if not firebase_manager.is_connected:
+        pytest.skip("Requires live Firebase connection")
     test_repo = SosRepository()
     with patch.object(test_repo._firestore, "create_doc", side_effect=RuntimeError("Firestore write failed")):
         with pytest.raises(RuntimeError) as exc_info:
@@ -252,6 +260,8 @@ def test_sos_collision_handling_and_retry():
     Verifies that SOS ID generation never collides with existing IDs (e.g. sos_001 and sos_003),
     and correctly retries if an AlreadyExists exception is encountered from Firestore.
     """
+    if not firebase_manager.is_connected:
+        pytest.skip("Requires live Firebase connection")
     from google.api_core.exceptions import AlreadyExists
 
     test_repo = SosRepository()
@@ -286,6 +296,8 @@ def test_sos_cache_consistency_on_failed_write():
     Verifies that if Firestore set fails during acknowledge or escalate,
     the in-memory cache is NOT corrupted and retains its original status.
     """
+    if not firebase_manager.is_connected:
+        pytest.skip("Requires live Firebase connection")
     test_repo = SosRepository()
     test_repo._initialized_db = True
     test_repo._events = [
@@ -317,6 +329,8 @@ def test_claims_cache_consistency_on_failed_write():
     Verifies that if Firestore set fails during submit_claim,
     the in-memory claim retains its Draft status and is not mutated.
     """
+    if not firebase_manager.is_connected:
+        pytest.skip("Requires live Firebase connection")
     test_repo = ClaimRepository()
     test_repo._initialized_db = True
     test_repo._claims = [

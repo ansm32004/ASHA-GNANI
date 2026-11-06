@@ -1,20 +1,101 @@
+import os
+import json
+import hashlib
+import uuid
 import bcrypt
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Any, Union
 from jose import jwt, JWTError
 from app.config import settings
 
-def create_access_token(subject: Union[str, Any], expires_delta: Optional[timedelta] = None) -> str:
+REVOKED_TOKENS = set()
+DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data"))
+REVOCATION_FILE = os.path.join(DATA_DIR, "revoked_tokens.json")
+
+def _load_revocations() -> None:
+    try:
+        if os.path.exists(REVOCATION_FILE):
+            with open(REVOCATION_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, list):
+                    REVOKED_TOKENS.update(data)
+    except Exception:
+        pass
+
+def _persist_revocations() -> None:
+    try:
+        os.makedirs(DATA_DIR, exist_ok=True)
+        with open(REVOCATION_FILE, "w", encoding="utf-8") as f:
+            json.dump(list(REVOKED_TOKENS), f)
+    except Exception:
+        pass
+
+_load_revocations()
+
+def _hash_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+def revoke_token(token: str) -> None:
+    if token:
+        token_hash = _hash_token(token)
+        REVOKED_TOKENS.add(token)
+        REVOKED_TOKENS.add(token_hash)
+        _persist_revocations()
+        try:
+            from app.integrations.firebase.firestore_repository import FirestoreRepository
+            fs_revoked = FirestoreRepository("revoked_tokens")
+            if fs_revoked.is_connected:
+                fs_revoked.set(token_hash, {
+                    "token_hash": token_hash,
+                    "revoked_at": datetime.now(timezone.utc).isoformat()
+                })
+        except Exception:
+            pass
+
+def is_token_revoked(token: str) -> bool:
+    if not token:
+        return True
+    token_hash = _hash_token(token)
+    if token in REVOKED_TOKENS or token_hash in REVOKED_TOKENS:
+        return True
+    try:
+        from app.integrations.firebase.firestore_repository import FirestoreRepository
+        fs_revoked = FirestoreRepository("revoked_tokens")
+        if fs_revoked.is_connected:
+            doc = fs_revoked.get(token_hash)
+            if doc:
+                REVOKED_TOKENS.add(token_hash)
+                return True
+    except Exception:
+        pass
+    return False
+
+def create_access_token(
+    subject: Union[str, Any],
+    role: Optional[str] = None,
+    household_id: Optional[str] = None,
+    expires_delta: Optional[timedelta] = None
+) -> str:
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
         expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     
-    to_encode = {"exp": expire, "sub": str(subject)}
+    to_encode = {
+        "exp": expire,
+        "sub": str(subject),
+        "jti": uuid.uuid4().hex
+    }
+    if role:
+        to_encode["role"] = role
+    if household_id:
+        to_encode["household_id"] = household_id
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
 def verify_token(token: str) -> Optional[str]:
+    if is_token_revoked(token):
+        return None
     try:
         decoded_token = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         return decoded_token["sub"]

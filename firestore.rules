@@ -52,24 +52,27 @@ service cloud.firestore {
       allow delete: if isSupervisor();
     }
 
-    // Field Visits: ASHA logs visit, cannot delete once submitted
+    // Field Visits: ASHA logs visit, household can view their own visits
     match /visits/{visitId} {
-      allow read: if isAshaWorker();
+      allow read: if isAshaWorker() || 
+        (isCommunityMember() && resource.data.household_id == request.auth.token.household_id);
       allow create: if isAshaWorker();
       allow update: if isAshaWorker() && resource.data.status != 'Verified';
       allow delete: if isSupervisor();
     }
 
-    // Follow-up Tasks: ASHA manages their tasks
+    // Follow-up Tasks: ASHA manages tasks, household can view tasks for their home
     match /tasks/{taskId} {
-      allow read: if isAshaWorker();
+      allow read: if isAshaWorker() || 
+        (isCommunityMember() && resource.data.household_id == request.auth.token.household_id);
       allow create, update: if isAshaWorker();
       allow delete: if isSupervisor();
     }
 
     // Community Requests: incoming requests from community or ASHA logged
     match /community_requests/{requestId} {
-      allow read: if isAshaWorker();
+      allow read: if isAshaWorker() || 
+        (isCommunityMember() && resource.data.household_id == request.auth.token.household_id);
       allow create: if isAuthenticated();
       allow update: if isAshaWorker();
       allow delete: if isSupervisor();

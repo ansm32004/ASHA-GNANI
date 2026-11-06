@@ -3,15 +3,22 @@ import { Platform } from 'react-native';
 import { secureStorage } from '../storage/secureStorage';
 
 // Base URL resolution priority:
-// 1. Explicit EXPO_PUBLIC_API_URL environment variable
-// 2. Android emulator host (10.0.2.2) vs iOS/Web localhost (127.0.0.1)
-const RESOLVED_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL ||
-  Platform.select({
-    android: 'http://10.0.2.2:8008/api/v1',
-    ios: 'http://localhost:8008/api/v1',
-    default: 'http://localhost:8008/api/v1'
-  });
+// 1. Web -> localhost / process.env.EXPO_PUBLIC_API_URL
+// 2. Physical device via Expo Go -> Dev machine LAN IP (192.168.1.41)
+// 3. Explicit production or custom remote EXPO_PUBLIC_API_URL
+const resolveBaseUrl = () => {
+  const envUrl = process.env.EXPO_PUBLIC_API_URL;
+  if (Platform.OS === 'web') {
+    return envUrl || 'http://localhost:8008/api/v1';
+  }
+  if (!envUrl || envUrl.includes('localhost') || envUrl.includes('127.0.0.1')) {
+    // Physical mobile device connected via Expo Go
+    return 'http://192.168.1.41:8008/api/v1';
+  }
+  return envUrl;
+};
+
+const RESOLVED_BASE_URL = resolveBaseUrl();
 
 const TIMEOUT_MS = Number(process.env.EXPO_PUBLIC_API_TIMEOUT_MS) || 10000;
 

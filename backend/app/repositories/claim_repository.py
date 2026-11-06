@@ -1,4 +1,5 @@
 from typing import List, Optional, Dict, Any
+from app.config import settings
 from app.repositories.mock_data import generate_mock_claims, DEMO_USER
 from app.integrations.firebase.firestore_repository import FirestoreRepository
 from app.core.logging import logger
@@ -154,6 +155,8 @@ class ClaimRepository:
                 existing = self.get_by_id(claim_id)
                 if existing:
                     return existing
+        elif not getattr(settings, "DEMO_MODE", False):
+            raise RuntimeError("Cloud Firestore is disconnected in live mode. Cannot prepare claim.")
 
         self._claims.insert(0, new_claim)
         return new_claim
@@ -174,6 +177,8 @@ class ClaimRepository:
         # Attempt Firestore write before mutating in-memory cache
         if self._firestore.is_connected:
             self._firestore.set(claim_id, update_data, merge=True)
+        elif not getattr(settings, "DEMO_MODE", False):
+            raise RuntimeError("Cloud Firestore is disconnected in live mode. Cannot submit claim.")
 
         record.update(update_data)
         return record
@@ -186,6 +191,8 @@ class ClaimRepository:
         clean_updates = {k: v for k, v in data.items() if v is not None}
         if self._firestore.is_connected:
             self._firestore.set(claim_id, clean_updates, merge=True)
+        elif not getattr(settings, "DEMO_MODE", False):
+            raise RuntimeError("Cloud Firestore is disconnected in live mode. Cannot update claim.")
         record.update(clean_updates)
         return record
 

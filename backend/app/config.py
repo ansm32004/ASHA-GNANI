@@ -17,15 +17,20 @@ class Settings(BaseSettings):
 
     # Firebase
     FIREBASE_CREDENTIALS_PATH: Optional[str] = None
-    FIREBASE_PROJECT_ID: Optional[str] = "sahayika-asha-dev"
-    FIREBASE_STORAGE_BUCKET: Optional[str] = "sahayika-asha-dev.appspot.com"
+    FIREBASE_SERVICE_ACCOUNT_JSON: Optional[str] = None
+    FIREBASE_PROJECT_ID: Optional[str] = "asha-997cd"
+    FIREBASE_STORAGE_BUCKET: Optional[str] = "asha-997cd.firebasestorage.app"
 
     # Gnani AI Service Keys
     GNANI_API_KEY: Optional[str] = None
-    GNANI_API_ENDPOINT: str = "https://api.gnani.ai/v1"
-    GNANI_PRISMA_ENDPOINT: str = "https://api.gnani.ai/v1/prisma/asr"
-    GNANI_EVON_ENDPOINT: str = "https://api.gnani.ai/v1/evon/nlu"
-    GNANI_TIMBRE_ENDPOINT: str = "https://api.gnani.ai/v1/timbre/tts"
+    GNANI_API_ENDPOINT: str = "https://api.vachana.ai"
+    GNANI_PRISMA_ENDPOINT: str = "https://api.vachana.ai/stt/v3"
+    GNANI_EVON_ENDPOINT: str = "https://api.vachana.ai/v1/evon/nlu"
+    GNANI_TIMBRE_ENDPOINT: str = "https://api.vachana.ai/api/v1/tts/inference"
+
+    # Gemini AI Configuration
+    GEMINI_API_KEY: Optional[str] = None
+    GEMINI_MODEL: str = "gemini-3.5-flash"
 
     # CORS
     CORS_ORIGINS: List[str] = ["*"]

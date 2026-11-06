@@ -8,9 +8,17 @@ class RequestService:
         self,
         status: Optional[str] = None,
         category: Optional[str] = None,
-        priority: Optional[str] = None
+        priority: Optional[str] = None,
+        household_id: Optional[str] = None,
+        assigned_asha_id: Optional[str] = None
     ) -> List[Dict[str, Any]]:
-        return request_repo.list_all(status=status, category=category, priority=priority)
+        return request_repo.list_all(
+            status=status,
+            category=category,
+            priority=priority,
+            household_id=household_id,
+            assigned_asha_id=assigned_asha_id
+        )
 
     def get_request(self, req_id: str) -> Dict[str, Any]:
         req = request_repo.get_by_id(req_id)
@@ -24,6 +32,7 @@ class RequestService:
             data["household_name"] = hh["primary_contact_name"]
             data["contact_number"] = hh["contact_number"]
             data["village"] = hh.get("village", "Rampur Kalan")
+            data["assigned_asha_id"] = hh.get("assigned_asha_id", "asha_sunita_001")
         return request_repo.create(data)
 
     def process_action(self, req_id: str, action: str, notes: Optional[str] = None) -> Dict[str, Any]:

@@ -97,9 +97,13 @@ def root():
 
 @app.get("/health", tags=["Health"])
 def health_check():
+    connected = firebase_manager.is_connected
+    storage_mode = "firestore" if connected else "memory"
+    demo_mode_active = settings.DEMO_MODE if connected else True
     return {
         "status": "healthy",
-        "firebase_connected": firebase_manager.is_connected,
-        "demo_mode": settings.DEMO_MODE
+        "firebase_connected": connected,
+        "storage_mode": storage_mode,
+        "demo_mode": demo_mode_active
     }
 

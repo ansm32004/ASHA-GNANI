@@ -8,6 +8,8 @@ import { PrimaryButton } from '../../components/common/PrimaryButton';
 import { SecondaryButton } from '../../components/common/SecondaryButton';
 import { VectorCategoryIcon } from '../../components/illustrations/VectorCategoryIcon';
 import { householdApi } from '../../services/api/householdApi';
+import { audioService } from '../../services/audio/audioService';
+import { aiApi } from '../../services/api/aiApi';
 import { useTranslation } from 'react-i18next';
 
 const VILLAGES = ['Rampur Kalan', 'Lakshmi Nagar', 'Shanti Kunj', 'Kalyanpur', 'Basti Vikas'];
@@ -33,6 +35,83 @@ export const AddHouseholdScreen = ({ navigation }) => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isProcessingVoice, setIsProcessingVoice] = useState(false);
+
+  const handleVoiceFill = async () => {
+    try {
+      if (isRecording) {
+        setIsProcessingVoice(true);
+        const recResult = await audioService.stopRecording();
+        const audioUri = typeof recResult === 'object' ? recResult?.uri : recResult;
+        setIsRecording(false);
+        if (!audioUri) {
+          setIsProcessingVoice(false);
+          Alert.alert('Recording Failed', 'No valid audio was captured. Please speak again.');
+          return;
+        }
+
+        const transRes = await aiApi.transcribeAudio(audioUri, 'hi-IN');
+        await audioService.cleanupAudioFile(audioUri);
+        const transcript = transRes?.transcript || transRes?.data?.transcript || '';
+
+        if (!transcript.trim()) {
+          setIsProcessingVoice(false);
+          Alert.alert('No speech detected', 'Please try speaking again clearly.');
+          return;
+        }
+
+        const extractRes = await aiApi.extract(transcript, 'household_registration', null, 'hi');
+        setIsProcessingVoice(false);
+
+        const data = extractRes?.extracted_fields || extractRes?.data || extractRes || {};
+        if (data.primary_contact_name) setPrimaryName(data.primary_contact_name);
+        if (data.village) {
+          const matched = VILLAGES.find(v => v.toLowerCase().includes(data.village.toLowerCase()));
+          if (matched) setVillage(matched);
+        }
+        if (data.sub_area) setSubArea(data.sub_area);
+        if (data.contact_number) setContactNumber(data.contact_number);
+        if (data.address) setAddress(data.address);
+        if (Array.isArray(data.members) && data.members.length > 0) {
+          const parsedMembers = data.members.map((m, idx) => ({
+            id: `mem_${Date.now()}_${idx}`,
+            name: m.name || `Member ${idx + 1}`,
+            age: m.age || 25,
+            gender: m.gender || 'Female',
+            category: m.category || 'Adult',
+            relation: m.relation || 'Family Member',
+            is_high_risk: m.category === 'Pregnant Woman' || m.category === 'High Risk'
+          }));
+          setMembers(prev => [...prev, ...parsedMembers]);
+        }
+
+        Alert.alert(
+          'Details Auto-Filled',
+          `Voice AI extracted details from: "${transcript.substring(0, 70)}..."\nPlease review the form before saving.`
+        );
+      } else {
+        try {
+          const started = await audioService.startRecording();
+          if (started) {
+            setIsRecording(true);
+          }
+        } catch (permErr) {
+          Alert.alert(
+            'Microphone Permission Required',
+            permErr.permanentlyDenied
+              ? 'Microphone permission has been permanently denied. Please enable it in Settings.'
+              : 'Please allow microphone access to record voice notes.'
+          );
+        }
+      }
+    } catch (err) {
+      console.warn('Voice auto-fill error:', err);
+      setIsRecording(false);
+      setIsProcessingVoice(false);
+      Alert.alert('Voice Fill Notice', 'Could not complete auto-fill. You can enter details manually.');
+    }
+  };
 
   const handleAddMember = () => {
     if (!memberName.trim() || !memberAge.trim()) {
@@ -99,6 +178,26 @@ export const AddHouseholdScreen = ({ navigation }) => {
       />
 
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Quick Voice Registration Auto-Fill */}
+        <TouchableOpacity
+          onPress={handleVoiceFill}
+          style={[styles.voiceFillPill, isRecording && styles.voiceFillPillRecording]}
+          activeOpacity={0.8}
+        >
+          <Ionicons
+            name={isRecording ? "stop-circle" : "mic"}
+            size={18}
+            color={isRecording ? colors.danger : colors.primary}
+          />
+          <Text style={[styles.voiceFillText, isRecording && styles.voiceFillTextRecording]}>
+            {isProcessingVoice
+              ? "Transcribing & Extracting with AI..."
+              : isRecording
+              ? "Recording... (Tap to finish)"
+              : "Tap to dictate household details with Voice AI"}
+          </Text>
+        </TouchableOpacity>
+
         <View style={styles.formGroup}>
           <Text style={styles.sectionHeader}>Primary Contact Information</Text>
 
@@ -473,5 +572,30 @@ const styles = StyleSheet.create({
   subFormBtnRow: {
     flexDirection: 'row',
     marginTop: spacing.xs
+  },
+  voiceFillPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primaryLight,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: radius.pill,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.md,
+    gap: 8
+  },
+  voiceFillPillRecording: {
+    backgroundColor: '#FEE2E2',
+    borderColor: colors.danger
+  },
+  voiceFillText: {
+    ...typography.caption,
+    fontWeight: '600',
+    color: colors.primary
+  },
+  voiceFillTextRecording: {
+    color: colors.danger
   }
 });

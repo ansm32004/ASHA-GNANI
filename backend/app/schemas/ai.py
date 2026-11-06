@@ -12,6 +12,7 @@ class TranscribeResponse(BaseModel):
     detected_language: str
     confidence: float
     duration_seconds: float
+    source: Optional[str] = None
 
 class AssistantQueryRequest(BaseModel):
     query: str
@@ -37,4 +38,20 @@ class ExtractVisitResponse(BaseModel):
     confidence_score: float
     raw_transcript: str
     requires_user_confirmation: bool = True
+
+class SpeakRequest(BaseModel):
+    text: Optional[str] = None
+    language: Optional[str] = "hi"
+    voice: Optional[str] = "Shivani"
+    voice_gender: Optional[str] = "female"
+
+class SpeakResponse(BaseModel):
+    audio_url: Optional[str] = None
+    cache_file: Optional[str] = None
+    text: str
+    language: str
+    voice: str
+    duration_seconds: Optional[float] = None
+    is_simulated: bool = False
+
 

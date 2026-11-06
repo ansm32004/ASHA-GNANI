@@ -1,6 +1,6 @@
 import firebaseApp from './src/services/firebase/firebaseConfig';
 import React, { useEffect } from 'react';
-import { StyleSheet, View, Platform, StatusBar } from 'react-native';
+import { StyleSheet, View, Platform, StatusBar, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
@@ -14,7 +14,7 @@ import './src/localisation'; // initialize i18n
 
 
 export default function App() {
-  const [fontsLoaded] = useFonts(Ionicons.font);
+  const [fontsLoaded, fontError] = useFonts(Ionicons.font);
   const { initializeLanguage } = useLanguageStore();
   const { loadOfflineQueue, initializeNetworkListener } = useAppStore();
 
@@ -39,8 +39,12 @@ export default function App() {
 
   const isWeb = Platform.OS === 'web';
 
-  if (!fontsLoaded) {
-    return null;
+  if (!fontsLoaded && !fontError) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
   }
 
   return (

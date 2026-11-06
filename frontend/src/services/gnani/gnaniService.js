@@ -20,6 +20,10 @@ export const gnaniService = {
 
   askAssistant: async (query, language = 'hi', voiceEnabled = false) => {
     return await aiApi.queryAssistant(query, language, voiceEnabled);
+  },
+
+  speakText: async (text, language = 'hi', voice = 'Shivani') => {
+    return await aiApi.speak({ text, language, voice });
   }
 };
 

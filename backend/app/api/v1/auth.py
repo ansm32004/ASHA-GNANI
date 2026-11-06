@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from app.schemas.auth import LoginRequest, LoginResponse, VerifyOtpRequest, VerifyOtpResponse, UserProfile, CredentialsLoginRequest, RegisterRequest
 from app.services.auth_service import auth_service
-from app.core.dependencies import get_current_user_id
+from app.core.dependencies import get_current_user_id, get_token_from_header
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -44,4 +44,12 @@ def get_current_profile(user_id: str = Depends(get_current_user_id)):
     Get current logged in ASHA worker profile and assigned village data.
     """
     return auth_service.get_current_user_profile(user_id)
+
+@router.post("/logout")
+def logout(user_id: str = Depends(get_current_user_id), token: str = Depends(get_token_from_header)):
+    """
+    Revoke current JWT access token and invalidate user session.
+    """
+    auth_service.revoke_token(token)
+    return {"message": "Successfully logged out. Session invalidated.", "user_id": user_id}
 

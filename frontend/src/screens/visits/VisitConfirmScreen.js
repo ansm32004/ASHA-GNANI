@@ -11,25 +11,27 @@ import { useTranslation } from 'react-i18next';
 
 export const VisitConfirmScreen = ({ route, navigation }) => {
   const { t } = useTranslation();
-  const { extractedData = {}, rawTranscript = '' } = route.params || {};
+  const { extractedData = {}, rawTranscript = '', missingFields = [] } = route.params || {};
 
   const [householdId] = useState(extractedData.household_id || 'hh_001');
-  const [householdName, setHouseholdName] = useState(extractedData.household_name || 'Meena Devi');
+  const [householdName, setHouseholdName] = useState(
+    extractedData.household_name || extractedData.beneficiary_name || ''
+  );
   const [beneficiaryName, setBeneficiaryName] = useState(
-    extractedData.beneficiary_name || 'Meena Devi'
+    extractedData.beneficiary_name || extractedData.household_name || ''
   );
   const [visitDate, setVisitDate] = useState(
     extractedData.visit_date || new Date().toISOString().split('T')[0]
   );
   const [category, setCategory] = useState(extractedData.activity_category || 'Maternal Health');
-  const [description, setDescription] = useState(extractedData.activity_description || rawTranscript);
+  const [description, setDescription] = useState(extractedData.activity_description || rawTranscript || '');
   const [outcome, setOutcome] = useState(extractedData.visit_outcome || 'Normal');
-  const [followUpRequired, setFollowUpRequired] = useState(extractedData.follow_up_required ?? true);
+  const [followUpRequired, setFollowUpRequired] = useState(extractedData.follow_up_required ?? false);
   const [followUpDate, setFollowUpDate] = useState(
     extractedData.follow_up_date ||
-      new Date(Date.now() + 4 * 86400000).toISOString().split('T')[0]
+      (extractedData.follow_up_required ? new Date(Date.now() + 4 * 86400000).toISOString().split('T')[0] : '')
   );
-  const [priority, setPriority] = useState(extractedData.priority || 'Priority');
+  const [priority, setPriority] = useState(extractedData.priority || 'Routine');
   const [notes, setNotes] = useState(extractedData.notes || 'Verified by ASHA worker.');
   const [saving, setSaving] = useState(false);
 

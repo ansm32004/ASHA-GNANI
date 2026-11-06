@@ -1,4 +1,6 @@
+import uuid
 from typing import List, Optional, Dict, Any
+from app.config import settings
 from app.repositories.mock_data import generate_mock_visits
 from app.integrations.firebase.firestore_repository import FirestoreRepository
 from app.core.logging import logger
@@ -26,7 +28,8 @@ class VisitRepository:
     def list_all(
         self,
         household_id: Optional[str] = None,
-        category: Optional[str] = None
+        category: Optional[str] = None,
+        asha_id: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         self._ensure_synced()
         if self._firestore.is_connected:
@@ -38,6 +41,8 @@ class VisitRepository:
                 logger.warning(f"Could not refresh visits from Firestore: {e}")
 
         results = self._visits.copy()
+        if asha_id:
+            results = [v for v in results if v.get("asha_id") == asha_id or v.get("assigned_asha_id") == asha_id]
         if household_id:
             results = [v for v in results if v.get("household_id") == household_id]
         if category and category != "All":
@@ -62,7 +67,7 @@ class VisitRepository:
 
     def create(self, data: Dict[str, Any]) -> Dict[str, Any]:
         self._ensure_synced()
-        new_id = f"vis_{len(self._visits) + 1:03d}"
+        new_id = data.get("id") or f"vis_{uuid.uuid4().hex[:10]}"
         now_iso = datetime.now().isoformat() + "Z"
 
         record = {
@@ -70,6 +75,7 @@ class VisitRepository:
             "household_id": data["household_id"],
             "household_name": data.get("household_name", "Household"),
             "beneficiary_name": data.get("beneficiary_name"),
+            "asha_id": data.get("asha_id", "asha_sunita_001"),
             "visit_date": data.get("visit_date", datetime.now().strftime("%Y-%m-%d")),
             "activity_category": data.get("activity_category", "Maternal Health"),
             "activity_description": data["activity_description"],
@@ -86,6 +92,8 @@ class VisitRepository:
 
         if self._firestore.is_connected:
             self._firestore.set(new_id, record)
+        elif not getattr(settings, "DEMO_MODE", False):
+            raise RuntimeError("Cloud Firestore is disconnected in live mode. Cannot record visit.")
 
         self._visits.insert(0, record)
         return record
@@ -96,6 +104,9 @@ class VisitRepository:
             return False
         if self._firestore.is_connected:
             self._firestore.delete(visit_id)
+        elif not getattr(settings, "DEMO_MODE", False):
+            raise RuntimeError("Cloud Firestore is disconnected in live mode. Cannot delete visit.")
+
         self._visits = [v for v in self._visits if v.get("id") != visit_id]
         return True
 

@@ -9,9 +9,16 @@ class TaskService:
         status: Optional[str] = None,
         priority: Optional[str] = None,
         date_filter: Optional[str] = None,
-        household_id: Optional[str] = None
+        household_id: Optional[str] = None,
+        assigned_asha_id: Optional[str] = None
     ) -> List[Dict[str, Any]]:
-        return task_repo.list_all(status=status, priority=priority, date_filter=date_filter, household_id=household_id)
+        return task_repo.list_all(
+            status=status,
+            priority=priority,
+            date_filter=date_filter,
+            household_id=household_id,
+            assigned_asha_id=assigned_asha_id
+        )
 
     def get_task(self, task_id: str) -> Dict[str, Any]:
         task = task_repo.get_by_id(task_id)
@@ -19,10 +26,12 @@ class TaskService:
             raise NotFoundException("Task", task_id)
         return task
 
-    def create_task(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def create_task(self, data: Dict[str, Any], asha_id: Optional[str] = None) -> Dict[str, Any]:
+        if asha_id:
+            data["assigned_asha_id"] = asha_id
         hh = household_repo.get_by_id(data["household_id"])
         if hh:
-            data["household_name"] = hh["primary_contact_name"]
+            data["household_name"] = hh.get("primary_contact_name", "Household")
             data["village"] = hh.get("village", "Rampur Kalan")
         return task_repo.create(data)
 

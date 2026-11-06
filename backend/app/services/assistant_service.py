@@ -1,9 +1,15 @@
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
+import re
 from app.repositories.household_repository import household_repo
 from app.repositories.task_repository import task_repo
 from app.repositories.request_repository import request_repo
+from app.repositories.knowledge_base_repository import knowledge_base_repo
+from app.repositories.ai_conversation_repository import ai_conversation_repo
+from app.repositories.user_repository import user_repository
+from app.integrations.gemini.gemini_service import gemini_service
 from app.integrations.gnani.timbre import timbre_tts
+from app.services.safety_service import safety_service
 from app.core.logging import logger
 
 class AssistantService:
@@ -14,142 +20,290 @@ class AssistantService:
         self,
         query: str,
         language: str = "hi",
+        voice_enabled: bool = False,
+        user_role: str = "ASHA",
+        user_id: Optional[str] = None,
+        household_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        raw_q = (query or "").strip()
+        lower_q = raw_q.lower()
+
+        # 0. User profile resolution (for dynamic personalization, never hardcoding)
+        user_name = ""
+        if user_id:
+            try:
+                user_profile = user_repository.get_by_id(user_id)
+                if user_profile:
+                    user_name = user_profile.get("name", "")
+            except Exception as e:
+                logger.warning(f"Could not load user profile for {user_id}: {e}")
+
+        # 1. Unclear / inaudible speech check (Acceptance Test D)
+        unclear_tokens = ["...", "hmm", "shh", "kya", "hello?", "?", "sound", "noise", "uh", "um"]
+        if not raw_q or len(raw_q) < 3 or lower_q in unclear_tokens:
+            if language == "hi":
+                reply_text = "माफ़ कीजिए, आपकी आवाज़ स्पष्ट सुनाई नहीं दी। कृपया अपनी बात दोबारा बोलें।"
+            else:
+                reply_text = "I'm sorry, I could not hear you clearly. Please repeat your question."
+            return await self._finalize_response(
+                reply_text,
+                suggested_actions=["Speak Again", "Help Topics", "Contact ASHA"],
+                language=language,
+                voice_enabled=voice_enabled
+            )
+
+        # 2. Clinical safety guardrails (Emergency, Prescription refusal, Out-of-scope refusal)
+        safety_trigger = safety_service.pre_generation_check(lower_q, language=language)
+        if safety_trigger:
+            reply_text = safety_trigger["reply_text"]
+            suggested_actions = safety_trigger["suggested_actions"]
+            resp = await self._finalize_response(
+                reply_text,
+                suggested_actions,
+                language=language,
+                voice_enabled=voice_enabled
+            )
+            resp["safety_disclaimer"] = "Clinical safety guardrail applied."
+            self._log_audit(query, reply_text, user_id, household_id, language, safety_trigger.get("level", "Safety Intervention"), resp.get("audio_url"))
+            return resp
+
+        # 3. Dynamic Greeting Intent (Acceptance Test A)
+        greeting_words = ["namaste", "नमस्ते", "hello", "हेलो", "hi", "हैलो", "pranam", "प्रणाम", "suprabhat", "सुप्रभात"]
+        is_pure_greeting = (
+            lower_q in greeting_words
+            or any(lower_q == f"{w} sahayika" or lower_q == f"{w} didi" or lower_q == f"{w} ji" for w in greeting_words)
+            or lower_q in ["kaisa hai", "kaise ho", "how are you"]
+        )
+        if is_pure_greeting:
+            if user_role == "ASHA":
+                name_part = f"{user_name} जी" if user_name else "आशा दीदी"
+                if language == "hi":
+                    reply_text = f"नमस्ते {name_part}! आज मैं आपकी फील्ड विजिट, फॉलो-अप टास्क या स्वास्थ्य नियमों में कैसे सहायता कर सकती हूँ?"
+                else:
+                    reply_text = f"Hello {user_name or 'Sister'}! How can I assist you with your field visits, follow-up tasks, or health guidelines today?"
+                suggested_actions = ["Today's Schedule", "Record Field Visit", "Ask Health Question"]
+            else:
+                name_part = f"{user_name} जी" if user_name else ""
+                if language == "hi":
+                    reply_text = f"नमस्ते {name_part}! सहायिका में आपका स्वागत है। आप अपने परिवार के स्वास्थ्य, शिशु देखभाल, टीकाकरण या सरकारी योजनाओं की जानकारी ले सकते हैं।"
+                else:
+                    reply_text = f"Hello {user_name}! Welcome to SAHAYIKA. You can ask about your family's health, child immunization, or government health schemes."
+                suggested_actions = ["Child Immunisation", "Pregnancy Care", "Govt Schemes (JSY)"]
+
+            resp = await self._finalize_response(reply_text, suggested_actions, language=language, voice_enabled=voice_enabled)
+            self._log_audit(query, reply_text, user_id, household_id, language, "Greeting Intent", resp.get("audio_url"))
+            return resp
+
+        # 4. ASHA Operational Task Scheduling Intent (Acceptance Test E)
+        # E.g. "Meena Devi ke ghar Friday ko blood pressure check karna hai"
+        schedule_action_keywords = ["karna hai", "schedule", "task banao", "याद दिलाना", "चेक करना", "शेड्यूल", "विजिट जोड़ें", "टास्क जोड़ो"]
+        is_task_instruction = (
+            user_role == "ASHA"
+            and any(k in lower_q for k in schedule_action_keywords)
+            and any(w in lower_q for w in ["ghar", "home", "check", "visit", "bp", "blood pressure", "tika", "friday", "शुक्रवार", "monday", "सोमवार", "kal", "tomorrow"])
+        )
+
+        if is_task_instruction:
+            try:
+                extracted = await gemini_service.extract_structured_fields(
+                    transcript=raw_q,
+                    task_type="follow_up_task",
+                    language=language
+                )
+                beneficiary = extracted.get("beneficiary_name") or ""
+                task_desc = extracted.get("description") or extracted.get("task_type") or "Health follow-up"
+                due_date = extracted.get("due_date") or (datetime.now() + timedelta(days=2)).strftime("%Y-%m-%d")
+
+                # Try resolving household in ASHA's territory
+                target_hh = None
+                if beneficiary:
+                    candidates = household_repo.list_all(search=beneficiary, assigned_asha_id=user_id)
+                    if not candidates:
+                        candidates = household_repo.list_all(search=beneficiary)
+                    if candidates:
+                        target_hh = candidates[0]
+
+                hh_id_val = target_hh.get("id") if target_hh else (extracted.get("household_id") or "hh_general")
+                hh_name_val = target_hh.get("primary_contact_name") if target_hh else (beneficiary or "Beneficiary Household")
+
+                # Create real task in task repository
+                created_task = task_repo.create({
+                    "household_id": hh_id_val,
+                    "household_name": hh_name_val,
+                    "beneficiary_name": beneficiary or hh_name_val,
+                    "assigned_asha_id": user_id or "asha_sunita_001",
+                    "task_type": extracted.get("task_type", "Health Follow-up"),
+                    "description": task_desc,
+                    "due_date": due_date,
+                    "priority": extracted.get("priority", "Medium"),
+                    "created_from": "Voice Assistant"
+                })
+
+                if language == "hi":
+                    reply_text = f"{hh_name_val} के लिए {due_date} को '{task_desc}' का टास्क सफलतापूर्वक शेड्यूल कर दिया गया है।"
+                else:
+                    reply_text = f"Task for '{task_desc}' at {hh_name_val} on {due_date} has been scheduled successfully."
+
+                suggested_actions = ["View Task List", "Record Visit", "Set Reminder"]
+                resp = await self._finalize_response(
+                    reply_text,
+                    suggested_actions,
+                    referenced_tasks=[created_task],
+                    language=language,
+                    voice_enabled=voice_enabled
+                )
+                self._log_audit(query, reply_text, user_id, household_id, language, "Task Created", resp.get("audio_url"))
+                return resp
+            except Exception as e:
+                logger.error(f"Error handling voice task scheduling: {e}")
+
+        # 5. Operational Status Queries: Today's visits / Pending follow-ups (Acceptance Test F)
+        is_today_query = any(w in lower_q for w in ["aaj", "today", "aaj ka", "aaj ke", "kin gharon", "today's"])
+        is_upcoming_query = any(w in lower_q for w in ["kal", "tomorrow", "pending", "follow-up", "follow up", "फॉलो-अप", "aane wale"])
+
+        if is_today_query and any(w in lower_q for w in ["visit", "task", "schedule", "जाना", "काम", "visiting", "विजिट"]):
+            today_str = datetime.now().strftime("%Y-%m-%d")
+            all_user_tasks = task_repo.list_all(assigned_asha_id=user_id if user_role == "ASHA" else None, household_id=household_id if user_role == "COMMUNITY" else None)
+            today_tasks = [t for t in all_user_tasks if t.get("status") == "Due today" or t.get("due_date") == today_str]
+            if not today_tasks:
+                today_tasks = [t for t in all_user_tasks if t.get("status") in ["Due today", "Upcoming"] and t.get("due_date") == today_str]
+
+            if today_tasks:
+                task_summaries = [f"{t.get('household_name', 'Household')} ({t.get('task_type', 'Visit')})" for t in today_tasks[:3]]
+                summary_str = ", ".join(task_summaries)
+                if language == "hi":
+                    reply_text = f"आज आपके पास {len(today_tasks)} महत्वपूर्ण विजिट हैं: {summary_str}।"
+                else:
+                    reply_text = f"You have {len(today_tasks)} scheduled visits for today: {summary_str}."
+                suggested_actions = ["Record Visit", "View Today's Tasks", "Open Navigation"]
+            else:
+                if language == "hi":
+                    reply_text = "आज के लिए आपका कोई निर्धारित फील्ड विजिट या कार्य लंबित नहीं है। आप नया विजिट रिकॉर्ड कर सकते हैं या नया परिवार जोड़ सकते हैं।"
+                else:
+                    reply_text = "You have no field visits scheduled for today. You can record a new visit or register a household."
+                suggested_actions = ["Record Visit", "Add Household", "View All Tasks"]
+
+            resp = await self._finalize_response(reply_text, suggested_actions, referenced_tasks=today_tasks, language=language, voice_enabled=voice_enabled)
+            self._log_audit(query, reply_text, user_id, household_id, language, "Operational Schedule", resp.get("audio_url"))
+            return resp
+
+        elif is_upcoming_query and any(w in lower_q for w in ["visit", "task", "pending", "लंबित", "फॉलो", "काम", "schedule"]):
+            today_str = datetime.now().strftime("%Y-%m-%d")
+            all_user_tasks = task_repo.list_all(assigned_asha_id=user_id if user_role == "ASHA" else None, household_id=household_id if user_role == "COMMUNITY" else None)
+            upcoming = [t for t in all_user_tasks if t.get("status") in ["Upcoming", "Overdue"] or (t.get("due_date") and t.get("due_date") > today_str)][:3]
+
+            if upcoming:
+                task_summaries = [f"{t.get('household_name', 'Household')} ({t.get('task_type', 'Follow-up')})" for t in upcoming]
+                summary_str = ", ".join(task_summaries)
+                if language == "hi":
+                    reply_text = f"आपके आने वाले दिनों में {len(upcoming)} फॉलो-अप लंबित हैं: {summary_str}।"
+                else:
+                    reply_text = f"You have {len(upcoming)} upcoming follow-ups: {summary_str}."
+                suggested_actions = ["View Task List", "Set Reminder"]
+            else:
+                if language == "hi":
+                    reply_text = "वर्तमान में आपके कोई फॉलो-अप कार्य लंबित नहीं हैं।"
+                else:
+                    reply_text = "You currently have no pending follow-up tasks."
+                suggested_actions = ["Create Task", "Household List"]
+
+            resp = await self._finalize_response(reply_text, suggested_actions, referenced_tasks=upcoming, language=language, voice_enabled=voice_enabled)
+            self._log_audit(query, reply_text, user_id, household_id, language, "Upcoming Follow-ups", resp.get("audio_url"))
+            return resp
+
+        # 6. Specific Household Lookup
+        # e.g. "Sita Verma ka status" or "Meena Devi ki jankari"
+        if any(term in lower_q for term in ["ka record", "ki jankari", "ka status", "का रिकॉर्ड", "की जानकारी", "का स्टेटस"]):
+            found_hhs = household_repo.list_all(search=raw_q, assigned_asha_id=user_id if user_role == "ASHA" else None)
+            if found_hhs:
+                hh = found_hhs[0]
+                name = hh.get("primary_contact_name", "Beneficiary")
+                last_vis = hh.get("last_visit_date") or "कोई नहीं"
+                prio = hh.get("priority", "Routine")
+                if language == "hi":
+                    reply_text = f"{name} का पिछला विजिट {last_vis} को हुआ था। वर्तमान श्रेणी: {prio}।"
+                else:
+                    reply_text = f"{name}'s last recorded visit was on {last_vis}. Current priority: {prio}."
+                suggested_actions = [f"Open {name} Profile", "Record Visit Now"]
+                resp = await self._finalize_response(reply_text, suggested_actions, referenced_households=[hh], language=language, voice_enabled=voice_enabled)
+                self._log_audit(query, reply_text, user_id, household_id, language, "Household Lookup", resp.get("audio_url"))
+                return resp
+
+        # 7. Grounded Clinical, Medical, Scheme & Health Q&A (Acceptance Test B)
+        # Retrieve approved verified records from Firestore Knowledge Base
+        retrieved_docs = knowledge_base_repo.list_approved(query=raw_q, limit=3)
+
+        generated_reply = await gemini_service.answer_health_query(
+            query=raw_q,
+            retrieved_knowledge=retrieved_docs,
+            language=language,
+            user_role=user_role
+        )
+
+        reply_text = safety_service.post_generation_check(generated_reply, language=language)
+
+        suggested_actions = ["Ask Another Question", "View Health Guidelines", "Contact Village ASHA"]
+        if any(w in lower_q for w in ["bukhar", "fever", "बुखार", "temperature"]):
+            suggested_actions = ["Fever Home Care Rules", "Nearest PHC Centre", "Contact ASHA Worker"]
+        elif any(w in lower_q for w in ["vaccin", "tika", "टीका", "vaccination"]):
+            suggested_actions = ["Full Immunisation Chart", "Next Anganwadi Camp", "Contact ANM"]
+        elif any(w in lower_q for w in ["poshan", "diet", "पोषण", "ration", "राशन"]):
+            suggested_actions = ["Anganwadi Ration Rules", "Nutrition Diet Guide", "IFA Tablet Schedule"]
+        elif any(w in lower_q for w in ["scheme", "jsy", "pmmvy", "योजना", "पैसे", "1400", "5000"]):
+            suggested_actions = ["JSY Delivery Benefit", "PMMVY Registration", "Ayushman Card"]
+
+        resp = await self._finalize_response(reply_text, suggested_actions, language=language, voice_enabled=voice_enabled)
+        self._log_audit(query, reply_text, user_id, household_id, language, "Grounded Health Guidance", resp.get("audio_url"))
+        return resp
+
+    def _log_audit(
+        self,
+        query: str,
+        reply_text: str,
+        user_id: Optional[str],
+        household_id: Optional[str],
+        language: str,
+        safety_level: str,
+        audio_url: Optional[str]
+    ) -> None:
+        try:
+            ai_conversation_repo.log_interaction(
+                query=query,
+                response_text=reply_text,
+                user_id=user_id,
+                household_id=household_id,
+                language=language,
+                task_type="assistant_query",
+                safety_level=safety_level,
+                audio_url=audio_url
+            )
+        except Exception as e:
+            logger.warning(f"Could not log AI interaction: {e}")
+
+    async def _finalize_response(
+        self,
+        reply_text: str,
+        suggested_actions: List[str],
+        referenced_households: Optional[List[Dict[str, Any]]] = None,
+        referenced_tasks: Optional[List[Dict[str, Any]]] = None,
+        language: str = "hi",
         voice_enabled: bool = False
     ) -> Dict[str, Any]:
-        q = query.lower().strip()
-        
-        reply_text = ""
-        suggested_actions: List[str] = []
-        referenced_households: List[Dict[str, Any]] = []
-        referenced_tasks: List[Dict[str, Any]] = []
-
-        # 1. "Mujhe aaj kin gharon mein jaana hai?" / Today's visits query
-        if any(w in q for w in ["aaj", "today", "kin gharon", "visits", "visit", "जाना"]):
-            today_tasks = task_repo.list_all(status="Due today")
-            if not today_tasks:
-                today_tasks = [t for t in task_repo.list_all() if t["status"] in ["Due today", "Upcoming"]][:3]
-            
-            referenced_tasks = today_tasks
-            task_names = [f"{t['household_name']} ({t['task_type']})" for t in today_tasks]
-            
-            if language == "hi":
-                reply_text = (
-                    f"नमस्ते सुनीता जी! आज आपके पास {len(today_tasks)} महत्वपूर्ण विजिट हैं: "
-                    + ", ".join(task_names)
-                    + "। सबसे पहले मीना देवी के घर जाना प्राथमिकता है।"
-                )
-            else:
-                reply_text = (
-                    f"Hello Sunita ji! You have {len(today_tasks)} priority visits scheduled for today: "
-                    + ", ".join(task_names)
-                    + ". Visiting Meena Devi is the top priority."
-                )
-            suggested_actions = ["Record Visit", "View Today's Tasks", "Open Navigation"]
-
-        # 2. "Kal ke pending follow-ups dikhao" / Tomorrow / pending tasks
-        elif any(w in q for w in ["kal", "tomorrow", "pending", "follow-up", "follow up", "फॉलो-अप"]):
-            upcoming_tasks = [t for t in task_repo.list_all() if t["status"] in ["Upcoming", "Overdue"]][:3]
-            referenced_tasks = upcoming_tasks
-            
-            if language == "hi":
-                reply_text = (
-                    f"आपके आने वाले दिनों में {len(upcoming_tasks)} फॉलो-अप लंबित हैं। "
-                    "इनमें रेखा शर्मा (शिशु स्वास्थ्य) और कमला यादव (एनसीडी स्क्रीनिंग) शामिल हैं।"
-                )
-            else:
-                reply_text = (
-                    f"You have {len(upcoming_tasks)} pending follow-ups coming up. "
-                    "These include Rekha Sharma (Child Health) and Kamla Yadav (NCD Screening)."
-                )
-            suggested_actions = ["View Task List", "Set Reminder"]
-
-        # 3. "Vaccination camp kab hai?" / VHSND query
-        elif any(w in q for w in ["vaccin", "camp", "vhsnd", "टीका", "कैंप", "सत्र"]):
-            if language == "hi":
-                reply_text = (
-                    "अगला ग्राम स्वास्थ्य स्वच्छता एवं पोषण दिवस (VHSND) सत्र इसी बुधवार को आंगनवाड़ी केंद्र 2 पर है। "
-                    "इस सत्र में 0-1 वर्ष के 6 बच्चों के पेंटावेलेंट और एमआर-1 टीके लगने हैं।"
-                )
-            else:
-                reply_text = (
-                    "The next Village Health, Sanitation and Nutrition Day (VHSND) session is scheduled for this Wednesday at Anganwadi Centre 2. "
-                    "6 infants are due for Pentavalent and MR-1 immunisation."
-                )
-            suggested_actions = ["View Due Immunisation List", "Notify Families"]
-
-        # 4. "Meena Devi ka last follow-up kab hua tha?" / Specific household query
-        elif any(w in q for w in ["meena", "मीना", "devi"]):
-            hh = household_repo.get_by_id("hh_001")
-            if hh:
-                referenced_households = [hh]
-                if language == "hi":
-                    reply_text = (
-                        f"मीना देवी का पिछला फॉलो-अप {hh.get('last_visit_date')} को हुआ था। "
-                        "वे 7वें महीने की गर्भवती हैं और उच्च जोखिम (एनीमिया) श्रेणी में हैं। अगला फॉलो-अप आज देय है।"
-                    )
-                else:
-                    reply_text = (
-                        f"Meena Devi's last follow-up visit was on {hh.get('last_visit_date')}. "
-                        "She is in her 7th month of pregnancy and flagged for mild anaemia. Follow-up is due today."
-                    )
-                suggested_actions = ["Open Meena Devi Profile", "Record Visit Now", "Call Beneficiary"]
-
-        # 5. "Nutrition programme ke baare mein batao" / Government health scheme
-        elif any(w in q for w in ["nutrition", "poshan", "पोषण", "ration", "jsy", "pmvvy", "योजना"]):
-            if language == "hi":
-                reply_text = (
-                    "पोषण अभियान (POSHAN) के तहत गर्भवती और धात्री महिलाओं को आंगनवाड़ी से पूरक पोषाहार (THR) मिलता है। "
-                    "साथ ही जननी सुरक्षा योजना (JSY) के तहत संस्थागत प्रसव पर ग्रामीण क्षेत्र में ₹1,400 की वित्तीय सहायता मिलती है।"
-                )
-            else:
-                reply_text = (
-                    "Under POSHAN Abhiyaan, pregnant women and lactating mothers receive Take-Home Ration (THR) from the Anganwadi centre. "
-                    "Under Janani Suraksha Yojana (JSY), institutional delivery entitles rural mothers to financial assistance of ₹1,400."
-                )
-            suggested_actions = ["Explain JSY Rules", "View Eligible Beneficiaries"]
-
-        # 6. Medical safety guardrail query (e.g. asking for medicine / diagnosis)
-        elif any(w in q for w in ["dawa", "medicine", "tablet", "bimar", "treatment", "cure", "इलाज", "दवा"]):
-            if language == "hi":
-                reply_text = (
-                    "सुरक्षा सूचना: सहायिका एआई निदान या दवा की सलाह नहीं दे सकती। "
-                    "कृपया किसी भी स्वास्थ्य समस्या के लिए पीएचसी चिकित्सा अधिकारी (MO) या एएनएम दीदी से परामर्श लें। "
-                    "आपातकालीन स्थिति में तुरंत 108 या 112 डायल करें।"
-                )
-            else:
-                reply_text = (
-                    "Safety Note: SAHAYIKA AI Assistant cannot diagnose conditions or prescribe medications. "
-                    "Please consult the Primary Health Centre Medical Officer (MO) or ANM. "
-                    "In case of emergency, immediately dial 108 or 112."
-                )
-            suggested_actions = ["Call PHC Helpline", "Trigger Emergency SOS"]
-
-        # Default helpful assistant reply
-        else:
-            if language == "hi":
-                reply_text = (
-                    f"सुनीता जी, मैं आपके क्षेत्र (रामपुर कलां) के 34 परिवारों, आज के विजिट और स्वास्थ्य योजनाओं की जानकारी दे सकती हूँ। "
-                    "आप मुझसे आज के विजिट, टीकाकरण कैंप या किसी परिवार के बारे में पूछ सकती हैं।"
-                )
-            else:
-                reply_text = (
-                    f"Sunita ji, I can help you with your 34 assigned households in Rampur Kalan, today's visit schedule, or government health schemes. "
-                    "Try asking 'What visits do I have today?' or 'When is the next vaccination camp?'"
-                )
-            suggested_actions = ["Today's Visits", "Vaccination Schedule", "Community Requests"]
-
-        tts_data = None
-        if voice_enabled:
-            tts_data = await timbre_tts.speak(reply_text, language=language)
+        audio_url = None
+        if voice_enabled and reply_text:
+            try:
+                tts_data = await timbre_tts.speak(reply_text, language=language)
+                audio_url = tts_data.get("audio_url")
+            except Exception as e:
+                logger.error(f"TTS synthesis error in AssistantService: {e}")
 
         return {
             "reply_text": reply_text,
-            "audio_url": tts_data.get("audio_url") if tts_data else None,
+            "audio_url": audio_url,
             "suggested_actions": suggested_actions,
-            "referenced_households": referenced_households,
-            "referenced_tasks": referenced_tasks,
-            "safety_disclaimer": "SAHAYIKA AI Assistant provides operational guidance and approved government scheme information. It never diagnoses diseases or prescribes treatment. Always consult MO/ANM for medical emergencies."
+            "referenced_households": referenced_households or [],
+            "referenced_tasks": referenced_tasks or [],
+            "safety_disclaimer": "SAHAYIKA provides approved health information and operational guidance. It does not replace medical consultation with a qualified doctor or MO."
         }
 
 assistant_service = AssistantService()
-

@@ -8,6 +8,8 @@ import { PrimaryButton } from '../../components/common/PrimaryButton';
 import { VectorCategoryIcon } from '../../components/illustrations/VectorCategoryIcon';
 import { householdApi } from '../../services/api/householdApi';
 import { taskApi } from '../../services/api/taskApi';
+import { aiApi } from '../../services/api/aiApi';
+import { audioService } from '../../services/audio/audioService';
 import { useTranslation } from 'react-i18next';
 
 const TASK_CATEGORIES = [
@@ -43,6 +45,8 @@ export const CreateTaskScreen = ({ route, navigation }) => {
   );
   const [priority, setPriority] = useState('Medium');
   const [loading, setLoading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isProcessingVoice, setIsProcessingVoice] = useState(false);
 
   useEffect(() => {
     const loadHhs = async () => {
@@ -53,6 +57,71 @@ export const CreateTaskScreen = ({ route, navigation }) => {
     };
     loadHhs();
   }, [selectedHhId]);
+
+  const handleVoiceFill = async () => {
+    if (!isRecording) {
+      try {
+        const started = await audioService.startRecording();
+        if (started) {
+          setIsRecording(true);
+        }
+      } catch (err) {
+        Alert.alert(
+          'Microphone Permission Required',
+          err.permanentlyDenied
+            ? 'Microphone permission has been permanently denied. Please enable it in Settings.'
+            : 'Please allow microphone access to dictate tasks.'
+        );
+      }
+    } else {
+      setIsRecording(false);
+      setIsProcessingVoice(true);
+      try {
+        const recResult = await audioService.stopRecording();
+        const audioUri = typeof recResult === 'object' ? recResult?.uri : recResult;
+        let transcript = '';
+        if (audioUri) {
+          const base64 = await audioService.getAudioBase64(audioUri);
+          await audioService.cleanupAudioFile(audioUri);
+          if (base64) {
+            const audioFormat = audioUri?.endsWith('.m4a') ? 'm4a' : (audioUri?.endsWith('.webm') ? 'webm' : 'wav');
+            const tr = await aiApi.transcribe({ audio_base64: base64, audio_format: audioFormat, language: 'hi' });
+            transcript = tr?.transcript;
+          }
+        }
+        if (!transcript || !transcript.trim()) {
+          setIsProcessingVoice(false);
+          Alert.alert(
+            'No Speech Detected',
+            'Could not detect speech in recording. Please try speaking again or fill details manually.'
+          );
+          return;
+        }
+
+        const ext = await aiApi.extract(transcript, 'follow_up_task', selectedHhId, 'hi');
+        const f = ext.extracted_fields || {};
+        if (f.description) setDescription(f.description);
+        if (f.due_date) setDueDate(f.due_date);
+        if (f.priority) setPriority(f.priority);
+        if (f.task_type) setTaskType(f.task_type);
+
+        if (f.beneficiary_name) {
+          const matched = households.find(h =>
+            h.primary_contact_name.toLowerCase().includes(f.beneficiary_name.toLowerCase()) ||
+            (h.members && h.members.some(m => m.name.toLowerCase().includes(f.beneficiary_name.toLowerCase())))
+          );
+          if (matched) {
+            setSelectedHhId(matched.id);
+            setSelectedHh(matched);
+          }
+        }
+        setIsProcessingVoice(false);
+      } catch (e) {
+        setIsProcessingVoice(false);
+        Alert.alert('Notice', 'Could not auto-fill from voice. Please enter details manually.');
+      }
+    }
+  };
 
   const handleCreate = async () => {
     if (!description.trim()) {
@@ -92,6 +161,26 @@ export const CreateTaskScreen = ({ route, navigation }) => {
       />
 
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Quick Voice Assistant Auto-Fill */}
+        <TouchableOpacity
+          onPress={handleVoiceFill}
+          style={[styles.voiceFillPill, isRecording && styles.voiceFillPillRecording]}
+          activeOpacity={0.8}
+        >
+          <Ionicons
+            name={isRecording ? "stop-circle" : "mic"}
+            size={18}
+            color={isRecording ? colors.danger : colors.primary}
+          />
+          <Text style={[styles.voiceFillText, isRecording && styles.voiceFillTextRecording]}>
+            {isProcessingVoice
+              ? "Transcribing & Extracting with AI..."
+              : isRecording
+              ? "Recording... (Tap to finish)"
+              : "Tap to dictate follow-up task with Voice AI"}
+          </Text>
+        </TouchableOpacity>
+
         <View style={styles.formGroup}>
           <Text style={styles.sectionTitle}>Household *</Text>
           <Text style={styles.sectionSubtitle}>Select family this follow-up belongs to</Text>
@@ -340,5 +429,30 @@ const styles = StyleSheet.create({
   priorityText: {
     ...typography.caption,
     fontWeight: '600'
+  },
+  voiceFillPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primaryLight,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: radius.pill,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.md,
+    gap: 8
+  },
+  voiceFillPillRecording: {
+    backgroundColor: '#FEE2E2',
+    borderColor: colors.danger
+  },
+  voiceFillText: {
+    ...typography.caption,
+    fontWeight: '600',
+    color: colors.primary
+  },
+  voiceFillTextRecording: {
+    color: colors.danger
   }
 });

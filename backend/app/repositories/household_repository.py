@@ -1,9 +1,10 @@
+import uuid
 from typing import List, Optional, Dict, Any
+from app.config import settings
 from app.repositories.mock_data import generate_mock_households, DEMO_USER
 from app.integrations.firebase.firestore_repository import FirestoreRepository
 from app.core.logging import logger
 from datetime import datetime
-import uuid
 
 class HouseholdRepository:
     def __init__(self):
@@ -86,9 +87,9 @@ class HouseholdRepository:
 
     def create(self, data: Dict[str, Any], asha_id: Optional[str] = None) -> Dict[str, Any]:
         self._ensure_synced()
-        new_id = f"hh_{len(self._households) + 1:03d}"
+        new_id = data.get("id") or f"hh_{uuid.uuid4().hex[:10]}"
         v = data.get("village", "Rampur Kalan")
-        hh_code = data.get("household_id") or f"HH-{v[:2].upper()}-{len(self._households) + 1:03d}"
+        hh_code = data.get("household_id") or f"HH-{v[:2].upper()}-{uuid.uuid4().hex[:6].upper()}"
         now_iso = datetime.now().isoformat() + "Z"
 
         record = {
@@ -113,6 +114,8 @@ class HouseholdRepository:
 
         if self._firestore.is_connected:
             self._firestore.set(new_id, record)
+        elif not getattr(settings, "DEMO_MODE", False):
+            raise RuntimeError("Cloud Firestore is disconnected in live mode. Cannot create household.")
 
         self._households.insert(0, record)
         return record
@@ -130,6 +133,8 @@ class HouseholdRepository:
         if self._firestore.is_connected:
             target_id = record.get("id", household_id)
             self._firestore.set(target_id, record, merge=True)
+        elif not getattr(settings, "DEMO_MODE", False):
+            raise RuntimeError("Cloud Firestore is disconnected in live mode. Cannot update household.")
 
         return record
 
@@ -140,6 +145,9 @@ class HouseholdRepository:
         target_id = record.get("id", household_id)
         if self._firestore.is_connected:
             self._firestore.delete(target_id)
+        elif not getattr(settings, "DEMO_MODE", False):
+            raise RuntimeError("Cloud Firestore is disconnected in live mode. Cannot delete household.")
+
         self._households = [h for h in self._households if h.get("id") != target_id and h.get("household_id") != household_id]
         return True
 
@@ -154,6 +162,8 @@ class HouseholdRepository:
             if self._firestore.is_connected:
                 target_id = record.get("id", household_id)
                 self._firestore.set(target_id, record, merge=True)
+            elif not getattr(settings, "DEMO_MODE", False):
+                raise RuntimeError("Cloud Firestore is disconnected in live mode.")
 
 household_repo = HouseholdRepository()
 

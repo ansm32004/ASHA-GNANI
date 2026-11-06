@@ -39,7 +39,7 @@ export const VoiceAssistantScreen = ({ navigation }) => {
     setUiLanguage(nextLang);
   };
 
-  const handleAskQuestion = async (queryText) => {
+  const handleAskQuestion = async (queryText, voiceEnabled = false) => {
     const q = (queryText || textQuery || liveTranscription).trim();
     if (!q) return;
 
@@ -57,18 +57,21 @@ export const VoiceAssistantScreen = ({ navigation }) => {
     setConversation((prev) => [...prev, userMessage]);
 
     try {
-      const res = await aiApi.queryAssistant(q, i18n.language, false);
+      const res = await aiApi.queryAssistant(q, i18n.language, voiceEnabled);
       setVoiceState('idle');
-      setConversation((prev) => [
-        ...prev,
-        {
-          id: `asst-${Date.now()}`,
-          role: 'assistant',
-          text: res.reply_text,
-          timestamp: 'Just now',
-          actions: res.suggested_actions || []
-        }
-      ]);
+      const asstMsg = {
+        id: `asst-${Date.now()}`,
+        role: 'assistant',
+        text: res.reply_text,
+        timestamp: 'Just now',
+        actions: res.suggested_actions || [],
+        audioUrl: res.audio_url || null
+      };
+      setConversation((prev) => [...prev, asstMsg]);
+
+      if (voiceEnabled && res.audio_url) {
+        handlePlayAudio(res.audio_url, res.reply_text);
+      }
     } catch (e) {
       setVoiceState('idle');
       setConversation((prev) => [
@@ -78,10 +81,10 @@ export const VoiceAssistantScreen = ({ navigation }) => {
           role: 'assistant',
           text:
             i18n.language === 'hi'
-              ? 'आज आपके 4 विजिट शेड्यूल हैं: मीना देवी (गर्भावस्था ANC चेकअप), सीमा देवी (MR टीकाकरण), आशा देवी, और रेखा बाई।'
-              : "You have 4 visits scheduled today: Meena Devi (ANC), Seema Devi (MR Immunisation), Asha Devi, and Rekha Bai.",
+              ? 'माफ़ कीजिए, सहायिका सर्वर से संपर्क नहीं हो पाया। कृपया इंटरनेट कनेक्शन जांचें और पुनः प्रयास करें।'
+              : 'Sorry, could not connect to SAHAYIKA server. Please check your connection and try again.',
           timestamp: 'Just now',
-          actions: ['Open Today Visits', 'View Directory']
+          actions: ['Retry']
         }
       ]);
     }
@@ -90,38 +93,67 @@ export const VoiceAssistantScreen = ({ navigation }) => {
   const handleToggleVoice = async () => {
     if (voiceState === 'idle' || voiceState === 'error') {
       try {
-        await audioService.startRecording();
-        setVoiceState('listening');
-        setSeconds(0);
-        setLiveTranscription('बोलिए... (Listening...)');
+        const started = await audioService.startRecording();
+        if (started) {
+          setVoiceState('listening');
+          setSeconds(0);
+          setLiveTranscription(
+            i18n.language === 'hi' ? 'बोलिए... (सुन रहे हैं)' : 'Listening... Speak now'
+          );
+        }
       } catch (err) {
         setVoiceState('error');
-        setLiveTranscription('कृपया माइक्रोफ़ोन की अनुमति दें (Mic permission required)');
+        setLiveTranscription(
+          err.permanentlyDenied
+            ? (i18n.language === 'hi' ? 'माइक्रोफ़ोन अनुमति हमेशा के लिए अस्वीकृत है। सेटिंग्स में चालू करें।' : 'Microphone permission permanently denied. Enable in Settings.')
+            : (i18n.language === 'hi' ? 'कृपया माइक्रोफ़ोन की अनुमति दें' : 'Please allow microphone access')
+        );
       }
     } else if (voiceState === 'listening') {
       setVoiceState('processing');
-      const audioUri = await audioService.stopRecording();
+      const recResult = await audioService.stopRecording();
+      const audioUri = typeof recResult === 'object' ? recResult?.uri : recResult;
       let queryText = '';
       if (audioUri) {
         const base64 = await audioService.getAudioBase64(audioUri);
+        await audioService.cleanupAudioFile(audioUri);
         if (base64) {
           try {
-            const tr = await aiApi.transcribe({ audio_base64: base64, language: i18n.language });
+            const audioFormat = audioUri?.endsWith('.m4a') ? 'm4a' : (audioUri?.endsWith('.webm') ? 'webm' : 'wav');
+            const tr = await aiApi.transcribe({ audio_base64: base64, audio_format: audioFormat, language: i18n.language });
             if (tr?.transcript) queryText = tr.transcript;
           } catch (e) {
             // non-fatal
           }
         }
       }
-      if (!queryText) queryText = 'मुझे आज किन घरों में जाना है?';
-      handleAskQuestion(queryText);
+      if (!queryText || !queryText.trim()) {
+        setVoiceState('idle');
+        setLiveTranscription(
+          i18n.language === 'hi'
+            ? 'कोई आवाज़ नहीं पहचानी गई। कृपया स्पष्ट बोलें या लिखकर पूछें।'
+            : 'No speech detected. Please speak clearly or type your question.'
+        );
+        return;
+      }
+      handleAskQuestion(queryText, true);
     }
   };
 
-  const handlePlayAudio = async (audioUrl = null) => {
-    if (audioUrl) {
+  const handlePlayAudio = async (audioUrl = null, text = null) => {
+    let urlToPlay = audioUrl;
+    if (!urlToPlay && text) {
+      try {
+        const tts = await aiApi.speak({ text, language: i18n.language });
+        urlToPlay = tts?.audio_url;
+      } catch (e) {
+        // non-fatal
+      }
+    }
+
+    if (urlToPlay) {
       setVoiceState('speaking');
-      await audioService.playAudio(audioUrl, () => {
+      await audioService.playAudio(urlToPlay, () => {
         setVoiceState('idle');
       });
     } else {
@@ -217,7 +249,7 @@ export const VoiceAssistantScreen = ({ navigation }) => {
                 timestamp={msg.timestamp}
                 audioPlayable={msg.role === 'assistant'}
                 isPlayingAudio={voiceState === 'speaking'}
-                onPlayAudio={handlePlayAudio}
+                onPlayAudio={() => handlePlayAudio(msg.audioUrl, msg.text)}
               />
 
               {/* Action suggestion pills */}

@@ -1,4 +1,5 @@
 from typing import List, Optional, Dict, Any
+from app.config import settings
 from app.repositories.mock_data import generate_mock_sos_events
 from app.integrations.firebase.firestore_repository import FirestoreRepository
 from app.core.logging import logger
@@ -111,6 +112,8 @@ class SosRepository:
                     logger.error(f"Failed to persist SOS event to Firestore: {e}")
                     raise
             else:
+                if not getattr(settings, "DEMO_MODE", False):
+                    raise RuntimeError("Cloud Firestore is disconnected in live mode. Cannot trigger SOS event.")
                 record = candidate_record
                 break
 
@@ -134,6 +137,8 @@ class SosRepository:
             }
             if self._firestore.is_connected:
                 self._firestore.create_doc(unique_id, record)
+            elif not getattr(settings, "DEMO_MODE", False):
+                raise RuntimeError("Cloud Firestore is disconnected in live mode. Cannot trigger SOS event.")
 
         # Update cache ONLY after successful persistence
         self._events.insert(0, record)
@@ -154,6 +159,8 @@ class SosRepository:
         # Attempt Firestore write before mutating in-memory cache
         if self._firestore.is_connected:
             self._firestore.set(event_id, update_data, merge=True)
+        elif not getattr(settings, "DEMO_MODE", False):
+            raise RuntimeError("Cloud Firestore is disconnected in live mode.")
 
         record.update(update_data)
         return record
@@ -175,6 +182,8 @@ class SosRepository:
         # Attempt Firestore write before mutating in-memory cache
         if self._firestore.is_connected:
             self._firestore.set(event_id, update_data, merge=True)
+        elif not getattr(settings, "DEMO_MODE", False):
+            raise RuntimeError("Cloud Firestore is disconnected in live mode.")
 
         record.update(update_data)
         return record

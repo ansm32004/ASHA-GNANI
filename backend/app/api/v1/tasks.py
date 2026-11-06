@@ -3,7 +3,9 @@ from typing import List, Optional
 from pydantic import BaseModel
 from app.schemas.task import TaskResponse, TaskCreate, TaskUpdate
 from app.services.task_service import task_service
+from app.services.auth_service import auth_service
 from app.core.dependencies import get_current_user_id
+from app.core.exceptions import ForbiddenException
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
@@ -24,20 +26,34 @@ def get_tasks(
 ):
     """
     List follow-up tasks and scheduled visits with status/priority filtering.
+    Enforces role isolation: Community members only see tasks for their own household.
     """
+    profile = auth_service.get_current_user_profile(current_user)
+    assigned_asha_id = None
+    if profile.get("role") == "COMMUNITY":
+        household_id = profile.get("household_id")
+    elif profile.get("role") == "ASHA":
+        assigned_asha_id = current_user
+
     return task_service.list_tasks(
         status=status,
         priority=priority,
         date_filter=date_filter,
-        household_id=household_id
+        household_id=household_id,
+        assigned_asha_id=assigned_asha_id
     )
 
 @router.post("", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
 def create_task(payload: TaskCreate, current_user: str = Depends(get_current_user_id)):
     """
     Manually create a new task or follow-up reminder.
+    Only ASHA workers or supervisors can create tasks.
     """
-    return task_service.create_task(payload.model_dump())
+    profile = auth_service.get_current_user_profile(current_user)
+    if profile.get("role") == "COMMUNITY":
+        raise ForbiddenException("Community beneficiaries cannot schedule ASHA tasks.")
+
+    return task_service.create_task(payload.model_dump(), asha_id=current_user)
 
 @router.patch("/{task_id}", response_model=TaskResponse)
 def update_task(task_id: str, payload: TaskUpdate, current_user: str = Depends(get_current_user_id)):

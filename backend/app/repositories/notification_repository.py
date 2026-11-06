@@ -1,4 +1,6 @@
+import uuid
 from typing import List, Optional, Dict, Any
+from app.config import settings
 from app.repositories.mock_data import generate_mock_notifications
 from app.integrations.firebase.firestore_repository import FirestoreRepository
 from app.core.logging import logger
@@ -49,7 +51,7 @@ class NotificationRepository:
 
     def create(self, data: Dict[str, Any]) -> Dict[str, Any]:
         self._ensure_synced()
-        new_id = data.get("id") or f"notif_{len(self._notifications) + 1:03d}"
+        new_id = data.get("id") or f"notif_{uuid.uuid4().hex[:10]}"
         now_iso = datetime.now().isoformat() + "Z"
         record = {
             "id": new_id,
@@ -64,6 +66,9 @@ class NotificationRepository:
         }
         if self._firestore.is_connected:
             self._firestore.set(new_id, record)
+        elif not getattr(settings, "DEMO_MODE", False):
+            raise RuntimeError("Cloud Firestore is disconnected in live mode. Cannot send notification.")
+
         self._notifications.insert(0, record)
         return record
 
@@ -74,6 +79,8 @@ class NotificationRepository:
                 n["is_read"] = True
                 if self._firestore.is_connected:
                     self._firestore.update(notif_id, {"is_read": True})
+                elif not getattr(settings, "DEMO_MODE", False):
+                    raise RuntimeError("Cloud Firestore is disconnected in live mode.")
                 return n
         return None
 
@@ -86,6 +93,8 @@ class NotificationRepository:
                 count += 1
                 if self._firestore.is_connected:
                     self._firestore.update(n["id"], {"is_read": True})
+                elif not getattr(settings, "DEMO_MODE", False):
+                    raise RuntimeError("Cloud Firestore is disconnected in live mode.")
         return count
 
 notification_repo = NotificationRepository()

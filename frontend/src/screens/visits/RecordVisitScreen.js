@@ -25,6 +25,7 @@ export const RecordVisitScreen = ({ route, navigation }) => {
   const [seconds, setSeconds] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [manualMode, setManualMode] = useState(false);
+  const [capturedTranscript, setCapturedTranscript] = useState('');
   const [manualText, setManualText] = useState('');
 
   useEffect(() => {
@@ -52,17 +53,44 @@ export const RecordVisitScreen = ({ route, navigation }) => {
   const handleToggleRecord = async () => {
     if (!isRecording) {
       try {
-        await audioService.startRecording();
-        setSeconds(0);
-        setIsRecording(true);
+        const started = await audioService.startRecording();
+        if (started) {
+          setSeconds(0);
+          setIsRecording(true);
+          setCapturedTranscript('');
+        }
       } catch (err) {
-        Alert.alert('Microphone Access', 'Please allow microphone access to record visit voice notes.');
+        Alert.alert(
+          'Microphone Permission Required',
+          err.permanentlyDenied
+            ? 'Microphone permission has been permanently denied. Please enable it in Settings.'
+            : 'Please grant microphone access to record visit voice notes.'
+        );
       }
     } else {
       setIsRecording(false);
-      const audioUri = await audioService.stopRecording();
-      processAudioRecording(audioUri);
+      const recResult = await audioService.stopRecording();
+      const audioUri = typeof recResult === 'object' ? recResult?.uri : recResult;
+      if (audioUri) {
+        processAudioRecording(audioUri);
+      } else {
+        Alert.alert('Recording Failed', 'No valid audio was captured. Please speak again.');
+      }
     }
+  };
+
+  const handleCancelRecording = async () => {
+    try {
+      const recResult = await audioService.stopRecording();
+      const audioUri = typeof recResult === 'object' ? recResult?.uri : recResult;
+      if (audioUri) {
+        await audioService.cleanupAudioFile(audioUri);
+      }
+    } catch (e) {
+      // non-fatal
+    }
+    setIsRecording(false);
+    setSeconds(0);
   };
 
   const processAudioRecording = async (audioUri) => {
@@ -71,32 +99,57 @@ export const RecordVisitScreen = ({ route, navigation }) => {
       let transcriptText = '';
       if (audioUri) {
         const base64 = await audioService.getAudioBase64(audioUri);
+        await audioService.cleanupAudioFile(audioUri);
         if (base64) {
+          const audioFormat = audioUri?.endsWith('.m4a') ? 'm4a' : (audioUri?.endsWith('.webm') ? 'webm' : 'wav');
           const transcribeRes = await aiApi.transcribe({
             audio_base64: base64,
+            audio_format: audioFormat,
             language: 'hi'
           });
-          transcriptText = transcribeRes.transcript;
+          transcriptText = transcribeRes?.transcript || '';
         }
       }
 
-      if (!transcriptText) {
-        transcriptText =
-          'आज मीना देवी के घर गई थी। उनके बच्चे का वैक्सीनेशन अगले हफ्ते है। बीपी 118/76 सामान्य था। शुक्रवार को दोबारा जाना है।';
+      if (!transcriptText || !transcriptText.trim()) {
+        Alert.alert(
+          'No Speech Detected',
+          'Could not detect speech in the audio recording. Please speak clearly into the microphone or switch to manual typing.'
+        );
+        setCapturedTranscript('');
+      } else {
+        setCapturedTranscript(transcriptText.trim());
       }
-
-      const extractRes = await aiApi.extractVisit(transcriptText, selectedHhId, 'hi');
       setIsProcessing(false);
-      navigation.navigate('VisitConfirm', {
-        extractedData: extractRes.extracted_fields,
-        rawTranscript: transcriptText
-      });
     } catch (e) {
       setIsProcessing(false);
       Alert.alert(
-        'Processing Error',
-        'Could not process audio. Please try again or use text entry.'
+        'Transcription Error',
+        'Could not transcribe voice. You can retry speaking or switch to typing.'
       );
+    }
+  };
+
+  const handleExtractAndNavigate = async (textToExtract) => {
+    const cleanText = (textToExtract || capturedTranscript || manualText).trim();
+    if (!cleanText) {
+      Alert.alert('Required', 'Please speak or enter your visit report first.');
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const extractRes = await aiApi.extract(cleanText, 'visit_logging', selectedHhId, 'hi');
+      setIsProcessing(false);
+      const fields = extractRes.extracted_fields || extractRes.data || {};
+      navigation.navigate('VisitConfirm', {
+        extractedData: fields,
+        missingFields: extractRes.missing_fields || [],
+        rawTranscript: cleanText
+      });
+    } catch (e) {
+      setIsProcessing(false);
+      Alert.alert('Extraction Error', 'Could not structure visit fields. Please try again.');
     }
   };
 
@@ -105,18 +158,7 @@ export const RecordVisitScreen = ({ route, navigation }) => {
       Alert.alert('Required', 'Please write your visit notes.');
       return;
     }
-    setIsProcessing(true);
-    try {
-      const extractRes = await aiApi.extractVisit(manualText.trim(), selectedHhId, 'hi');
-      setIsProcessing(false);
-      navigation.navigate('VisitConfirm', {
-        extractedData: extractRes.extracted_fields,
-        rawTranscript: manualText.trim()
-      });
-    } catch (e) {
-      setIsProcessing(false);
-      Alert.alert('Error', 'Could not process notes.');
-    }
+    handleExtractAndNavigate(manualText.trim());
   };
 
   return (
@@ -171,8 +213,37 @@ export const RecordVisitScreen = ({ route, navigation }) => {
           </View>
         )}
 
-        {/* Voice Studio or Manual Input */}
-        {!manualMode ? (
+        {/* Voice Studio, Transcript Review, or Manual Input */}
+        {capturedTranscript ? (
+          <View style={styles.studioCard}>
+            <View style={styles.transcriptHeaderRow}>
+              <View style={styles.micTag}>
+                <Ionicons name="mic" size={14} color={colors.primary} />
+                <Text style={styles.micTagText}>Voice Transcript (Gnani STT)</Text>
+              </View>
+              <TouchableOpacity onPress={() => setCapturedTranscript('')} style={styles.discardBtn}>
+                <Ionicons name="refresh" size={14} color={colors.danger} />
+                <Text style={styles.discardText}>Re-record</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.transcriptReviewLabel}>Review or edit your spoken report before extraction:</Text>
+            <AppInput
+              value={capturedTranscript}
+              onChangeText={setCapturedTranscript}
+              multiline
+              numberOfLines={4}
+            />
+
+            <PrimaryButton
+              title="Extract Details with AI"
+              onPress={() => handleExtractAndNavigate(capturedTranscript)}
+              loading={isProcessing}
+              size="large"
+              style={{ marginTop: spacing.md }}
+            />
+          </View>
+        ) : !manualMode ? (
           <View style={styles.studioCard}>
             <VoiceControl
               isRecording={isRecording}
@@ -181,6 +252,13 @@ export const RecordVisitScreen = ({ route, navigation }) => {
               onPress={handleToggleRecord}
               instructionText="Tap microphone and speak in Hindi or English about mother, infant, or advice"
             />
+
+            {isRecording && (
+              <TouchableOpacity onPress={handleCancelRecording} style={styles.cancelRecBtn}>
+                <Ionicons name="close-circle-outline" size={16} color={colors.danger} />
+                <Text style={styles.cancelRecText}>Cancel Recording</Text>
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity
               onPress={() => setManualMode(true)}
@@ -209,7 +287,7 @@ export const RecordVisitScreen = ({ route, navigation }) => {
             />
 
             <PrimaryButton
-              title="Process Notes with AI"
+              title="Extract Details with AI"
               onPress={handleManualSubmit}
               loading={isProcessing}
               size="large"
@@ -378,5 +456,59 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.textSecondary,
     marginTop: 4
+  },
+  transcriptHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: spacing.xs
+  },
+  micTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radius.pill
+  },
+  micTagText: {
+    ...typography.caption,
+    fontWeight: '700',
+    color: colors.primary,
+    marginLeft: 5
+  },
+  discardBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4
+  },
+  discardText: {
+    ...typography.caption,
+    color: colors.danger,
+    fontWeight: '600',
+    marginLeft: 3
+  },
+  transcriptReviewLabel: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    width: '100%',
+    marginVertical: spacing.xs
+  },
+  cancelRecBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: radius.pill,
+    backgroundColor: colors.dangerLight,
+    marginTop: spacing.xs
+  },
+  cancelRecText: {
+    ...typography.caption,
+    color: colors.danger,
+    fontWeight: '700',
+    marginLeft: 4
   }
 });

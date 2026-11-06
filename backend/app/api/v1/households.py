@@ -27,6 +27,15 @@ def get_households(
     if profile.get("role") == "COMMUNITY":
         user_hh = profile.get("household_id")
         records = [r for r in records if r.get("id") == user_hh or r.get("household_id") == user_hh]
+    elif profile.get("role") == "ASHA":
+        assigned_clusters = profile.get("assigned_clusters") or []
+        if assigned_clusters:
+            if village and village != "All" and village not in assigned_clusters:
+                records = []
+            else:
+                records = [r for r in records if r.get("village") in assigned_clusters or r.get("assigned_asha_id") == current_user]
+        else:
+            records = [r for r in records if r.get("assigned_asha_id") == current_user]
 
     # Map to schema
     formatted = []
@@ -53,17 +62,21 @@ def get_household_details(household_id: str, current_user: str = Depends(get_cur
     """
     Retrieve full profile of a specific household including all family members.
     Enforces role isolation: Community members cannot view other households.
+    ASHA workers cannot view households outside their assigned village clusters.
     """
     profile = auth_service.get_current_user_profile(current_user)
+    hh = household_service.get_household(household_id)
+
     if profile.get("role") == "COMMUNITY":
         user_hh = profile.get("household_id")
-        if household_id != user_hh:
-            # Check if this id maps to user_hh
-            hh_check = household_service.get_household(household_id)
-            if hh_check.get("household_id") != user_hh and hh_check.get("id") != user_hh:
-                raise ForbiddenException("You cannot access another family's household records.")
+        if household_id != user_hh and hh.get("household_id") != user_hh and hh.get("id") != user_hh:
+            raise ForbiddenException("You cannot access another family's household records.")
 
-    hh = household_service.get_household(household_id)
+    elif profile.get("role") == "ASHA":
+        assigned_clusters = profile.get("assigned_clusters") or []
+        if assigned_clusters and hh.get("village") not in assigned_clusters and hh.get("assigned_asha_id") != current_user:
+            raise ForbiddenException("You cannot access households outside your assigned village cluster.")
+
     return {**hh, "members_count": len(hh.get("members", []))}
 
 @router.patch("/{household_id}", response_model=HouseholdResponse)

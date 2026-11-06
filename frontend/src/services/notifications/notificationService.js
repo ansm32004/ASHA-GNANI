@@ -4,13 +4,19 @@ import { Platform } from 'react-native';
 import { notificationApi } from '../api/notificationApi';
 
 // Configure global notification handler for how alerts are shown when app is in the foreground
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+if (Platform.OS !== 'web') {
+  try {
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+      }),
+    });
+  } catch (e) {
+    // Non-blocking
+  }
+}
 
 let cachedToken = null;
 let isChannelConfigured = false;
@@ -129,34 +135,46 @@ export const notificationService = {
    * Returns a cleanup function to unsubscribe listeners on unmount.
    */
   initialize: (onNotificationReceived, onNotificationTapped) => {
+    if (Platform.OS === 'web') {
+      return () => {};
+    }
     notificationService.setupNotificationChannel();
 
-    // 1. Foreground notification received listener
-    const receivedSubscription = Notifications.addNotificationReceivedListener(notification => {
-      console.log(
-        '[NotificationService] Foreground notification received:',
-        notification.request.content.title
-      );
-      if (typeof onNotificationReceived === 'function') {
-        onNotificationReceived(notification);
-      }
-    });
+    try {
+      // 1. Foreground notification received listener
+      const receivedSubscription = Notifications.addNotificationReceivedListener(notification => {
+        console.log(
+          '[NotificationService] Foreground notification received:',
+          notification?.request?.content?.title
+        );
+        if (typeof onNotificationReceived === 'function') {
+          onNotificationReceived(notification);
+        }
+      });
 
-    // 2. Notification response listener (user tapped notification in background or killed state)
-    const responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log(
-        '[NotificationService] Notification tapped by user:',
-        response.notification.request.content.title
-      );
-      if (typeof onNotificationTapped === 'function') {
-        onNotificationTapped(response);
-      }
-    });
+      // 2. Notification response listener (user tapped notification in background or killed state)
+      const responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
+        console.log(
+          '[NotificationService] Notification tapped by user:',
+          response?.notification?.request?.content?.title
+        );
+        if (typeof onNotificationTapped === 'function') {
+          onNotificationTapped(response);
+        }
+      });
 
-    // Return cleanup unsubscribe function
-    return () => {
-      receivedSubscription.remove();
-      responseSubscription.remove();
-    };
+      // Return cleanup unsubscribe function
+      return () => {
+        if (receivedSubscription && typeof receivedSubscription.remove === 'function') {
+          receivedSubscription.remove();
+        }
+        if (responseSubscription && typeof responseSubscription.remove === 'function') {
+          responseSubscription.remove();
+        }
+      };
+    } catch (e) {
+      console.warn('[NotificationService] Error initializing listeners:', e.message);
+      return () => {};
+    }
   }
 };

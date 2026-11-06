@@ -1,4 +1,6 @@
+import uuid
 from typing import List, Optional, Dict, Any
+from app.config import settings
 from app.repositories.mock_data import generate_mock_tasks
 from app.integrations.firebase.firestore_repository import FirestoreRepository
 from app.core.logging import logger
@@ -28,7 +30,8 @@ class TaskRepository:
         status: Optional[str] = None,
         priority: Optional[str] = None,
         date_filter: Optional[str] = None,
-        household_id: Optional[str] = None
+        household_id: Optional[str] = None,
+        assigned_asha_id: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         self._ensure_synced()
         if self._firestore.is_connected:
@@ -40,6 +43,9 @@ class TaskRepository:
                 logger.warning(f"Could not refresh tasks from Firestore: {e}")
 
         results = self._tasks.copy()
+
+        if assigned_asha_id:
+            results = [t for t in results if t.get("assigned_asha_id") == assigned_asha_id]
 
         if status and status != "All":
             results = [t for t in results if t.get("status", "").lower() == status.lower()]
@@ -74,7 +80,7 @@ class TaskRepository:
 
     def create(self, data: Dict[str, Any]) -> Dict[str, Any]:
         self._ensure_synced()
-        new_id = f"task_{len(self._tasks) + 1:03d}"
+        new_id = data.get("id") or f"task_{uuid.uuid4().hex[:10]}"
         now_iso = datetime.now().isoformat() + "Z"
 
         record = {
@@ -82,6 +88,7 @@ class TaskRepository:
             "household_id": data["household_id"],
             "household_name": data.get("household_name", "Household"),
             "beneficiary_name": data.get("beneficiary_name"),
+            "assigned_asha_id": data.get("assigned_asha_id", "asha_sunita_001"),
             "village": data.get("village", "Rampur Kalan"),
             "task_type": data.get("task_type", "Household visit"),
             "description": data["description"],
@@ -96,6 +103,8 @@ class TaskRepository:
 
         if self._firestore.is_connected:
             self._firestore.set(new_id, record)
+        elif not getattr(settings, "DEMO_MODE", False):
+            raise RuntimeError("Cloud Firestore is disconnected in live mode. Cannot create task.")
 
         self._tasks.insert(0, record)
         return record
@@ -112,6 +121,8 @@ class TaskRepository:
 
         if self._firestore.is_connected:
             self._firestore.set(task_id, record, merge=True)
+        elif not getattr(settings, "DEMO_MODE", False):
+            raise RuntimeError("Cloud Firestore is disconnected in live mode. Cannot update task.")
 
         return record
 
@@ -125,6 +136,8 @@ class TaskRepository:
 
         if self._firestore.is_connected:
             self._firestore.set(task_id, record, merge=True)
+        elif not getattr(settings, "DEMO_MODE", False):
+            raise RuntimeError("Cloud Firestore is disconnected in live mode. Cannot complete task.")
 
         return record
 

@@ -1,4 +1,6 @@
+import uuid
 from typing import List, Optional, Dict, Any
+from app.config import settings
 from app.repositories.mock_data import generate_mock_requests
 from app.integrations.firebase.firestore_repository import FirestoreRepository
 from app.core.logging import logger
@@ -28,7 +30,8 @@ class RequestRepository:
         status: Optional[str] = None,
         category: Optional[str] = None,
         priority: Optional[str] = None,
-        household_id: Optional[str] = None
+        household_id: Optional[str] = None,
+        assigned_asha_id: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         self._ensure_synced()
         if self._firestore.is_connected:
@@ -42,6 +45,8 @@ class RequestRepository:
         results = self._requests.copy()
         if household_id:
             results = [r for r in results if r.get("household_id") == household_id]
+        if assigned_asha_id:
+            results = [r for r in results if r.get("assigned_asha_id") is None or r.get("assigned_asha_id") == assigned_asha_id]
         if status and status != "All":
             results = [r for r in results if r.get("status", "").lower() == status.lower()]
         if category and category != "All":
@@ -71,7 +76,7 @@ class RequestRepository:
 
     def create(self, data: Dict[str, Any]) -> Dict[str, Any]:
         self._ensure_synced()
-        new_id = f"req_{len(self._requests) + 1:03d}"
+        new_id = data.get("id") or f"req_{uuid.uuid4().hex[:10]}"
         now_iso = datetime.now().isoformat() + "Z"
 
         record = {
@@ -81,6 +86,7 @@ class RequestRepository:
             "beneficiary_name": data.get("beneficiary_name"),
             "contact_number": data.get("contact_number", "9871100000"),
             "village": data.get("village", "Rampur Kalan"),
+            "assigned_asha_id": data.get("assigned_asha_id", "asha_sunita_001"),
             "category": data["category"],
             "description": data["description"],
             "time_received": "Just now",
@@ -93,6 +99,8 @@ class RequestRepository:
 
         if self._firestore.is_connected:
             self._firestore.set(new_id, record)
+        elif not getattr(settings, "DEMO_MODE", False):
+            raise RuntimeError("Cloud Firestore is disconnected in live mode. Cannot submit request.")
 
         self._requests.insert(0, record)
         return record
@@ -103,23 +111,51 @@ class RequestRepository:
             return None
         
         now_str = datetime.now().strftime("%d %b %H:%M")
-        if action.lower() == "acknowledge":
+        act_lower = action.lower()
+        if "ack" in act_lower:
             record["status"] = "Acknowledged"
             msg = f"Acknowledged by ASHA at {now_str}" + (f": {notes}" if notes else "")
             record.setdefault("response_history", []).append(msg)
-        elif action.lower() in ["schedule", "scheduled"]:
+        elif "schedul" in act_lower:
             record["status"] = "Scheduled"
             msg = f"Visit scheduled by ASHA at {now_str}" + (f": {notes}" if notes else "")
             record.setdefault("response_history", []).append(msg)
-        elif action.lower() == "resolve":
+            # Automatically create task for ASHA and reminder notification for household
+            try:
+                from app.repositories.task_repository import task_repo
+                from app.repositories.notification_repository import notification_repo
+                from datetime import timedelta
+                due_date = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
+                task_repo.create({
+                    "household_id": record["household_id"],
+                    "household_name": record.get("household_name", "Household"),
+                    "beneficiary_name": record.get("beneficiary_name") or record.get("household_name"),
+                    "village": record.get("village", "Rampur Kalan"),
+                    "assigned_asha_id": record.get("assigned_asha_id", "asha_sunita_001"),
+                    "task_type": "Household visit",
+                    "description": f"Scheduled Visit: {record.get('description', '')}" + (f" ({notes})" if notes else ""),
+                    "due_date": due_date,
+                    "priority": record.get("priority", "Medium"),
+                    "created_from": "Request"
+                })
+                notification_repo.create({
+                    "title": "Visit Scheduled by ASHA",
+                    "message": f"ASHA Sunita Devi scheduled your visit for {due_date}. Notes: {notes or 'Routine check'}",
+                    "category": "Household visit",
+                    "priority": record.get("priority", "Medium"),
+                    "userId": f"comm_{record['household_id']}"
+                })
+            except Exception as err:
+                logger.warning(f"Could not auto-create task from request action: {err}")
+        elif "resolve" in act_lower:
             record["status"] = "Resolved"
             msg = f"Resolved at {now_str}" + (f": {notes}" if notes else "")
             record.setdefault("response_history", []).append(msg)
-        elif action.lower() == "escalate":
+        elif "escalat" in act_lower:
             record["status"] = "Escalated"
             msg = f"Escalated to ANM/MO at {now_str}" + (f": {notes}" if notes else "")
             record.setdefault("response_history", []).append(msg)
-        elif action.lower() == "in_progress":
+        elif "in_prog" in act_lower or "progress" in act_lower:
             record["status"] = "In progress"
             msg = f"Action started at {now_str}" + (f": {notes}" if notes else "")
             record.setdefault("response_history", []).append(msg)
@@ -128,6 +164,8 @@ class RequestRepository:
 
         if self._firestore.is_connected:
             self._firestore.set(req_id, record, merge=True)
+        elif not getattr(settings, "DEMO_MODE", False):
+            raise RuntimeError("Cloud Firestore is disconnected in live mode. Cannot update request.")
 
         return record
 

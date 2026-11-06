@@ -15,6 +15,7 @@ import { ConversationBubble } from '../../components/visual/ConversationBubble';
 import { useAuthStore } from '../../store/authStore';
 import { requestApi } from '../../services/api/requestApi';
 import { aiApi } from '../../services/api/aiApi';
+import { audioService } from '../../services/audio/audioService';
 import { useTranslation } from 'react-i18next';
 
 export const CommunityHomeScreen = ({ navigation }) => {
@@ -27,6 +28,7 @@ export const CommunityHomeScreen = ({ navigation }) => {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [liveTranscription, setLiveTranscription] = useState('');
   const [assistantReply, setAssistantReply] = useState(null);
+  const [textQuery, setTextQuery] = useState('');
 
   // Request Visit Modal State
   const [requestModalVisible, setRequestModalVisible] = useState(false);
@@ -40,11 +42,12 @@ export const CommunityHomeScreen = ({ navigation }) => {
   };
 
   const handleVoiceQuery = async (queryText) => {
-    const q = (queryText || liveTranscription).trim();
+    const q = (queryText || textQuery || liveTranscription).trim();
     if (!q) return;
 
     setIsThinking(true);
     setLiveTranscription('');
+    setTextQuery('');
 
     try {
       const res = await aiApi.queryAssistant(q, i18n.language, true);
@@ -52,52 +55,102 @@ export const CommunityHomeScreen = ({ navigation }) => {
       setAssistantReply({
         query: q,
         text: res.reply_text,
+        audio_url: res.audio_url || null,
         actions: res.suggested_actions || []
       });
+
+      if (res.audio_url) {
+        setIsPlayingAudio(true);
+        await audioService.playAudio(res.audio_url, () => {
+          setIsPlayingAudio(false);
+        });
+      }
     } catch (e) {
       setIsThinking(false);
       setAssistantReply({
         query: q,
         text:
           i18n.language === 'hi'
-            ? 'मीना जी, आपके 32वें हफ्ते का ANC चेकअप आज 11:30 बजे आशा दीदी सुनीता जी के साथ तय है। वे आपका बीपी जांचेंगी और आयरन की गोलियां देंगी।'
-            : 'Meena ji, your 32nd-week ANC checkup is scheduled today at 11:30 AM with ASHA Sunita ji. She will check your blood pressure and provide IFA tablets.',
-        actions: ['Call Sunita Di', 'View Reminders']
+            ? 'माफ़ कीजिए, स्वास्थ्य सहायिका सर्वर से संपर्क नहीं हो पाया। कृपया इंटरनेट कनेक्शन जांचें और पुनः प्रयास करें।'
+            : 'Sorry, could not connect to the health assistant service. Please check your connection and try again.',
+        audio_url: null,
+        actions: ['Retry']
       });
     }
   };
 
-  const handleToggleVoice = () => {
+  const handleToggleVoice = async () => {
     if (!isRecording) {
-      setIsRecording(true);
-      setSeconds(0);
-      setLiveTranscription('बोलिए... (Listening...)');
-
-      const timer = setInterval(() => {
-        setSeconds((s) => {
-          if (s === 1) setLiveTranscription('आरव का अगला टीका कब लगेगा?');
-          return s + 1;
-        });
-      }, 1000);
-
-      setTimeout(() => {
-        clearInterval(timer);
-        setIsRecording(false);
-        handleVoiceQuery('आरव का अगला टीका कब लगेगा?');
-      }, 3000);
+      try {
+        const started = await audioService.startRecording();
+        if (started) {
+          setIsRecording(true);
+          setSeconds(0);
+          setLiveTranscription(i18n.language === 'hi' ? 'बोलिए... (सुन रहा हूँ)' : 'Listening...');
+        }
+      } catch (err) {
+        Alert.alert(
+          'Microphone Permission Required',
+          err.permanentlyDenied
+            ? 'Microphone permission has been permanently denied. Please enable it in Settings.'
+            : 'Please allow microphone access to ask health questions by voice.'
+        );
+      }
     } else {
       setIsRecording(false);
-      if (liveTranscription && liveTranscription !== 'बोलिए... (Listening...)') {
-        handleVoiceQuery(liveTranscription);
+      setIsThinking(true);
+      try {
+        const recResult = await audioService.stopRecording();
+        const audioUri = typeof recResult === 'object' ? recResult?.uri : recResult;
+        let queryText = '';
+        if (audioUri) {
+          const base64 = await audioService.getAudioBase64(audioUri);
+          await audioService.cleanupAudioFile(audioUri);
+          if (base64) {
+            const audioFormat = audioUri?.endsWith('.m4a') ? 'm4a' : (audioUri?.endsWith('.webm') ? 'webm' : 'wav');
+            const tr = await aiApi.transcribe({ audio_base64: base64, audio_format: audioFormat, language: i18n.language });
+            if (tr?.transcript) queryText = tr.transcript;
+          }
+        }
+        if (!queryText || !queryText.trim()) {
+          setIsThinking(false);
+          setLiveTranscription(
+            i18n.language === 'hi'
+              ? 'कोई आवाज़ नहीं पहचानी गई। कृपया स्पष्ट बोलें या नीचे लिखकर पूछें।'
+              : 'No speech detected. Please speak clearly or type your question below.'
+          );
+          return;
+        }
+        setLiveTranscription(queryText);
+        handleVoiceQuery(queryText);
+      } catch (e) {
+        setIsThinking(false);
       }
     }
   };
 
-  const handlePlayAudio = () => {
-    setIsPlayingAudio(true);
-    setTimeout(() => {
+  const handlePlayAudio = async () => {
+    if (!assistantReply) return;
+    try {
+      await audioService.stopAudio();
+      let urlToPlay = assistantReply.audio_url;
+      if (!urlToPlay && assistantReply.text) {
+        setIsThinking(true);
+        const tts = await aiApi.speak({ text: assistantReply.text, language: i18n.language });
+        setIsThinking(false);
+        urlToPlay = tts?.audio_url;
+        setAssistantReply(prev => ({ ...prev, audio_url: urlToPlay }));
+      }
+
+      if (urlToPlay) {
+        setIsPlayingAudio(true);
+        await audioService.playAudio(urlToPlay, () => {
+          setIsPlayingAudio(false);
+        });
+      }
+    } catch (e) {
       setIsPlayingAudio(false);
-    }, 4000);
+    }
   };
 
   const handleSubmitVisitRequest = async () => {
@@ -108,10 +161,11 @@ export const CommunityHomeScreen = ({ navigation }) => {
 
     setRequestSubmitting(true);
     try {
+      const hhName = user?.name || user?.primary_contact_name || 'My Household';
       await requestApi.createRequest({
         household_id: user?.household_id || 'hh_001',
-        household_name: user?.name || 'Meena Devi',
-        beneficiary_name: 'Meena Devi',
+        household_name: hhName,
+        beneficiary_name: user?.name || 'Beneficiary',
         category: requestCategory,
         description: requestNotes.trim(),
         priority: 'High'
@@ -290,6 +344,25 @@ export const CommunityHomeScreen = ({ navigation }) => {
                 <Text style={styles.chipText}>{chip}</Text>
               </TouchableOpacity>
             ))}
+          </View>
+
+          {/* Text Question Input Bar */}
+          <View style={styles.textQueryRow}>
+            <TextInput
+              style={styles.textQueryInput}
+              placeholder={i18n.language === 'hi' ? 'या अपना प्रश्न यहाँ लिखें...' : 'Or type a question here...'}
+              placeholderTextColor={colors.textMuted}
+              value={textQuery}
+              onChangeText={setTextQuery}
+              onSubmitEditing={() => handleVoiceQuery()}
+            />
+            <TouchableOpacity
+              style={styles.textQuerySendBtn}
+              onPress={() => handleVoiceQuery()}
+              accessibilityLabel="Send question"
+            >
+              <Ionicons name="arrow-up" size={16} color={colors.textWhite} />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -835,6 +908,34 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: colors.textWhite
+  },
+  textQueryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    backgroundColor: colors.surface,
+    borderRadius: radius.pill,
+    paddingHorizontal: 14,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginTop: spacing.sm,
+    ...shadows.card
+  },
+  textQueryInput: {
+    flex: 1,
+    fontSize: 13,
+    color: colors.primaryText,
+    paddingVertical: 8
+  },
+  textQuerySendBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8
   }
 });
 

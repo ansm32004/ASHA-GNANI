@@ -3,8 +3,10 @@ import uuid
 import re
 from datetime import datetime, timezone
 from fastapi import status
+from app.config import settings
 from app.repositories.mock_data import DEMO_USER, DEMO_ASHA_USER, DEMO_COMMUNITY_USER
 from app.repositories.user_repository import user_repository
+from app.repositories.household_repository import household_repo
 from app.core.security import create_access_token, verify_password, get_password_hash
 from app.core.exceptions import UnauthorizedException, ValidationException, SahayikaException, ConflictException
 from app.schemas.auth import RegisterRequest
@@ -41,7 +43,7 @@ class AuthService:
         if not clean_village:
             raise ValidationException("Village or assigned area is required.")
 
-        if not user_repository.is_connected:
+        if not user_repository.is_connected and not settings.DEMO_MODE:
             raise SahayikaException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 message="Authentication database service is currently unavailable. Please try again later."
@@ -144,8 +146,30 @@ class AuthService:
         # Save to Firestore
         user_repository.create_user(user_data)
 
-        # Generate JWT
-        token = create_access_token(subject=user_id)
+        if role == "COMMUNITY" and user_data.get("household_id"):
+            try:
+                household_repo.create({
+                    "id": user_data["household_id"],
+                    "household_id": user_data.get("household_code", f"HH-{clean_village[:2].upper()}-001"),
+                    "primary_contact_name": clean_name,
+                    "contact_number": clean_phone,
+                    "village": clean_village,
+                    "sub_area": user_data.get("sub_area", ""),
+                    "district": user_data.get("district", "Varanasi"),
+                    "state": user_data.get("state", "Uttar Pradesh"),
+                    "members": user_data.get("family_members", []),
+                    "priority": "Routine",
+                    "created_at": now_iso
+                }, asha_id="asha_sunita_001")
+            except Exception as e:
+                logger.warning(f"Could not initialize household record for {clean_email}: {e}")
+
+        # Generate JWT with server-controlled role and household claims
+        token = create_access_token(
+            subject=user_id,
+            role=role,
+            household_id=user_data.get("household_id")
+        )
 
         # Safe user without password_hash
         safe_user = {k: v for k, v in user_data.items() if k != "password_hash"}
@@ -162,7 +186,7 @@ class AuthService:
         if not clean_email or not password:
             raise UnauthorizedException("Invalid email or password.")
 
-        if not user_repository.is_connected:
+        if not user_repository.is_connected and not settings.DEMO_MODE:
             raise SahayikaException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 message="Authentication database service is currently unavailable. Please try again later."
@@ -184,7 +208,11 @@ class AuthService:
             raise UnauthorizedException("Invalid email or password.")
 
         user_id = str(user.get("id"))
-        token = create_access_token(subject=user_id)
+        token = create_access_token(
+            subject=user_id,
+            role=user.get("role"),
+            household_id=user.get("household_id")
+        )
 
         # Do not expose password_hash in response
         safe_user = {k: v for k, v in user.items() if k != "password_hash"}
@@ -229,16 +257,19 @@ class AuthService:
         }
 
     def get_current_user_profile(self, user_id: str) -> Dict[str, Any]:
-        if user_repository.is_connected:
-            try:
-                user = user_repository.get_by_id(user_id)
-                if user:
-                    return {k: v for k, v in user.items() if k != "password_hash"}
-            except Exception:
-                pass
+        try:
+            user = user_repository.get_by_id(user_id)
+            if user:
+                return {k: v for k, v in user.items() if k != "password_hash"}
+        except Exception as e:
+            logger.warning(f"Error fetching profile for {user_id}: {e}")
         if user_id and user_id.startswith("comm_"):
             return DEMO_COMMUNITY_USER
         return DEMO_ASHA_USER
+
+    def revoke_token(self, token: str) -> None:
+        from app.core.security import revoke_token
+        revoke_token(token)
 
 auth_service = AuthService()
 
