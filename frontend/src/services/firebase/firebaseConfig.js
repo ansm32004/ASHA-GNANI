@@ -11,36 +11,61 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || "AIzaSyDT77Q8IXwDpCpDGsbsveX3ljLxDdFGH1k",
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || "",
   authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || "asha-997cd.firebaseapp.com",
   projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || "asha-997cd",
   storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || "asha-997cd.firebasestorage.app",
-  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "301164131725",
-  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || "1:301164131725:web:7d85475e0354457d1539c4"
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "",
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || ""
 };
 
-const firebaseApp = getApps().length
-  ? getApp()
-  : initializeApp(firebaseConfig);
-
-let auth;
+let firebaseApp = null;
+let auth = null;
+let firestore = null;
+let storage = null;
 
 try {
-  if (Platform.OS !== "web" && typeof getReactNativePersistence === "function") {
-    auth = initializeAuth(firebaseApp, {
-      persistence: getReactNativePersistence(AsyncStorage)
-    });
+  if (firebaseConfig.apiKey) {
+    firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
+
+    try {
+      if (Platform.OS !== "web" && typeof getReactNativePersistence === "function") {
+        auth = initializeAuth(firebaseApp, {
+          persistence: getReactNativePersistence(AsyncStorage)
+        });
+      } else {
+        auth = getAuth(firebaseApp);
+      }
+    } catch (authErr) {
+      console.warn("[Firebase] Auth initialization fallback:", authErr?.message || authErr);
+      try {
+        auth = getAuth(firebaseApp);
+      } catch {
+        auth = null;
+      }
+    }
+
+    try {
+      firestore = getFirestore(firebaseApp);
+    } catch (fsErr) {
+      console.warn("[Firebase] Firestore initialization fallback:", fsErr?.message || fsErr);
+    }
+
+    try {
+      storage = getStorage(firebaseApp);
+    } catch (stErr) {
+      console.warn("[Firebase] Storage initialization fallback:", stErr?.message || stErr);
+    }
+
+    if (firebaseApp?.options?.projectId) {
+      console.log("Firebase connected to:", firebaseApp.options.projectId);
+    }
   } else {
-    auth = getAuth(firebaseApp);
+    console.warn("[Firebase] EXPO_PUBLIC_FIREBASE_API_KEY is not defined; Firebase running in offline/detached mode.");
   }
-} catch {
-  auth = getAuth(firebaseApp);
+} catch (err) {
+  console.warn("[Firebase] Initialization failed safely:", err?.message || err);
 }
-
-const firestore = getFirestore(firebaseApp);
-const storage = getStorage(firebaseApp);
-
-console.log("Firebase connected to:", firebaseApp.options.projectId);
 
 export { firebaseApp, auth, firestore, storage };
 export default firebaseApp;

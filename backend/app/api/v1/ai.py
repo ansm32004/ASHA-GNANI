@@ -129,15 +129,19 @@ async def extract_visit_fields(
     )
 
 @router.post("/assistant", response_model=AssistantQueryResponse)
+@router.post("/assistant/query", response_model=AssistantQueryResponse)
 async def query_voice_assistant(
     payload: AssistantQueryRequest,
     current_user: str = Depends(get_current_user_id)
 ):
     """
-    Query the SAHAYIKA AI voice assistant for schedule, households, or approved health program information.
-    Uses multi-level safety checks and approved Firestore knowledge base retrieval.
+    Query the SAHAYIKA AI assistant for schedule, households, or approved health program information.
+    Uses multi-level safety checks, app data context grounding, and approved knowledge base retrieval.
     Persists audit interaction into 'ai_conversations' in Firestore.
     """
+    if not payload.query or not payload.query.strip():
+        raise HTTPException(status_code=422, detail="Question cannot be empty.")
+
     profile = auth_service.get_current_user_profile(current_user)
     user_role = profile.get("role", "ASHA")
     user_hh = profile.get("household_id")

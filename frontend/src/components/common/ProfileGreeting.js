@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius, shadows } from '../../theme';
+import { AvatarImage } from './AvatarImage';
 
 export const ProfileGreeting = ({
   workerName = 'Sunita',
@@ -20,14 +21,18 @@ export const ProfileGreeting = ({
         accessibilityLabel="Open Profile"
       >
         <View style={styles.avatarContainer}>
-          <View style={styles.avatarInner}>
-            <Text style={styles.avatarText}>{workerName.charAt(0)}</Text>
-          </View>
+          <AvatarImage
+            name={workerName}
+            role="ASHA"
+            size={46}
+            showBorder
+            borderColor={colors.primaryMuted}
+          />
           <View style={styles.onlineBadge} />
         </View>
 
         <View style={styles.textColumn}>
-          <Text style={styles.greetingText}>Hello, {workerName} 👋</Text>
+          <Text style={styles.greetingText}>Hello, {workerName}</Text>
           <Text style={styles.subtitleText}>{subtitle}</Text>
         </View>
       </TouchableOpacity>

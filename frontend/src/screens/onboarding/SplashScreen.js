@@ -33,7 +33,10 @@ export const SplashScreen = ({ navigation }) => {
       <Text style={styles.tagline}>Voice-First Digital Companion for ASHA Workers</Text>
 
       <View style={styles.enterButton}>
-        <Text style={styles.enterText}>प्रवेश करें (Enter App) ➔</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Text style={styles.enterText}>प्रवेश करें (Enter App)</Text>
+          <Ionicons name="chevron-forward" size={14} color={colors.textWhite} style={{ marginLeft: 4 }} />
+        </View>
       </View>
 
       <View style={styles.footer}>

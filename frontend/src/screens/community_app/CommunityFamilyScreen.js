@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } fr
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius, shadows } from '../../theme';
 import { MaternalHero, ChildHealthIllustration } from '../../components/illustrations';
+import { AvatarImage } from '../../components/common/AvatarImage';
 import { useAuthStore } from '../../store/authStore';
 
 export const CommunityFamilyScreen = ({ navigation }) => {
@@ -21,12 +22,12 @@ export const CommunityFamilyScreen = ({ navigation }) => {
       blood_group: 'B+',
       rch_id: 'RCH-UP-2026-89102',
       vitals: [
-        { date: '28 Oct 2026', bp: '118/76 mmHg', weight: '54 kg', hb: '9.2 g/dL' },
-        { date: '14 Sep 2026', bp: '114/72 mmHg', weight: '52 kg', hb: '9.5 g/dL' }
+        { date: '28-10-2026', bp: '118/76 mmHg', weight: '54 kg', hb: '9.2 g/dL' },
+        { date: '14-09-2026', bp: '114/72 mmHg', weight: '52 kg', hb: '9.5 g/dL' }
       ],
       immunizations: [
-        { vaccine: 'TT-1 (Tetanus Toxoid)', date: '14 Sep 2026', status: 'Given' },
-        { vaccine: 'TT-2 Booster', date: '12 Nov 2026', status: 'Due Soon' }
+        { vaccine: 'TT-1 (Tetanus Toxoid)', date: '14-09-2026', status: 'Given' },
+        { vaccine: 'TT-2 Booster', date: '12-11-2026', status: 'Due Soon' }
       ],
       schemes: [
         'प्रधानमंत्री मातृ वंदना योजना (PMMVY)',
@@ -46,10 +47,10 @@ export const CommunityFamilyScreen = ({ navigation }) => {
       abha_id: '91-4521-8834-0193',
       blood_group: 'O+',
       vitals: [
-        { date: '10 Aug 2026', bp: '122/80 mmHg', weight: '68 kg', hb: '13.8 g/dL' }
+        { date: '10-08-2026', bp: '122/80 mmHg', weight: '68 kg', hb: '13.8 g/dL' }
       ],
       immunizations: [
-        { vaccine: 'COVID-19 Precaution Dose', date: '12 Apr 2025', status: 'Given' }
+        { vaccine: 'COVID-19 Precaution Dose', date: '12-04-2025', status: 'Given' }
       ],
       schemes: [
         'आयुष्मान भारत (PM-JAY)',
@@ -69,13 +70,13 @@ export const CommunityFamilyScreen = ({ navigation }) => {
       blood_group: 'B+',
       rch_id: 'RCH-UP-2024-11029',
       vitals: [
-        { date: '20 Jul 2026', bp: 'Normal', weight: '11.8 kg', height: '86 cm' }
+        { date: '20-07-2026', bp: 'Normal', weight: '11.8 kg', height: '86 cm' }
       ],
       immunizations: [
-        { vaccine: 'BCG', date: '02 Aug 2024', status: 'Given' },
-        { vaccine: 'Pentavalent 1, 2, 3', date: '10 Dec 2024', status: 'Given' },
-        { vaccine: 'MR-1 (9 mo)', date: '15 May 2025', status: 'Given' },
-        { vaccine: 'DPT Booster 1', date: '06 Nov 2026', status: 'Due Soon' }
+        { vaccine: 'BCG', date: '02-08-2024', status: 'Given' },
+        { vaccine: 'Pentavalent 1, 2, 3', date: '10-12-2024', status: 'Given' },
+        { vaccine: 'MR-1 (9 mo)', date: '15-05-2025', status: 'Given' },
+        { vaccine: 'DPT Booster 1', date: '06-11-2026', status: 'Due Soon' }
       ],
       schemes: [
         'मिशन इंद्रधनुष (Mission Indradhanush)',
@@ -100,10 +101,10 @@ export const CommunityFamilyScreen = ({ navigation }) => {
         <View style={styles.idCard}>
           <View style={styles.idCardTop}>
             <View style={styles.flagDot} />
-            <Text style={styles.idCardScheme}>NATIONAL HEALTH AUTHORITY • GOVT OF INDIA</Text>
+            <Text style={styles.idCardScheme}>National Health Authority • Govt of India</Text>
             <View style={styles.verifiedChip}>
               <Ionicons name="checkmark-circle" size={12} color="#34D399" />
-              <Text style={styles.verifiedText}>VERIFIED</Text>
+              <Text style={styles.verifiedText}>Verified</Text>
             </View>
           </View>
           <Text style={styles.headName}>{user?.name || 'Meena Devi'}</Text>
@@ -128,17 +129,14 @@ export const CommunityFamilyScreen = ({ navigation }) => {
               onPress={() => navigation.navigate('MemberHealthDetail', { member })}
             >
               <View style={styles.memberCardHeader}>
-                <View style={styles.memberAvatarPod}>
-                  {isMother ? (
-                    <MaternalHero width={44} height={40} />
-                  ) : isChild ? (
-                    <ChildHealthIllustration width={44} height={40} />
-                  ) : (
-                    <View style={styles.genericAvatar}>
-                      <Text style={styles.genericAvatarText}>{member.name.charAt(0)}</Text>
-                    </View>
-                  )}
-                </View>
+                <AvatarImage
+                  name={member.name}
+                  role={member.category}
+                  size={46}
+                  showBorder
+                  borderColor={colors.border}
+                  style={{ marginRight: 12 }}
+                />
 
                 <View style={styles.memberInfo}>
                   <View style={styles.memberNameRow}>
@@ -156,10 +154,16 @@ export const CommunityFamilyScreen = ({ navigation }) => {
                     <Text style={styles.memberStatusText}>Status: {member.status}</Text>
                   ) : null}
                   {member.next_checkup ? (
-                    <Text style={styles.memberActionNote}>📅 Next Checkup: {member.next_checkup}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                      <Ionicons name="calendar-outline" size={12} color={colors.teal} style={{ marginRight: 4 }} />
+                      <Text style={styles.memberActionNote}>Next Checkup: {member.next_checkup}</Text>
+                    </View>
                   ) : null}
                   {member.next_vaccine ? (
-                    <Text style={styles.memberActionNote}>💉 Vaccine Due: {member.next_vaccine}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                      <Ionicons name="shield-checkmark-outline" size={12} color={colors.teal} style={{ marginRight: 4 }} />
+                      <Text style={styles.memberActionNote}>Vaccine Due: {member.next_vaccine}</Text>
+                    </View>
                   ) : null}
                 </View>
               </View>
@@ -228,25 +232,24 @@ const styles = StyleSheet.create({
   },
   idCardScheme: {
     ...typography.caption,
-    fontWeight: '700',
-    color: '#94A3B8',
-    letterSpacing: 0.6,
+    fontWeight: '600',
+    color: '#CBD5E1',
     flex: 1
   },
   verifiedChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
+    gap: 4,
     backgroundColor: '#064E3B',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 2.5,
     borderRadius: radius.pill
   },
   verifiedText: {
     ...typography.caption,
     color: '#34D399',
-    fontWeight: '700',
-    fontSize: 9
+    fontWeight: '600',
+    fontSize: 10
   },
   headName: {
     ...typography.heading2,

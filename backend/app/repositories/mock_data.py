@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 DEMO_USER = {
     "id": "asha_sunita_001",
@@ -596,13 +596,14 @@ def generate_mock_requests():
             "description": "Experiencing sudden dizzy spells and blurred vision since this morning. Requested home visit.",
             "time_received": "Today, 08:30 AM",
             "priority": "Urgent",
-            "status": "Acknowledged",
+            "status": "Resolved",
             "response_history": [
                 "Received via community voice message at 08:30 AM",
-                "Acknowledged by ASHA Sunita Devi at 08:45 AM. Scheduled priority visit for 11:30 AM."
+                "Acknowledged by ASHA Sunita Devi at 08:45 AM. Scheduled priority visit for 11:30 AM.",
+                "Visit completed and resolved by ASHA Sunita Devi."
             ],
             "created_at": "2026-11-03T08:30:00Z",
-            "updated_at": "2026-11-03T08:45:00Z"
+            "updated_at": "2026-11-03T11:45:00Z"
         },
         {
             "id": "req_002",
@@ -660,15 +661,21 @@ def generate_mock_requests():
     ]
 
 def generate_mock_visits():
+    yesterday = str(date.today() - timedelta(days=1))
+    four_days_ago = str(date.today() - timedelta(days=4))
+    seven_days_ago = str(date.today() - timedelta(days=7))
+
     return [
         {
             "id": "vis_001",
             "household_id": "hh_001",
             "household_name": "Meena Devi",
             "beneficiary_name": "Meena Devi",
+            "asha_id": "asha_sunita_001",
             "visit_date": "2026-10-28",
             "activity_category": "Maternal Health",
             "activity_description": "ANC Home visit. Checked BP (118/76), distributed 30 IFA tablets, reminded about birth preparedness and 108 ambulance contact.",
+            "speech_transcript": "Maine Meena Devi ke ghar jakar teesre trimester ka ANC checkup kiya. BP ek sau atharah aur chhiyattar tha, bilkul normal. Tees IFA ki laal goliyan di hain aur prasav ke samay ek sau aath ambulance ko call karne ki salah di.",
             "visit_outcome": "Normal",
             "follow_up_required": True,
             "follow_up_date": "2026-11-04",
@@ -684,9 +691,11 @@ def generate_mock_visits():
             "household_id": "hh_002",
             "household_name": "Rekha Sharma",
             "beneficiary_name": "Golu Sharma",
+            "asha_id": "asha_sunita_001",
             "visit_date": "2026-10-25",
             "activity_category": "Child Health",
             "activity_description": "Postnatal home visit (PNC day 14). Assessed umbilical cord, newborn feeding, temperature and maternal health.",
+            "speech_transcript": "Rekha Sharma ke ghar chaudahve din ki PNC bhent ki. Golu baby ka naada theek se sukh gaya hai, stanpaan achhi tarah chal raha hai, bukhar nahi hai. Chheh mahine tak kewal maa ka doodh pilane ko bola.",
             "visit_outcome": "Normal",
             "follow_up_required": True,
             "follow_up_date": "2026-11-06",
@@ -695,6 +704,66 @@ def generate_mock_visits():
             "status": "Confirmed",
             "created_task_id": "task_004",
             "created_at": "2026-10-25T16:00:00Z",
+            "synced": True
+        },
+        {
+            "id": "vis_003",
+            "household_id": "hh_004",
+            "household_name": "Pooja Singh Household",
+            "beneficiary_name": "Ananya Singh (Child - 4 yrs)",
+            "asha_id": "asha_sunita_001",
+            "visit_date": yesterday,
+            "activity_category": "Child Health",
+            "activity_description": "Routine home visit completed: child height/weight measured on growth chart. Mother counseled on local nutritious diet.",
+            "speech_transcript": "Pooja Singh ke ghar jakar Ananya beti ka vajan aur lambai lene gayi thi. Bachi ka weight theek hai, growth chart ke green zone mein hai. Maa ko poshan aahar aur hari sabjiyan khilane ko samjhaya.",
+            "visit_outcome": "Normal",
+            "follow_up_required": False,
+            "follow_up_date": None,
+            "priority": "Low",
+            "notes": "Child growth is normal in Green Zone. Nutrition advice given to mother.",
+            "status": "Confirmed",
+            "created_task_id": "task_007",
+            "created_at": f"{yesterday}T10:00:00Z",
+            "synced": True
+        },
+        {
+            "id": "vis_004",
+            "household_id": "hh_006",
+            "household_name": "Geeta Maurya Household",
+            "beneficiary_name": "Geeta Maurya (Pregnant)",
+            "asha_id": "asha_sunita_001",
+            "visit_date": four_days_ago,
+            "activity_category": "Maternal Health",
+            "activity_description": "High-risk pregnancy visit. Assessed bilateral lower limb edema. Provided Calcium and IFA tablets; scheduled referral checkup at PHC.",
+            "speech_transcript": "Geeta Maurya ke yahan visit kiya, unke pairon mein kafi sujan thi. Maine unhe pairo ke neeche takiya rakhkar aaram karne ko bola, calcium aur iron tablets di aur agle din PHC jakar doctor ko dikhane ki salah di.",
+            "visit_outcome": "Requires Monitoring",
+            "follow_up_required": True,
+            "follow_up_date": yesterday,
+            "priority": "Urgent",
+            "notes": "Severe leg swelling noted. Advised rest with legs elevated and PHC visit.",
+            "status": "Confirmed",
+            "created_task_id": "task_006",
+            "created_at": f"{four_days_ago}T11:00:00Z",
+            "synced": True
+        },
+        {
+            "id": "vis_005",
+            "household_id": "hh_003",
+            "household_name": "Sita Verma Household",
+            "beneficiary_name": "Sita Verma (Mother)",
+            "asha_id": "asha_sunita_001",
+            "visit_date": seven_days_ago,
+            "activity_category": "Maternal Health",
+            "activity_description": "ANC Home visit. Confirmed PHC registration for 2nd trimester checkup and verified JSY bank account linking.",
+            "speech_transcript": "Sita Verma ke ghar par checkup kiya, paanchva mahina chal raha hai. PHC registration confirm kiya aur Janani Suraksha Yojana ke bank account aur aadhar linking passbook scan karke update kiye.",
+            "visit_outcome": "Normal",
+            "follow_up_required": True,
+            "follow_up_date": str(date.today()),
+            "priority": "Urgent",
+            "notes": "Bank account verified for JSY cash assistance.",
+            "status": "Confirmed",
+            "created_task_id": "task_003",
+            "created_at": f"{seven_days_ago}T12:00:00Z",
             "synced": True
         }
     ]
@@ -781,6 +850,89 @@ def generate_mock_claims():
             "supervisor_notes": "All 22 activities verified with RCH register and approved by Medical Officer, Kashi PHC.",
             "disclaimer": "Disclaimer: Amounts and eligibility rules shown are illustrative for demonstration and claim-preparation assistance, not official government determinations.",
             "activities": []
+        },
+        {
+            "id": "claim_2026_08",
+            "month": "August",
+            "year": 2026,
+            "asha_id": "asha_sunita_001",
+            "asha_name": "Sunita Devi",
+            "activities_count": 2,
+            "total_estimated_amount": 600,
+            "status": "Rejected",
+            "rejection_reason": "ANC registration recorded after 16 weeks of pregnancy (mandatory cutoff is 12 weeks). Special Medical Officer waiver certificate required for resubmission.",
+            "submitted_at": "2026-08-31T16:00:00Z",
+            "verified_at": "2026-09-06T10:15:00Z",
+            "payment_status": "Rejected",
+            "supervisor_notes": "Rejected by ANM during cluster register cross-check: Registration date on MCP card exceeds 12-week eligibility norm. Resubmit once signed MO waiver is obtained.",
+            "disclaimer": "Disclaimer: Amounts and eligibility rules shown are illustrative for demonstration and claim-preparation assistance, not official government determinations.",
+            "activities": [
+                {
+                    "id": "act_rej_01",
+                    "activity_date": "2026-08-14",
+                    "category": "Maternal health",
+                    "description": "Late ANC registration assistance for Priya Devi",
+                    "household_id": "hh_005",
+                    "beneficiary_name": "Priya Devi",
+                    "eligible_for_claim": False,
+                    "incentive_code": "ASHA-MCH-01",
+                    "estimated_amount": 300,
+                    "status": "Rejected"
+                }
+            ]
+        },
+        {
+            "id": "claim_2026_11_draft",
+            "month": "November",
+            "year": 2026,
+            "asha_id": "asha_sunita_001",
+            "asha_name": "Sunita Devi",
+            "activities_count": 4,
+            "total_estimated_amount": 1550,
+            "status": "Draft",
+            "submitted_at": None,
+            "verified_at": None,
+            "payment_status": "Pending",
+            "supervisor_notes": "Draft compiled from eligible November visits. Review and submit to ANM when month concludes.",
+            "disclaimer": "Disclaimer: Amounts and eligibility rules shown are illustrative for demonstration and claim-preparation assistance, not official government determinations.",
+            "activities": [
+                {
+                    "id": "act_draft_01",
+                    "activity_date": "2026-11-04",
+                    "category": "Maternal health",
+                    "description": "ANC facilitation & blood pressure screening for Meena Devi",
+                    "household_id": "hh_001",
+                    "beneficiary_name": "Meena Devi",
+                    "eligible_for_claim": True,
+                    "incentive_code": "ASHA-MCH-01",
+                    "estimated_amount": 300,
+                    "status": "Draft"
+                },
+                {
+                    "id": "act_draft_02",
+                    "activity_date": "2026-11-03",
+                    "category": "Child health",
+                    "description": "HBNC Day 14 newborn checkup for Rekha Sharma's baby",
+                    "household_id": "hh_002",
+                    "beneficiary_name": "Golu Sharma",
+                    "eligible_for_claim": True,
+                    "incentive_code": "ASHA-HBNC-01",
+                    "estimated_amount": 250,
+                    "status": "Draft"
+                },
+                {
+                    "id": "act_draft_03",
+                    "activity_date": "2026-11-02",
+                    "category": "TB treatment",
+                    "description": "NTEP DOTS monthly medicine replenishment and adherence counseling for Ramesh Kumar",
+                    "household_id": "hh_004",
+                    "beneficiary_name": "Ramesh Kumar",
+                    "eligible_for_claim": True,
+                    "incentive_code": "ASHA-TB-01",
+                    "estimated_amount": 1000,
+                    "status": "Draft"
+                }
+            ]
         }
     ]
 

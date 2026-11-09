@@ -7,6 +7,7 @@ import { AppInput } from '../../components/common/AppInput';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
 import { VectorCategoryIcon } from '../../components/illustrations/VectorCategoryIcon';
 import { visitApi } from '../../services/api/visitApi';
+import { formatDate, toBackendDate } from '../../utils/dateUtils';
 import { useTranslation } from 'react-i18next';
 
 export const VisitConfirmScreen = ({ route, navigation }) => {
@@ -21,15 +22,16 @@ export const VisitConfirmScreen = ({ route, navigation }) => {
     extractedData.beneficiary_name || extractedData.household_name || ''
   );
   const [visitDate, setVisitDate] = useState(
-    extractedData.visit_date || new Date().toISOString().split('T')[0]
+    formatDate(extractedData.visit_date || new Date())
   );
   const [category, setCategory] = useState(extractedData.activity_category || 'Maternal Health');
   const [description, setDescription] = useState(extractedData.activity_description || rawTranscript || '');
   const [outcome, setOutcome] = useState(extractedData.visit_outcome || 'Normal');
   const [followUpRequired, setFollowUpRequired] = useState(extractedData.follow_up_required ?? false);
   const [followUpDate, setFollowUpDate] = useState(
-    extractedData.follow_up_date ||
-      (extractedData.follow_up_required ? new Date(Date.now() + 4 * 86400000).toISOString().split('T')[0] : '')
+    extractedData.follow_up_date
+      ? formatDate(extractedData.follow_up_date)
+      : (extractedData.follow_up_required ? formatDate(new Date(Date.now() + 4 * 86400000)) : '')
   );
   const [priority, setPriority] = useState(extractedData.priority || 'Routine');
   const [notes, setNotes] = useState(extractedData.notes || 'Verified by ASHA worker.');
@@ -39,17 +41,18 @@ export const VisitConfirmScreen = ({ route, navigation }) => {
     setSaving(true);
     try {
       const payload = {
-        household_id: householdId,
-        household_name: householdName,
-        beneficiary_name: beneficiaryName,
-        visit_date: visitDate,
-        activity_category: category,
-        activity_description: description,
-        visit_outcome: outcome,
-        follow_up_required: followUpRequired,
-        follow_up_date: followUpRequired ? followUpDate : null,
-        priority: priority,
-        notes: notes,
+        household_id: householdId || 'hh_001',
+        household_name: householdName || beneficiaryName || 'Household',
+        beneficiary_name: beneficiaryName || householdName || 'Household Member',
+        visit_date: toBackendDate(visitDate) || new Date().toISOString().split('T')[0],
+        activity_category: category || 'Maternal Health',
+        activity_description: (description || '').trim() || 'Routine field visit checkup',
+        visit_outcome: outcome || 'Normal',
+        follow_up_required: !!followUpRequired,
+        follow_up_date: followUpRequired && followUpDate ? toBackendDate(followUpDate) : null,
+        priority: priority || 'Routine',
+        notes: notes || 'Verified by ASHA worker.',
+        speech_transcript: rawTranscript,
         auto_create_task: true
       };
 
@@ -64,12 +67,17 @@ export const VisitConfirmScreen = ({ route, navigation }) => {
         [
           {
             text: 'Go to Dashboard',
-            onPress: () => navigation.navigate('MainTabs', { screen: 'HomeTab' })
+            onPress: () =>
+              navigation.navigate('MainTabs', {
+                screen: 'HomeTab',
+                params: { refreshedAt: Date.now() }
+              })
           }
         ]
       );
     } catch (e) {
       setSaving(false);
+      console.warn('Confirm visit error:', e);
       Alert.alert('Error', 'Could not confirm visit record. Please try again.');
     }
   };
@@ -115,7 +123,12 @@ export const VisitConfirmScreen = ({ route, navigation }) => {
             onChangeText={setBeneficiaryName}
           />
 
-          <AppInput label="Visit Date" value={visitDate} onChangeText={setVisitDate} />
+          <AppInput
+            label="Visit Date (DD-MM-YYYY)"
+            value={visitDate}
+            onChangeText={setVisitDate}
+            placeholder="e.g. 07-11-2026"
+          />
 
           <Text style={styles.label}>Activity Category</Text>
           <View style={styles.pillRow}>
@@ -176,9 +189,10 @@ export const VisitConfirmScreen = ({ route, navigation }) => {
           {followUpRequired && (
             <View style={styles.followupBox}>
               <AppInput
-                label="Follow-up Due Date (YYYY-MM-DD)"
+                label="Follow-up Due Date (DD-MM-YYYY)"
                 value={followUpDate}
                 onChangeText={setFollowUpDate}
+                placeholder="e.g. 11-11-2026"
               />
               <View style={styles.noticeRow}>
                 <Ionicons name="checkmark-circle" size={13} color={colors.primary} />

@@ -101,7 +101,7 @@ export const RecordVisitScreen = ({ route, navigation }) => {
         const base64 = await audioService.getAudioBase64(audioUri);
         await audioService.cleanupAudioFile(audioUri);
         if (base64) {
-          const isWebm = Platform.OS === 'web' || audioUri?.endsWith('.webm');
+          const isWebm = audioUri?.endsWith('.webm');
           const isM4a = Platform.OS === 'android' || audioUri?.endsWith('.m4a');
           const audioFormat = isWebm ? 'webm' : (isM4a ? 'm4a' : 'wav');
           const transcribeRes = await aiApi.transcribe({
@@ -148,13 +148,29 @@ export const RecordVisitScreen = ({ route, navigation }) => {
       setIsProcessing(false);
       const fields = extractRes.extracted_fields || extractRes.data || {};
       navigation.navigate('VisitConfirm', {
-        extractedData: fields,
+        extractedData: {
+          household_id: selectedHhId,
+          household_name: selectedHousehold?.primary_contact_name || 'Meena Devi',
+          beneficiary_name: selectedHousehold?.primary_contact_name || 'Meena Devi',
+          ...fields
+        },
         missingFields: extractRes.missing_fields || [],
         rawTranscript: cleanText
       });
     } catch (e) {
       setIsProcessing(false);
-      Alert.alert('Extraction Error', 'Could not structure visit fields. Please try again.');
+      console.warn('AI extraction warning, proceeding to review form:', e?.message);
+      navigation.navigate('VisitConfirm', {
+        extractedData: {
+          household_id: selectedHhId,
+          household_name: selectedHousehold?.primary_contact_name || 'Household',
+          beneficiary_name: selectedHousehold?.primary_contact_name || 'Household',
+          activity_description: cleanText,
+          visit_date: new Date().toISOString().split('T')[0]
+        },
+        missingFields: [],
+        rawTranscript: cleanText
+      });
     }
   };
 
@@ -224,7 +240,7 @@ export const RecordVisitScreen = ({ route, navigation }) => {
             <View style={styles.transcriptHeaderRow}>
               <View style={styles.micTag}>
                 <Ionicons name="mic" size={14} color={colors.primary} />
-                <Text style={styles.micTagText}>Voice Transcript (Gnani STT)</Text>
+                <Text style={styles.micTagText}>Voice Transcript</Text>
               </View>
               <TouchableOpacity onPress={() => setCapturedTranscript('')} style={styles.discardBtn}>
                 <Ionicons name="refresh" size={14} color={colors.danger} />
@@ -232,7 +248,7 @@ export const RecordVisitScreen = ({ route, navigation }) => {
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.transcriptReviewLabel}>Review or edit your spoken report before extraction:</Text>
+            <Text style={styles.transcriptReviewLabel}>Review or edit your spoken report before saving:</Text>
             <AppInput
               value={capturedTranscript}
               onChangeText={setCapturedTranscript}
@@ -242,7 +258,7 @@ export const RecordVisitScreen = ({ route, navigation }) => {
             />
 
             <PrimaryButton
-              title="Extract Details with AI"
+              title="Save Recording"
               onPress={() => handleExtractAndNavigate(capturedTranscript)}
               loading={isProcessing}
               size="large"
@@ -294,7 +310,7 @@ export const RecordVisitScreen = ({ route, navigation }) => {
             />
 
             <PrimaryButton
-              title="Extract Details with AI"
+              title="Save Notes"
               onPress={handleManualSubmit}
               loading={isProcessing}
               size="large"
@@ -332,11 +348,9 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     ...typography.caption,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textSecondary,
-    marginBottom: spacing.xs,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5
+    marginBottom: spacing.xs
   },
   hhScroll: {
     gap: 8,

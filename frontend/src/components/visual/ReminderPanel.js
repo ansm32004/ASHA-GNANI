@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { colors, shadows, radius, spacing } from '../../theme';
+import { formatDate } from '../../utils/dateUtils';
 
 /**
  * ReminderPanel
@@ -49,7 +50,7 @@ export const ReminderPanel = ({
             />
             <Path d="M16 2V6M8 2V6M3 10H21" stroke={colors.secondaryText} strokeWidth="2" strokeLinecap="round" />
           </Svg>
-          <Text style={styles.dateText}>{date}</Text>
+          <Text style={styles.dateText}>{formatDate(date)}</Text>
         </View>
       </View>
 

@@ -32,17 +32,12 @@ class VisitRepository:
         asha_id: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         self._ensure_synced()
-        if self._firestore.is_connected:
-            try:
-                remote_docs = self._firestore.list_all()
-                if remote_docs:
-                    self._visits = remote_docs
-            except Exception as e:
-                logger.warning(f"Could not refresh visits from Firestore: {e}")
-
         results = self._visits.copy()
         if asha_id:
-            results = [v for v in results if v.get("asha_id") == asha_id or v.get("assigned_asha_id") == asha_id]
+            results = [
+                v for v in results
+                if v.get("asha_id") == asha_id or v.get("assigned_asha_id") == asha_id or not v.get("asha_id")
+            ]
         if household_id:
             results = [v for v in results if v.get("household_id") == household_id]
         if category and category != "All":
@@ -79,6 +74,7 @@ class VisitRepository:
             "visit_date": data.get("visit_date", datetime.now().strftime("%Y-%m-%d")),
             "activity_category": data.get("activity_category", "Maternal Health"),
             "activity_description": data["activity_description"],
+            "speech_transcript": data.get("speech_transcript"),
             "visit_outcome": data.get("visit_outcome", "Normal"),
             "follow_up_required": data.get("follow_up_required", False),
             "follow_up_date": data.get("follow_up_date"),

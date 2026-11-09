@@ -7,8 +7,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const getSafeKey = (key) =>
   String(key).replace(/[^a-zA-Z0-9._-]/g, '_');
 
+// Fast in-memory token/storage cache to eliminate native bridge overhead on every API call
+const memoryCache = new Map();
+
 export const secureStorage = {
   setItem: async (key, value) => {
+    memoryCache.set(key, value);
     try {
       if (Platform.OS === 'web') {
         await AsyncStorage.setItem(key, value);
@@ -31,21 +35,33 @@ export const secureStorage = {
   },
 
   getItem: async (key) => {
+    if (memoryCache.has(key)) {
+      return memoryCache.get(key);
+    }
     try {
       if (Platform.OS === 'web') {
-        return await AsyncStorage.getItem(key);
+        const val = await AsyncStorage.getItem(key);
+        if (val !== null) memoryCache.set(key, val);
+        return val;
       }
 
       const value = await SecureStore.getItemAsync(getSafeKey(key));
 
-      if (value !== null) return value;
+      if (value !== null) {
+        memoryCache.set(key, value);
+        return value;
+      }
 
-      return await AsyncStorage.getItem(key);
+      const asyncVal = await AsyncStorage.getItem(key);
+      if (asyncVal !== null) memoryCache.set(key, asyncVal);
+      return asyncVal;
     } catch (e) {
       console.warn(`[secureStorage] Failed to get ${key}:`, e.message);
 
       try {
-        return await AsyncStorage.getItem(key);
+        const fallbackVal = await AsyncStorage.getItem(key);
+        if (fallbackVal !== null) memoryCache.set(key, fallbackVal);
+        return fallbackVal;
       } catch {
         return null;
       }
@@ -53,6 +69,7 @@ export const secureStorage = {
   },
 
   deleteItem: async (key) => {
+    memoryCache.delete(key);
     try {
       if (Platform.OS !== 'web') {
         await SecureStore.deleteItemAsync(getSafeKey(key));

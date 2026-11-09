@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, Modal, Alert, ScrollView } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, Modal, Alert, ScrollView, Platform } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius, shadows } from '../../theme';
 import { MinimalHeader } from '../../components/common/MinimalHeader';
@@ -12,16 +13,29 @@ import { LoadingState } from '../../components/common/LoadingState';
 import { StatusIndicator } from '../../components/common/StatusIndicator';
 import { VectorCategoryIcon } from '../../components/illustrations/VectorCategoryIcon';
 import { CalendarActivityView } from '../../components/visual/CalendarActivityView';
+import { InlineDatePicker } from '../../components/common/InlineDatePicker';
 import { taskApi } from '../../services/api/taskApi';
+import { visitApi } from '../../services/api/visitApi';
 import { useTranslation } from 'react-i18next';
+import { formatDate, toBackendDate } from '../../utils/dateUtils';
 
 export const TaskListScreen = ({ navigation }) => {
   const { t } = useTranslation();
 
   const [tasks, setTasks] = useState([]);
+  const [visits, setVisits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
+  const [selectedDate, setSelectedDate] = useState(null);
+
+  const todayDateStr = React.useMemo(() => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }, []);
 
   // Reschedule modal state
   const [rescheduleModalVisible, setRescheduleModalVisible] = useState(false);
@@ -29,37 +43,54 @@ export const TaskListScreen = ({ navigation }) => {
   const [newDueDate, setNewDueDate] = useState('');
   const [rescheduleNotes, setRescheduleNotes] = useState('');
 
-  const loadTasks = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
-    const list = await taskApi.getTasks();
-    setTasks(list);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    loadTasks();
+    try {
+      const [list, vList] = await Promise.all([
+        taskApi.getTasks(),
+        visitApi.getVisits().catch(() => [])
+      ]);
+      setTasks(list || []);
+      setVisits(vList || []);
+    } catch (err) {
+      console.warn('Error loading schedule data:', err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
 
   const handleComplete = async (taskId) => {
     await taskApi.completeTask(taskId, 'Task marked complete during field visit');
-    await loadTasks();
+    await loadData();
   };
 
   const openRescheduleModal = (task) => {
     setSelectedTask(task);
-    setNewDueDate(task.due_date);
+    setNewDueDate(formatDate(task.due_date));
     setRescheduleNotes('');
     setRescheduleModalVisible(true);
   };
 
   const handleSaveReschedule = async () => {
-    if (!newDueDate.trim()) {
-      Alert.alert('Required', 'Please enter new due date.');
+    if (!newDueDate || !newDueDate.trim()) {
+      Alert.alert('Required', 'Please choose a new due date on the calendar.');
       return;
     }
-    await taskApi.rescheduleTask(selectedTask.id, newDueDate.trim(), rescheduleNotes.trim());
+    const targetPerson = selectedTask?.beneficiary_name || selectedTask?.household_name || 'beneficiary';
+    const backendDate = toBackendDate(newDueDate.trim());
+    await taskApi.rescheduleTask(selectedTask.id, backendDate, rescheduleNotes.trim());
     setRescheduleModalVisible(false);
-    await loadTasks();
+    await loadData();
+    Alert.alert(
+      'Visit Rescheduled',
+      `Visit for ${targetPerson} has been moved to ${newDueDate}. A notification has been sent to the family.`
+    );
   };
 
   const filterTabs = [
@@ -70,22 +101,89 @@ export const TaskListScreen = ({ navigation }) => {
     { key: 'Completed', label: 'Completed' }
   ];
 
-  const filteredTasks = tasks.filter((task) => {
-    const matchesFilter =
-      activeFilter === 'All'
-        ? true
-        : (task.status || '').toLowerCase() === activeFilter.toLowerCase();
+  const handleFilterTabPress = (key) => {
+    setActiveFilter(key);
+    if (key === 'All') {
+      setSelectedDate(null);
+    }
+  };
 
-    if (!matchesFilter) return false;
-    if (!searchQuery.trim()) return true;
+  // Combined tasks and visits filtered by active date and tab
+  const combinedItems = React.useMemo(() => {
+    const list = [];
+    const safeTasks = Array.isArray(tasks) ? tasks : [];
+    const safeVisits = Array.isArray(visits) ? visits : [];
 
-    const query = searchQuery.toLowerCase();
-    const name = (task.household_name || '').toLowerCase();
-    const type = (task.task_type || '').toLowerCase();
-    const desc = (task.description || '').toLowerCase();
-    const village = (task.village || '').toLowerCase();
-    return name.includes(query) || type.includes(query) || desc.includes(query) || village.includes(query);
-  });
+    // 1. Process Tasks
+    safeTasks.forEach((task) => {
+      if (!task) return;
+      if (selectedDate && task.due_date !== selectedDate) {
+        return;
+      }
+
+      const matchesFilter =
+        activeFilter === 'All'
+          ? true
+          : (task.status || '').toLowerCase() === activeFilter.toLowerCase();
+
+      if (!matchesFilter) return;
+
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const name = (task.household_name || '').toLowerCase();
+        const type = (task.task_type || '').toLowerCase();
+        const desc = (task.description || '').toLowerCase();
+        const village = (task.village || '').toLowerCase();
+        if (
+          !name.includes(query) &&
+          !type.includes(query) &&
+          !desc.includes(query) &&
+          !village.includes(query)
+        ) {
+          return;
+        }
+      }
+
+      list.push({
+        ...task,
+        itemType: 'task'
+      });
+    });
+
+    // 2. Process Completed Visits (Show in 'All' or 'Completed')
+    if (activeFilter === 'All' || activeFilter === 'Completed') {
+      safeVisits.forEach((visit) => {
+        if (!visit) return;
+        if (selectedDate && visit.visit_date !== selectedDate) {
+          return;
+        }
+
+        if (searchQuery.trim()) {
+          const query = searchQuery.toLowerCase();
+          const name = (visit.household_name || '').toLowerCase();
+          const ben = (visit.beneficiary_name || '').toLowerCase();
+          const cat = (visit.activity_category || '').toLowerCase();
+          const desc = (visit.activity_description || '').toLowerCase();
+          if (
+            !name.includes(query) &&
+            !ben.includes(query) &&
+            !cat.includes(query) &&
+            !desc.includes(query)
+          ) {
+            return;
+          }
+        }
+
+        list.push({
+          ...visit,
+          itemType: 'visit',
+          status: 'Completed'
+        });
+      });
+    }
+
+    return list;
+  }, [tasks, visits, selectedDate, activeFilter, searchQuery]);
 
   const formatTaskTitle = (task) => {
     const hhName = task.household_name || 'Household';
@@ -107,7 +205,7 @@ export const TaskListScreen = ({ navigation }) => {
     <SafeAreaView style={styles.safeArea}>
       <MinimalHeader
         title={t('tasks.title') || 'Work Schedule'}
-        subtitle={`${filteredTasks.length} tasks scheduled`}
+        subtitle={`${combinedItems.length} items on schedule`}
         rightAction={
           <TouchableOpacity
             onPress={() => navigation.navigate('CreateTask')}
@@ -127,32 +225,70 @@ export const TaskListScreen = ({ navigation }) => {
         onClear={() => setSearchQuery('')}
       />
 
-      {/* Visual Calendar & Activity Strip */}
+      {/* Visual Slidable Calendar & Dynamic Activity Strip */}
       <CalendarActivityView
-        selectedDate={4}
-        monthLabel="November 2026"
+        selectedDate={selectedDate || todayDateStr}
+        tasks={tasks}
+        visits={visits}
         onSelectDate={(d) => {
-          if (d.dayNumber === 4) {
-            setActiveFilter('Due today');
+          if (selectedDate === d.dateString) {
+            setSelectedDate(null); // Click again to clear
           } else {
-            setActiveFilter('Upcoming');
+            setSelectedDate(d.dateString);
+            setActiveFilter('All'); // Show all tasks & visits for this date
           }
         }}
       />
+
+      {/* Active Date Filter Banner if a specific date is selected */}
+      {selectedDate ? (
+        <View style={styles.activeDateBanner}>
+          <View style={styles.activeDateLeft}>
+            <Ionicons name="calendar" size={14} color={colors.primary} />
+            <Text style={styles.activeDateText} numberOfLines={1}>
+              Date: {formatDate(selectedDate)} ({combinedItems.length} item{combinedItems.length !== 1 ? 's' : ''})
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => setSelectedDate(null)}
+            style={styles.clearDateBtn}
+            activeOpacity={0.7}
+            accessibilityLabel="Clear date filter"
+          >
+            <Ionicons name="close-circle" size={14} color={colors.secondaryText} />
+            <Text style={styles.clearDateText}>Show All</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
 
       {/* Filter Tabs Horizontal Strip */}
       <View style={styles.filterRow}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
           {filterTabs.map((f) => {
             const isSelected = activeFilter === f.key;
-            const count = tasks.filter((t) =>
-              f.key === 'All' ? true : (t.status || '').toLowerCase() === f.key.toLowerCase()
-            ).length;
+            let count = 0;
+            const safeTasks = Array.isArray(tasks) ? tasks : [];
+            const safeVisits = Array.isArray(visits) ? visits : [];
+            if (f.key === 'All') {
+              const tCount = safeTasks.filter((t) => t && (!selectedDate || t.due_date === selectedDate)).length;
+              const vCount = safeVisits.filter((v) => v && (!selectedDate || v.visit_date === selectedDate)).length;
+              count = tCount + vCount;
+            } else if (f.key === 'Completed') {
+              const tCount = safeTasks.filter(
+                (t) => t && (!selectedDate || t.due_date === selectedDate) && (t.status || '').toLowerCase() === 'completed'
+              ).length;
+              const vCount = safeVisits.filter((v) => v && (!selectedDate || v.visit_date === selectedDate)).length;
+              count = tCount + vCount;
+            } else {
+              count = safeTasks.filter(
+                (t) => t && (!selectedDate || t.due_date === selectedDate) && (t.status || '').toLowerCase() === f.key.toLowerCase()
+              ).length;
+            }
 
             return (
               <TouchableOpacity
                 key={f.key}
-                onPress={() => setActiveFilter(f.key)}
+                onPress={() => handleFilterTabPress(f.key)}
                 style={[styles.filterPill, isSelected && styles.filterPillActive]}
                 activeOpacity={0.8}
               >
@@ -174,14 +310,79 @@ export const TaskListScreen = ({ navigation }) => {
         <LoadingState message={t('common.loading')} />
       ) : (
         <FlatList
-          data={filteredTasks}
+          data={combinedItems}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => {
+            if (item.itemType === 'visit') {
+              return (
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => navigation.navigate('VisitDetail', { visitId: item.id, visit: item })}
+                  style={[styles.taskCard, styles.visitCard]}
+                >
+                  <View style={styles.taskCardTop}>
+                    <View style={styles.iconCol}>
+                      <VectorCategoryIcon category={item.activity_category} size={28} />
+                    </View>
+
+                    <View style={styles.taskDetailsCol}>
+                      {/* Title & Visit Badge Row */}
+                      <View style={styles.titleRow}>
+                        <Text style={styles.taskTitle} numberOfLines={1}>
+                          {item.household_name || 'Household'} • {item.beneficiary_name || 'Visit'}
+                        </Text>
+                        <View style={styles.visitPill}>
+                          <Ionicons name="checkmark-done-circle" size={12} color={colors.tealDark} />
+                          <Text style={styles.visitPillText}>Field Visit</Text>
+                        </View>
+                      </View>
+
+                      {/* AI Description / Summary */}
+                      <Text style={styles.taskDesc} numberOfLines={2}>
+                        {item.activity_description}
+                      </Text>
+
+                      {/* ASHA Worker Spoken Voice Note Preview */}
+                      {item.speech_transcript ? (
+                        <View style={styles.listMicSnippet}>
+                          <Ionicons name="mic" size={11} color="#0D47A1" />
+                          <Text style={styles.listMicSnippetText} numberOfLines={1}>
+                            “{item.speech_transcript}”
+                          </Text>
+                        </View>
+                      ) : null}
+
+                      {/* Card Footer */}
+                      <View style={styles.cardFooter}>
+                        <View style={styles.metaCol}>
+                          <View style={styles.metaLine}>
+                            <Ionicons name="calendar-outline" size={12} color={colors.tealDark} />
+                            <Text style={[styles.metaText, { color: colors.tealDark }]}>
+                              Visited: {formatDate(item.visit_date)}
+                            </Text>
+                          </View>
+                        </View>
+
+                        <View style={styles.viewRecordBtn}>
+                          <Text style={styles.viewRecordBtnText}>View Record</Text>
+                          <Ionicons name="chevron-forward" size={12} color={colors.primary} />
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            }
+
             const isCompleted = item.status === 'Completed';
             const leftColor = getBorderColor(item);
 
             return (
-              <View style={[styles.taskCard, { borderLeftColor: leftColor }]}>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => navigation.navigate('TaskDetail', { taskId: item.id, task: item })}
+                style={[styles.taskCard, { borderLeftColor: leftColor }]}
+              >
                 <View style={styles.taskCardTop}>
                   <View style={styles.iconCol}>
                     <VectorCategoryIcon category={item.task_type} size={28} />
@@ -216,16 +417,22 @@ export const TaskListScreen = ({ navigation }) => {
                       <View style={styles.metaCol}>
                         <View style={styles.metaLine}>
                           <Ionicons name="calendar-outline" size={12} color={colors.textSecondary} />
-                          <Text style={styles.metaText}>Due: {item.due_date}</Text>
+                          <Text style={styles.metaText}>Due: {formatDate(item.due_date)}</Text>
                         </View>
-                        <Text style={styles.villageText}>📍 {item.village || 'Rampur Kalan'}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 1 }}>
+                          <Ionicons name="location-outline" size={11.5} color={colors.textMuted} style={{ marginRight: 2 }} />
+                          <Text style={styles.villageText}>{item.village || 'Rampur Kalan'}</Text>
+                        </View>
                       </View>
 
                       {/* Right Action Buttons */}
                       {!isCompleted ? (
                         <View style={styles.actionBtns}>
                           <TouchableOpacity
-                            onPress={() => openRescheduleModal(item)}
+                            onPress={(e) => {
+                              e.stopPropagation?.();
+                              openRescheduleModal(item);
+                            }}
                             style={styles.rescheduleIconBtn}
                             accessibilityLabel="Reschedule"
                           >
@@ -233,7 +440,10 @@ export const TaskListScreen = ({ navigation }) => {
                             <Text style={styles.rescheduleBtnText}>Delay</Text>
                           </TouchableOpacity>
                           <TouchableOpacity
-                            onPress={() => handleComplete(item.id)}
+                            onPress={(e) => {
+                              e.stopPropagation?.();
+                              handleComplete(item.id);
+                            }}
                             style={styles.doneIconBtn}
                             accessibilityLabel="Mark Done"
                           >
@@ -245,12 +455,13 @@ export const TaskListScreen = ({ navigation }) => {
                         <View style={styles.completedTag}>
                           <Ionicons name="checkmark-done" size={14} color={colors.success} />
                           <Text style={styles.completedTagText}>Completed</Text>
+                          <Ionicons name="chevron-forward" size={12} color={colors.success} style={{ marginLeft: 2 }} />
                         </View>
                       )}
                     </View>
                   </View>
                 </View>
-              </View>
+              </TouchableOpacity>
             );
           }}
           contentContainerStyle={styles.listContent}
@@ -267,7 +478,7 @@ export const TaskListScreen = ({ navigation }) => {
         />
       )}
 
-      {/* Reschedule Sheet Modal */}
+      {/* Reschedule / Delay Sheet Modal with Working Interactive Calendar */}
       <Modal
         visible={rescheduleModalVisible}
         transparent
@@ -277,40 +488,96 @@ export const TaskListScreen = ({ navigation }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHandle} />
-            <Text style={styles.modalTitle}>Reschedule Follow-up</Text>
-            <Text style={styles.modalSub}>
-              {selectedTask?.household_name} • {selectedTask?.task_type}
-            </Text>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.modalScrollContent}
+              keyboardShouldPersistTaps="handled"
+            >
+              {/* Header */}
+              <View style={styles.modalHeaderRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.modalTitle}>Reschedule Follow-up</Text>
+                  <Text style={styles.modalSub}>
+                    {selectedTask?.household_name} • {selectedTask?.task_type}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setRescheduleModalVisible(false)}
+                  style={styles.modalCloseBtn}
+                  activeOpacity={0.7}
+                  accessibilityLabel="Close"
+                >
+                  <Ionicons name="close" size={18} color={colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
 
-            <AppInput
-              label="New Due Date (YYYY-MM-DD)"
-              value={newDueDate}
-              onChangeText={setNewDueDate}
-              placeholder="e.g. 2026-11-10"
-            />
+              {/* Current Date Reference */}
+              <View style={styles.originalDateBanner}>
+                <Ionicons name="time-outline" size={14} color={colors.warning} />
+                <Text style={styles.originalDateText}>
+                  Current Due Date: <Text style={styles.originalDateBold}>{formatDate(selectedTask?.due_date)}</Text>
+                </Text>
+              </View>
 
-            <AppInput
-              label="Reason for Rescheduling"
-              value={rescheduleNotes}
-              onChangeText={setRescheduleNotes}
-              placeholder="e.g. Beneficiary visiting maternal home"
-            />
-
-            <View style={styles.modalBtnRow}>
-              <SecondaryButton
-                title="Cancel"
-                onPress={() => setRescheduleModalVisible(false)}
-                variant="outline"
-                size="medium"
-                style={{ flex: 1, marginRight: spacing.sm }}
+              {/* Working Interactive Calendar Date Picker */}
+              <InlineDatePicker
+                value={newDueDate}
+                onChangeDate={(formattedDate) => setNewDueDate(formattedDate)}
+                originalDate={selectedTask?.due_date}
+                minDate={new Date()}
+                showShortcuts={true}
+                title="Choose New Due Date on Calendar"
               />
-              <PrimaryButton
-                title="Save Date"
-                onPress={handleSaveReschedule}
-                size="medium"
-                style={{ flex: 1 }}
+
+              {/* Reason for Rescheduling with Quick Chips */}
+              <Text style={styles.reasonSectionTitle}>Reason for Rescheduling</Text>
+              <View style={styles.reasonChipsWrap}>
+                {[
+                  'Beneficiary traveling',
+                  'Family unavailable',
+                  'Mother sick / resting',
+                  'Work in field',
+                  'Follow-up postponed'
+                ].map((reason) => {
+                  const isSelected = rescheduleNotes === reason;
+                  return (
+                    <TouchableOpacity
+                      key={reason}
+                      onPress={() => setRescheduleNotes(reason)}
+                      style={[styles.reasonChip, isSelected && styles.reasonChipActive]}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.reasonChipText, isSelected && styles.reasonChipTextActive]}>
+                        {reason}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              <AppInput
+                value={rescheduleNotes}
+                onChangeText={setRescheduleNotes}
+                placeholder="Or type a custom reason..."
               />
-            </View>
+
+              {/* Action Buttons */}
+              <View style={styles.modalBtnRow}>
+                <SecondaryButton
+                  title="Cancel"
+                  onPress={() => setRescheduleModalVisible(false)}
+                  variant="outline"
+                  size="medium"
+                  style={{ flex: 1, marginRight: spacing.sm }}
+                />
+                <PrimaryButton
+                  title="Save Date"
+                  onPress={handleSaveReschedule}
+                  size="medium"
+                  style={{ flex: 1 }}
+                />
+              </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -330,6 +597,44 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center'
+  },
+  activeDateBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.primaryLight,
+    borderWidth: 1,
+    borderColor: colors.primaryMuted,
+    borderRadius: radius.pill,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    marginHorizontal: spacing.screenPadding,
+    marginVertical: 4
+  },
+  activeDateLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flex: 1
+  },
+  activeDateText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: colors.primaryDark
+  },
+  clearDateBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface
+  },
+  clearDateText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: colors.secondaryText
   },
   filterRow: {
     marginVertical: 4
@@ -457,40 +762,42 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
   villageText: {
-    fontSize: 10.5,
-    color: colors.textMuted,
+    fontSize: 11.5,
+    color: colors.textSecondary,
     marginTop: 1
   },
   actionBtns: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6
+    gap: 8
   },
   rescheduleIconBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderRadius: radius.pill,
     backgroundColor: colors.surfaceSecondary,
-    gap: 3
+    gap: 4,
+    minHeight: 32
   },
   rescheduleBtnText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
-    color: colors.secondaryText
+    color: colors.textSecondary
   },
   doneIconBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: radius.pill,
     backgroundColor: colors.teal,
-    gap: 3
+    gap: 4,
+    minHeight: 32
   },
   doneBtnText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
     color: colors.textWhite
   },
@@ -508,17 +815,87 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.success
   },
+  visitCard: {
+    borderLeftColor: colors.teal
+  },
+  visitPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.tealLight,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: radius.pill
+  },
+  visitPillText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.tealDark
+  },
+  listMicSnippet: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    borderRadius: radius.sm,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginBottom: 6
+  },
+  listMicSnippetText: {
+    flex: 1,
+    fontSize: 11,
+    color: '#1E3A8A',
+    fontStyle: 'italic'
+  },
+  transcriptIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: radius.pill,
+    alignSelf: 'flex-start',
+    marginTop: 3
+  },
+  transcriptIndicatorText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.primaryDark
+  },
+  viewRecordBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: radius.pill
+  },
+  viewRecordBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.primaryDark
+  },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(32, 38, 49, 0.4)',
+    backgroundColor: 'rgba(32, 38, 49, 0.45)',
     justifyContent: 'flex-end'
   },
   modalContent: {
     backgroundColor: colors.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    padding: spacing.xl,
-    paddingBottom: 40
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.base,
+    paddingBottom: Platform.OS === 'ios' ? 36 : 24,
+    maxHeight: '90%'
+  },
+  modalScrollContent: {
+    paddingBottom: 16
   },
   modalHandle: {
     width: 36,
@@ -526,7 +903,21 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     backgroundColor: colors.borderStrong,
     alignSelf: 'center',
-    marginBottom: spacing.base
+    marginBottom: spacing.sm
+  },
+  modalHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 6
+  },
+  modalCloseBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surfaceSecondary
   },
   modalTitle: {
     fontSize: 18,
@@ -536,8 +927,62 @@ const styles = StyleSheet.create({
   modalSub: {
     fontSize: 12,
     color: colors.secondaryText,
-    marginTop: 2,
-    marginBottom: spacing.base
+    marginTop: 2
+  },
+  originalDateBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.warningLight,
+    borderWidth: 1,
+    borderColor: '#FCE6B5',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+    marginVertical: 8,
+    alignSelf: 'flex-start'
+  },
+  originalDateText: {
+    fontSize: 11.5,
+    color: colors.primaryText
+  },
+  originalDateBold: {
+    fontWeight: '700',
+    color: colors.primaryDark
+  },
+  reasonSectionTitle: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: colors.primaryDark,
+    marginTop: 8,
+    marginBottom: 6
+  },
+  reasonChipsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 8
+  },
+  reasonChip: {
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.border
+  },
+  reasonChipActive: {
+    backgroundColor: colors.primaryLight,
+    borderColor: colors.primary
+  },
+  reasonChipText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.primaryText
+  },
+  reasonChipTextActive: {
+    color: colors.primary,
+    fontWeight: '700'
   },
   modalBtnRow: {
     flexDirection: 'row',

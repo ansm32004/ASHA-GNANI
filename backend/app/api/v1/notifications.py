@@ -16,12 +16,14 @@ router = APIRouter(prefix="/notifications", tags=["Notifications"])
 def get_notifications(
     category: Optional[str] = Query(None),
     unread_only: bool = Query(False),
+    user_id: Optional[str] = Query(None),
     current_user: str = Depends(get_current_user_id)
 ):
     """
     Get notifications with unread and category filters.
     """
-    return notification_service.list_notifications(category=category, unread_only=unread_only)
+    target_user = user_id or current_user
+    return notification_service.list_notifications(category=category, unread_only=unread_only, user_id=target_user)
 
 @router.post("/{notification_id}/read", response_model=NotificationResponse)
 def mark_notification_read(notification_id: str, current_user: str = Depends(get_current_user_id)):

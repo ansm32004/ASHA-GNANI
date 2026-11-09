@@ -70,19 +70,7 @@ def is_token_revoked(token: str) -> bool:
     if not token:
         return True
     token_hash = _hash_token(token)
-    if token_hash in REVOKED_TOKENS:
-        return True
-    try:
-        from app.integrations.firebase.firestore_repository import FirestoreRepository
-        fs_revoked = FirestoreRepository("revoked_tokens")
-        if fs_revoked.is_connected:
-            doc = fs_revoked.get(token_hash)
-            if doc:
-                REVOKED_TOKENS.add(token_hash)
-                return True
-    except Exception:
-        pass
-    return False
+    return token_hash in REVOKED_TOKENS
 
 def create_access_token(
     subject: Union[str, Any],

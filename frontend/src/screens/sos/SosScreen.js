@@ -98,10 +98,17 @@ export const SosScreen = ({ navigation }) => {
             </View>
 
             <View style={styles.statusBox}>
-              <Text style={styles.statusItem}>✓ India 112 Simulation: Dispatch Triggered</Text>
-              <Text style={styles.statusItem}>✓ Assigned ASHA (Sunita Devi): Notified</Text>
-              <Text style={styles.statusItem}>✓ Level {activeAlert.escalation_level}: Ambulance 108 Dispatched</Text>
-              <Text style={styles.statusItem}>✓ Patient: {activeAlert.household_name || householdName}</Text>
+              {[
+                `India 112 Simulation: Dispatch Triggered`,
+                `Assigned ASHA (Sunita Devi): Notified`,
+                `Level ${activeAlert.escalation_level}: Ambulance 108 Dispatched`,
+                `Patient: ${activeAlert.household_name || householdName}`
+              ].map((msg, i) => (
+                <View key={i} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Ionicons name="checkmark-circle-outline" size={13} color={colors.teal} style={{ marginRight: 6 }} />
+                  <Text style={styles.statusItem}>{msg}</Text>
+                </View>
+              ))}
             </View>
 
             <TouchableOpacity
@@ -178,7 +185,10 @@ export const SosScreen = ({ navigation }) => {
               activeOpacity={0.85}
               style={styles.triggerButton}
             >
-              <Text style={styles.triggerBtnText}>🚨 TRIGGER EMERGENCY SOS (112)</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name="warning-outline" size={17} color={colors.textWhite} style={{ marginRight: 6 }} />
+                <Text style={styles.triggerBtnText}>TRIGGER EMERGENCY SOS (112)</Text>
+              </View>
             </TouchableOpacity>
           </View>
         )}

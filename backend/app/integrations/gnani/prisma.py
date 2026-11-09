@@ -31,13 +31,24 @@ class PrismaSTTService:
         bits_per_sample = int.from_bytes(data[fmt_idx+22:fmt_idx+24], "little")
         return audio_format == 1 and num_channels == 1 and sample_rate == 16000 and bits_per_sample == 16
 
+    def _get_ffmpeg_cmd(self) -> Optional[str]:
+        exe = shutil.which("ffmpeg")
+        if exe:
+            return exe
+        try:
+            import imageio_ffmpeg
+            return imageio_ffmpeg.get_ffmpeg_exe()
+        except Exception:
+            return None
+
     def _convert_to_pcm_wav(self, audio_bytes: bytes, input_ext: str = "bin") -> Optional[bytes]:
         """
         Normalize any audio container (WebM, AAC, M4A, MP3, AMR, corrupted headers, high sample rates)
         to clean 16kHz mono 16-bit PCM WAV via ffmpeg.
         Uses temporary files to guarantee seekable RIFF/WAVE header creation without 0xFFFFFFFF stream placeholders.
         """
-        if not shutil.which("ffmpeg"):
+        ffmpeg_bin = self._get_ffmpeg_cmd()
+        if not ffmpeg_bin:
             return None
         in_file = None
         out_file = None
@@ -51,7 +62,7 @@ class PrismaSTTService:
             out_file.close()
 
             cmd = [
-                "ffmpeg", "-y",
+                ffmpeg_bin, "-y",
                 "-i", in_file.name,
                 "-ar", "16000",
                 "-ac", "1",
@@ -223,7 +234,7 @@ class PrismaSTTService:
             
             # Universal Normalization: Ensure audio sent to Gnani Prisma STT is 100% clean 16kHz mono WAV
             input_ext = "webm" if "webm" in mime or detected_filename.endswith(".webm") else ("m4a" if "m4a" in mime or detected_filename.endswith(".m4a") else "bin")
-            if not self._is_valid_16k_pcm_wav(audio_bytes) and shutil.which("ffmpeg"):
+            if not self._is_valid_16k_pcm_wav(audio_bytes) and self._get_ffmpeg_cmd():
                 logger.info(f"Normalizing {mime} audio ({len(audio_bytes)} bytes) to 16kHz mono WAV via ffmpeg...")
                 converted = self._convert_to_pcm_wav(audio_bytes, input_ext=input_ext)
                 if converted:
@@ -242,7 +253,7 @@ class PrismaSTTService:
             )
 
             # If first attempt was unsuccessful and we did not already convert to WAV, retry with WAV normalization
-            if (not res or not res.get("success")) and mime != "audio/wav" and shutil.which("ffmpeg"):
+            if (not res or not res.get("success")) and mime != "audio/wav" and self._get_ffmpeg_cmd():
                 logger.info(f"Gnani Prisma STT returned unsuccessful with {mime}. Retrying with 16kHz mono WAV normalization...")
                 converted = self._convert_to_pcm_wav(audio_bytes, input_ext=input_ext)
                 if converted:

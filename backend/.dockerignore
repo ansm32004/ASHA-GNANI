@@ -1,0 +1,51 @@
+# Git and hooks
+.git
+.gitignore
+.githooks
+
+# Secrets, Environment & Credentials (CRITICAL: Never include in Docker images)
+.env
+.env.*
+.env*.local
+*.env
+*.env.*
+secrets/
+**/secrets/
+*service-account*.json
+*service_account*.json
+*firebase-adminsdk*.json
+serviceAccountKey.json
+*credentials*.json
+*.pem
+*.key
+*.keystore
+*.jks
+*.p12
+
+# Runtime databases & tokens
+data/
+*.db
+*.sqlite
+*.sqlite3
+revoked_tokens.json
+
+# Audio and generated media artifacts
+app/static/audio/*.wav
+app/static/audio/*.mp3
+app/static/audio/*.ogg
+*.wav
+*.mp3
+
+# Python virtualenvs & caches
+__pycache__
+**/__pycache__
+*.py[cod]
+.venv
+venv
+.pytest_cache
+.coverage
+htmlcov
+
+# Documentation
+*.md
+!README.md

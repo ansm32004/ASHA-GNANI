@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
 import { colors, spacing, typography, radius, shadows } from '../../theme';
-import { MaternalHealthVector } from '../illustrations/CategoryVectors';
+import { AvatarImage } from './AvatarImage';
 
 export const VisitHighlightCard = ({
   beneficiaryName = 'Meena Devi',
@@ -19,7 +19,13 @@ export const VisitHighlightCard = ({
       {/* Top Row: Avatar, Beneficiary Details & Priority Badge */}
       <View style={styles.topRow}>
         <View style={styles.avatarWrap}>
-          <MaternalHealthVector size={28} />
+          <AvatarImage
+            name={beneficiaryName}
+            role="Pregnant Woman"
+            size={40}
+            showBorder
+            borderColor={colors.border}
+          />
         </View>
 
         <View style={styles.infoCol}>
@@ -149,9 +155,7 @@ const styles = StyleSheet.create({
   priorityText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#FFFFFF',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5
+    color: '#FFFFFF'
   },
   capsuleRow: {
     flexDirection: 'row',

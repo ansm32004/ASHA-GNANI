@@ -12,7 +12,18 @@ export const NotificationScreen = ({ navigation }) => {
   const loadNotifs = async () => {
     setLoading(true);
     const list = await notificationApi.getNotifications();
-    setNotifications(list);
+    const safeList = Array.isArray(list) ? [...list] : [];
+    safeList.sort((a, b) => {
+      const isJustNowA = (a.timestamp || '').toLowerCase().includes('just now');
+      const isJustNowB = (b.timestamp || '').toLowerCase().includes('just now');
+      if (isJustNowA && !isJustNowB) return -1;
+      if (!isJustNowA && isJustNowB) return 1;
+      const timeA = new Date(a.created_at || 0).getTime() || 0;
+      const timeB = new Date(b.created_at || 0).getTime() || 0;
+      if (timeA && timeB) return timeB - timeA;
+      return 0;
+    });
+    setNotifications(safeList);
     setLoading(false);
   };
 
@@ -28,6 +39,13 @@ export const NotificationScreen = ({ navigation }) => {
   const handleMarkAll = async () => {
     await notificationApi.markAllAsRead();
     await loadNotifs();
+  };
+
+  const handleNotifPress = async (item) => {
+    await handleMarkRead(item.id);
+    if (item.action_type === 'request' || (item.category || '').toLowerCase().includes('request')) {
+      navigation.navigate('CommunityRequests');
+    }
   };
 
   return (
@@ -57,7 +75,7 @@ export const NotificationScreen = ({ navigation }) => {
             meta={`${item.category} • ${item.timestamp}`}
             priority={item.priority}
             showDivider={index < notifications.length - 1}
-            onPress={() => handleMarkRead(item.id)}
+            onPress={() => handleNotifPress(item)}
             rightAction={
               !item.is_read ? <View style={styles.unreadDot} /> : null
             }

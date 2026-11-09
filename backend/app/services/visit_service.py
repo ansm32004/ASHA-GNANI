@@ -61,9 +61,26 @@ class VisitService:
             **data,
             "household_name": hh_name,
             "asha_id": worker_id,
-            "created_task_id": created_task_id
+            "created_task_id": created_task_id,
+            "speech_transcript": data.get("speech_transcript")
         }
         confirmed_visit = visit_repo.create(visit_data)
+
+        # Mark any previous pending visit/follow-up task for this household as completed
+        try:
+            pending_tasks = task_repo.list_all(household_id=household_id)
+            for t in pending_tasks:
+                if t.get("status") in ["Due today", "Upcoming", "Overdue"]:
+                    task_repo.complete(t["id"], notes=f"Completed via field visit on {data.get('visit_date')}")
+                    break
+            # Also resolve any active requests for this household
+            from app.repositories.request_repository import request_repo
+            hh_reqs = request_repo.list_all(household_id=household_id)
+            for r in hh_reqs:
+                if r.get("status") not in ["Resolved", "Completed"]:
+                    request_repo.update_action(r["id"], "resolve", f"Completed via field visit on {data.get('visit_date')}")
+        except Exception:
+            pass
 
         # Update household record
         household_repo.update_visit_and_followup(

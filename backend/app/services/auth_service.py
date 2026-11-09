@@ -9,6 +9,7 @@ from app.repositories.user_repository import user_repository
 from app.repositories.household_repository import household_repo
 from app.core.security import create_access_token, verify_password, get_password_hash
 from app.core.exceptions import UnauthorizedException, ValidationException, SahayikaException, ConflictException
+from app.core.logging import logger
 from app.schemas.auth import RegisterRequest
 
 class AuthService:

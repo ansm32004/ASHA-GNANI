@@ -3,11 +3,11 @@ from typing import Optional, List
 from datetime import date, datetime
 
 class BeneficiaryMember(BaseModel):
-    id: str
+    id: Optional[str] = None
     name: str
     age: Optional[int] = 0
     gender: str = "Female"  # Female, Male, Other
-    relation: str = "Self"  # Head, Wife, Son, Daughter, Mother, etc.
+    relation: Optional[str] = "Self"  # Head, Wife, Son, Daughter, Mother, etc.
     category: Optional[str] = "General"  # Pregnant Woman, Lactating Mother, Infant, Child (1-5), Adolescent, Elder, General
     rch_id: Optional[str] = None  # Reproductive & Child Health ID
     is_high_risk: bool = False
@@ -44,16 +44,15 @@ class HouseholdResponse(BaseModel):
     village: str
     sub_area: Optional[str] = None
     contact_number: str
-    preferred_language: str
+    preferred_language: Optional[str] = "hi"
     address: Optional[str] = None
-    consent_status: bool
-    members_count: int
+    consent_status: Optional[bool] = True
+    members_count: int = 0
     members: List[BeneficiaryMember] = []
     last_visit_date: Optional[str] = None
     next_follow_up: Optional[str] = None
     pending_tasks_count: int = 0
     priority: str = "Routine"  # Urgent, Priority, Routine
-    assigned_asha_id: str
-    created_at: str
-    updated_at: str
-
+    assigned_asha_id: Optional[str] = "asha_sunita_001"
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None

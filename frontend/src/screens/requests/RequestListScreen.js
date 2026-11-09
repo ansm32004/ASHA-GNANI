@@ -138,7 +138,7 @@ export const RequestListScreen = ({ navigation }) => {
               category={item.category}
               title={`${item.household_name} • ${item.beneficiary_name || item.category}`}
               subtitle={item.description}
-              meta={`Received: ${item.time_received} • ${item.village || 'Rampur Kalan'}`}
+              meta={`Received: ${item.time_received} • ${item.village || 'Rampur Kalan'}${item.preferred_date ? ` • Date: ${item.preferred_date}` : ''}`}
               priority={item.priority}
               status={item.status}
               showDivider={index < filtered.length - 1}
@@ -221,6 +221,14 @@ export const RequestListScreen = ({ navigation }) => {
                 <View style={styles.detailBody}>
                   <Text style={styles.detailCategoryTag}>{selectedRequest.category}</Text>
                   <Text style={styles.detailDescription}>{selectedRequest.description}</Text>
+                  {selectedRequest.preferred_date ? (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryLight, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, marginTop: 8, alignSelf: 'flex-start' }}>
+                      <Ionicons name="calendar" size={13} color={colors.primary} style={{ marginRight: 6 }} />
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: colors.primary }}>
+                        Preferred Call / Visit Date: {selectedRequest.preferred_date}
+                      </Text>
+                    </View>
+                  ) : null}
                   <Text style={styles.detailTimeReceived}>Time Received: {selectedRequest.time_received}</Text>
                 </View>
 

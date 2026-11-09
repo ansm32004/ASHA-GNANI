@@ -1,0 +1,71 @@
+# Git and hooks
+.git
+.gitignore
+.githooks
+
+# Secrets, Environment & Credentials (CRITICAL: Never include in Docker images)
+.env
+.env.*
+.env*.local
+*.env
+*.env.*
+secrets/
+**/secrets/
+*service-account*.json
+*service_account*.json
+*firebase-adminsdk*.json
+serviceAccountKey.json
+google-services.json
+**/google-services.json
+GoogleService-Info.plist
+*credentials*.json
+*.pem
+*.key
+*.keystore
+*.jks
+*.p12
+*.p8
+*.mobileprovision
+id_rsa*
+id_ed25519*
+
+# Runtime databases & tokens
+data/
+backend/data/
+**/data/*.json
+*.db
+*.sqlite
+*.sqlite3
+revoked_tokens.json
+**/revoked_tokens.json
+
+# Audio and generated media artifacts
+backend/app/static/audio/*.wav
+backend/app/static/audio/*.mp3
+backend/app/static/audio/*.ogg
+*.wav
+*.mp3
+
+# Python virtualenvs & caches
+__pycache__
+**/__pycache__
+*.py[cod]
+.venv
+backend/.venv
+venv
+.pytest_cache
+.coverage
+htmlcov
+
+# Node and Mobile build artifacts
+node_modules
+**/node_modules
+.expo
+dist
+web-build
+*.apk
+*.aab
+
+# Audit reports and documentation
+*.md
+!README.md

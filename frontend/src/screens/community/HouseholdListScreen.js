@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, ScrollView } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius, shadows } from '../../theme';
 import { MinimalHeader } from '../../components/common/MinimalHeader';
@@ -9,6 +10,7 @@ import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
 import { householdApi } from '../../services/api/householdApi';
 import { useTranslation } from 'react-i18next';
+import { formatDate } from '../../utils/dateUtils';
 
 const VILLAGES = ['All', 'Rampur Kalan', 'Lakshmi Nagar', 'Shanti Kunj', 'Kalyanpur', 'Basti Vikas'];
 
@@ -21,17 +23,18 @@ export const HouseholdListScreen = ({ navigation }) => {
   const [selectedVillage, setSelectedVillage] = useState('All');
   const [selectedPriority, setSelectedPriority] = useState('All');
 
-  const loadHouseholds = async () => {
-    setLoading(true);
+  const loadHouseholds = useCallback(async () => {
     const data = await householdApi.getHouseholds();
     setHouseholds(data);
     setFilteredList(data);
     setLoading(false);
-  };
-
-  useEffect(() => {
-    loadHouseholds();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadHouseholds();
+    }, [loadHouseholds])
+  );
 
   useEffect(() => {
     let result = [...households];
@@ -159,7 +162,7 @@ export const HouseholdListScreen = ({ navigation }) => {
                 category={getHouseholdCategory(item)}
                 title={item.primary_contact_name}
                 subtitle={`${item.household_id} • ${item.village} (${item.sub_area || 'Ward 3'})`}
-                meta={`${(item.members || []).length} members • Last visit: ${item.last_visit_date || 'None'}`}
+                meta={`${(item.members || []).length} members • Last visit: ${item.last_visit_date ? formatDate(item.last_visit_date) : 'None'}`}
                 priority={item.priority}
                 onPress={() => navigation.navigate('HouseholdDetail', { householdId: item.id })}
                 showDivider={false}

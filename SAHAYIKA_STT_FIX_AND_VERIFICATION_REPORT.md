@@ -197,6 +197,6 @@ To enable live STT requests to reach `https://api.vachana.ai/stt/v3`:
 1. Open `backend/.env` on your Mac.
 2. Add your Gnani API key:
    ```env
-   GNANI_API_KEY="your_gnani_vachana_api_key_here"
+   GNANI_API_KEY="your-gnani-api-key-here"
    ```
 3. Save the file. The running FastAPI server (`uvicorn ... --reload`) will automatically reload the configuration without needing a manual restart.

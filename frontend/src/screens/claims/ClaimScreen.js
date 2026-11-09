@@ -79,7 +79,7 @@ export const ClaimScreen = ({ navigation }) => {
             style={styles.prepareBtn}
           >
             <Ionicons name="add-circle" size={16} color={colors.primary} />
-            <Text style={styles.prepareBtnText}>+ Prepare Draft Claim</Text>
+            <Text style={styles.prepareBtnText}>Prepare Draft Claim</Text>
           </TouchableOpacity>
         </View>
 

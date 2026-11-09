@@ -6,13 +6,13 @@ export const StatusBadge = ({ status, size = 'medium' }) => {
   const getBadgeStyle = () => {
     const s = (status || '').toLowerCase();
     if (s.includes('urgent') || s.includes('overdue') || s.includes('danger')) {
-      return { bg: colors.dangerLight, text: colors.danger, border: '#F7C5C5' };
+      return { bg: colors.dangerLight, text: colors.danger, border: '#FECDD3' };
     }
     if (s.includes('today') || s.includes('due') || s.includes('progress') || s.includes('acknowledged') || s.includes('pending')) {
-      return { bg: colors.warningLight, text: colors.warning, border: '#FCE0B3' };
+      return { bg: colors.warningLight, text: colors.warning, border: '#FDE68A' };
     }
     if (s.includes('complete') || s.includes('confirm') || s.includes('resolve') || s.includes('approve') || s.includes('verified') || s.includes('disbursed')) {
-      return { bg: colors.successLight, text: colors.success, border: '#C0E6D6' };
+      return { bg: colors.successLight, text: colors.success, border: '#A7F3D0' };
     }
     return { bg: colors.surfaceSecondary, text: colors.textSecondary, border: colors.border };
   };
@@ -36,7 +36,7 @@ export const StatusBadge = ({ status, size = 'medium' }) => {
           styles.text,
           {
             color: badgeTheme.text,
-            fontSize: size === 'small' ? 10 : 11
+            fontSize: size === 'small' ? 11 : 12
           }
         ]}
       >

@@ -15,7 +15,7 @@ import * as Device from 'expo-device';
  * Eliminates all hardcoded local IP addresses across the codebase.
  */
 
-const DEFAULT_DEV_PORT = '8008';
+const DEFAULT_DEV_PORT = '8000';
 const DEFAULT_API_PATH = '/api/v1';
 
 /**
@@ -77,21 +77,7 @@ export const resolveApiBaseUrl = (customEnv = {}) => {
     return normalizeApiUrl(configuredUrl || 'https://staging-api.sahayika.gov.in');
   }
 
-  // 2. Explicit public / external URL configured in environment (e.g. ngrok, public domain, cloud dev)
-  if (configuredUrl) {
-    const isLocalhost = configuredUrl.includes('localhost') || configuredUrl.includes('127.0.0.1');
-    const isEmulatorIp = configuredUrl.includes('10.0.2.2');
-
-    // If configured URL is a real remote host or LAN IP, respect it directly
-    if (!isLocalhost && !isEmulatorIp) {
-      return normalizeApiUrl(configuredUrl);
-    }
-
-    // If configured URL is localhost but we are running on a PHYSICAL device, localhost is invalid.
-    // Fall through to dynamic Metro host resolution so the phone doesn't fail connecting to itself.
-  }
-
-  // 3. Web Platform (Browser)
+  // 2. Web Platform (Browser)
   if (Platform.OS === 'web') {
     if (typeof window !== 'undefined' && window.location) {
       const hostname = window.location.hostname || 'localhost';
@@ -100,19 +86,25 @@ export const resolveApiBaseUrl = (customEnv = {}) => {
     return `http://localhost:${port}${DEFAULT_API_PATH}`;
   }
 
-  // 4. Physical Android / iOS Device (Expo Go / Dev Client)
-  // On physical handsets, localhost points to 127.0.0.1 on the phone itself.
-  // Dynamically extract the developer machine's LAN IP from Expo Metro bundler host.
+  // 3. Physical Android / iOS Device with dynamic Metro Host
+  // The phone just downloaded its bundle from Metro, so metroHost is the most accurate LAN IP.
   const metroHost = getMetroHost();
   const isPhysical = Device.isDevice;
+  const isMetroHostValidIp = metroHost && metroHost !== 'localhost' && metroHost !== '127.0.0.1' && !metroHost.includes('exp.direct');
 
-  if (isPhysical && metroHost && metroHost !== 'localhost' && metroHost !== '127.0.0.1') {
+  if (isMetroHostValidIp) {
     return `http://${metroHost}:${port}${DEFAULT_API_PATH}`;
   }
 
-  // Even on simulator, if metroHost is available, prefer it
-  if (metroHost && metroHost !== 'localhost' && metroHost !== '127.0.0.1') {
-    return `http://${metroHost}:${port}${DEFAULT_API_PATH}`;
+  // 4. Explicit public / external URL configured in environment (e.g. ngrok, public domain, cloud dev)
+  if (configuredUrl) {
+    const isLocalhost = configuredUrl.includes('localhost') || configuredUrl.includes('127.0.0.1');
+    const isEmulatorIp = configuredUrl.includes('10.0.2.2');
+
+    // If configured URL is a real remote host or LAN IP, respect it directly
+    if (!isLocalhost && !isEmulatorIp) {
+      return normalizeApiUrl(configuredUrl);
+    }
   }
 
   // 5. Android Emulator without Metro Host

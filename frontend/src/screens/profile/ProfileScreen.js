@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Ale
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius, shadows } from '../../theme';
 import { MinimalHeader } from '../../components/common/MinimalHeader';
+import { AvatarImage } from '../../components/common/AvatarImage';
 import { useAuthStore } from '../../store/authStore';
 import { useLanguageStore } from '../../store/languageStore';
 import { useAppStore } from '../../store/appStore';
@@ -61,9 +62,14 @@ export const ProfileScreen = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         {/* 1. Worker Identity Pod */}
         <View style={styles.workerPod}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarInitial}>{user?.name ? user.name.charAt(0) : 'S'}</Text>
-          </View>
+          <AvatarImage
+            name={user?.name || 'Sunita Devi'}
+            role="ASHA"
+            size={52}
+            showBorder
+            borderColor={colors.primaryMuted}
+            style={{ marginRight: spacing.md }}
+          />
           <View style={styles.workerInfo}>
             <View style={styles.nameRow}>
               <Text style={styles.userName}>{user?.name || 'Sunita Devi'}</Text>
@@ -146,11 +152,14 @@ export const ProfileScreen = ({ navigation }) => {
           <View style={[styles.settingItem, { borderBottomWidth: 0 }]}>
             <View style={{ flex: 1 }}>
               <Text style={styles.settingTitle}>{t('profile.offlineSync') || 'Offline Database'}</Text>
-              <Text style={styles.settingDesc}>
-                {offlineQueue.length === 0
-                  ? 'All records synchronized ✓'
-                  : `${offlineQueue.length} records pending`}
-              </Text>
+              {offlineQueue.length === 0 ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                  <Ionicons name="checkmark-circle-outline" size={13} color={colors.teal} style={{ marginRight: 4 }} />
+                  <Text style={styles.settingDesc}>All records synchronized</Text>
+                </View>
+              ) : (
+                <Text style={styles.settingDesc}>{`${offlineQueue.length} records pending`}</Text>
+              )}
             </View>
             <TouchableOpacity
               onPress={handleSyncNow}

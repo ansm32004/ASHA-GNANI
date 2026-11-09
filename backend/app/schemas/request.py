@@ -7,6 +7,7 @@ class RequestCreate(BaseModel):
     category: str  # Callback, Nutrition information, Vaccination info, Health camp enquiry, Household visit request, Appointment assistance, General assistance, Urgent health concern
     description: str
     priority: str = "Medium"  # Urgent, High, Medium, Low
+    preferred_date: Optional[str] = None
 
 class RequestAction(BaseModel):
     action: str  # Acknowledge, Schedule visit, Add follow-up, Escalate, Resolve
@@ -25,6 +26,7 @@ class RequestResponse(BaseModel):
     priority: str
     status: str  # New, Acknowledged, In progress, Resolved, Escalated
     response_history: List[str] = []
+    preferred_date: Optional[str] = None
     created_at: str
     updated_at: str
 

@@ -1,7 +1,8 @@
 import json
 import re
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Set
 from datetime import datetime, timedelta
+import httpx
 from app.config import settings
 from app.core.logging import logger
 
@@ -98,33 +99,137 @@ class GeminiService:
     Handles task-specific structured entity extraction and grounded health question answering.
     """
     def __init__(self):
-        self.model_name = getattr(settings, "GEMINI_MODEL", "gemini-1.5-flash") or "gemini-1.5-flash"
+        self.model_name = getattr(settings, "GEMINI_MODEL", "gemini-3.5-flash-lite") or "gemini-3.5-flash-lite"
         self.last_used_model = "semantic-rule-engine"
         self._client = None
+        self._exhausted_models: Set[str] = set()
         self._init_client()
 
     def _init_client(self):
-        if GENAI_AVAILABLE and settings.GEMINI_API_KEY and settings.GEMINI_API_KEY.strip():
+        key = getattr(settings, "GEMINI_API_KEY", None)
+        if GENAI_AVAILABLE and key and str(key).strip():
             try:
-                self._client = genai.Client(api_key=settings.GEMINI_API_KEY.strip())
-                logger.info(f"Gemini client initialized with model '{self.model_name}'")
+                self._client = genai.Client(
+                    api_key=str(key).strip(),
+                    http_options={"api_version": "v1beta"}
+                )
+                logger.info(f"Gemini client initialized with model '{self.model_name}' (v1beta)")
             except Exception as e:
                 logger.warning(f"Could not initialize Gemini client: {e}")
                 self._client = None
+        else:
+            self._client = None
 
     @property
     def is_configured(self) -> bool:
-        return bool(self._client is not None)
+        key = getattr(settings, "GEMINI_API_KEY", None)
+        if not key or not str(key).strip():
+            return False
+        if self._client is not None:
+            return True
+        if GENAI_AVAILABLE:
+            self._init_client()
+            return bool(self._client is not None)
+        return False
 
     def _get_candidate_models(self) -> List[str]:
         """
         Ordered list of verified production Google Gemini models to attempt.
+        Prioritizes verified fast lite models with healthy quota.
         """
         candidates = [self.model_name]
-        for fallback in ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-flash-8b"]:
+        for fallback in ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-flash-lite-latest"]:
             if fallback not in candidates:
                 candidates.append(fallback)
-        return candidates
+
+        # Exclude models that have hit Google 429 quota exhaustion
+        active = [m for m in candidates if m not in self._exhausted_models]
+        return active if active else candidates
+
+    async def _generate_with_model(self, model: str, sys_prompt: str, user_prompt: str) -> Optional[str]:
+        """
+        Generate text using Gemini model with asynchronous SDK or direct REST fallback.
+        """
+        if model in self._exhausted_models:
+            return None
+
+        # 1. Try SDK async client (non-blocking)
+        if self._client is not None:
+            try:
+                cfg_kwargs = {
+                    "temperature": 0.2,
+                    "max_output_tokens": 180
+                }
+                call_config = types.GenerateContentConfig(**cfg_kwargs) if types is not None else cfg_kwargs
+
+                import inspect
+                # Support asynchronous client.aio while gracefully handling synchronous mock test fixtures
+                if hasattr(self._client, "aio") and hasattr(self._client.aio, "models"):
+                    gen_call = self._client.aio.models.generate_content(
+                        model=model,
+                        contents=[sys_prompt, user_prompt],
+                        config=call_config
+                    )
+                    if inspect.isawaitable(gen_call):
+                        response = await gen_call
+                    else:
+                        response = self._client.models.generate_content(
+                            model=model,
+                            contents=[sys_prompt, user_prompt],
+                            config=call_config
+                        )
+                else:
+                    response = self._client.models.generate_content(
+                        model=model,
+                        contents=[sys_prompt, user_prompt],
+                        config=call_config
+                    )
+                if response and response.text:
+                    return response.text.strip()
+            except Exception as e:
+                err_str = str(e)
+                if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str or "quota" in err_str.lower():
+                    self._exhausted_models.add(model)
+                    logger.warning(f"Gemini model '{model}' quota exhausted. Skipping for subsequent requests.")
+                logger.warning(f"SDK call to Gemini model '{model}' failed: {e}")
+
+        # 2. Direct HTTP REST fallback via persistent httpx client if API key is present
+        api_key = getattr(settings, "GEMINI_API_KEY", None)
+        if api_key and str(api_key).strip():
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+                payload = {
+                    "contents": [
+                        {
+                            "role": "user",
+                            "parts": [{"text": f"{sys_prompt}\n\n{user_prompt}"}]
+                        }
+                    ],
+                    "generationConfig": {
+                        "temperature": 0.2,
+                        "maxOutputTokens": 180
+                    }
+                }
+                if not hasattr(self, "_rest_client") or self._rest_client is None or self._rest_client.is_closed:
+                    self._rest_client = httpx.AsyncClient(timeout=6.0)
+                resp = await self._rest_client.post(url, params={"key": str(api_key).strip()}, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    candidates = data.get("candidates", [])
+                    if candidates:
+                        parts = candidates[0].get("content", {}).get("parts", [])
+                        if parts and "text" in parts[0]:
+                            return parts[0]["text"].strip()
+                elif resp.status_code == 429:
+                    self._exhausted_models.add(model)
+                    logger.warning(f"REST call to Gemini model '{model}' returned 429 (quota exhausted).")
+            except Exception as err:
+                err_str = str(err)
+                if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str or "quota" in err_str.lower():
+                    self._exhausted_models.add(model)
+                logger.warning(f"REST call to Gemini model '{model}' failed: {err}")
+
+        return None
 
     async def extract_structured_fields(
         self,
@@ -150,20 +255,31 @@ class GeminiService:
                     cfg_kwargs = {
                         "temperature": 0.1,
                         "response_mime_type": "application/json",
-                        "max_output_tokens": 1500
+                        "max_output_tokens": 300
                     }
-                    if types is not None:
-                        if "flash-lite" not in m:
-                            cfg_kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
-                        call_config = types.GenerateContentConfig(**cfg_kwargs)
-                    else:
-                        call_config = cfg_kwargs
+                    call_config = types.GenerateContentConfig(**cfg_kwargs) if types is not None else cfg_kwargs
 
-                    response = self._client.models.generate_content(
-                        model=m,
-                        contents=prompt,
-                        config=call_config
-                    )
+                    import inspect
+                    if hasattr(self._client, "aio") and hasattr(self._client.aio, "models"):
+                        gen_call = self._client.aio.models.generate_content(
+                            model=m,
+                            contents=prompt,
+                            config=call_config
+                        )
+                        if inspect.isawaitable(gen_call):
+                            response = await gen_call
+                        else:
+                            response = self._client.models.generate_content(
+                                model=m,
+                                contents=prompt,
+                                config=call_config
+                            )
+                    else:
+                        response = self._client.models.generate_content(
+                            model=m,
+                            contents=prompt,
+                            config=call_config
+                        )
                     if response and response.text:
                         parsed = json.loads(response.text)
                         self.last_used_model = m
@@ -181,10 +297,11 @@ class GeminiService:
         query: str,
         retrieved_knowledge: List[Dict[str, Any]],
         language: str = "hi",
-        user_role: str = "COMMUNITY"
+        user_role: str = "COMMUNITY",
+        app_context: Optional[str] = None
     ) -> str:
         """
-        Generate grounded, safe health or operational guidance using approved knowledge records.
+        Generate grounded, safe health or operational guidance using approved knowledge records and app context.
         """
         clean_query = (query or "").strip()
         if not clean_query:
@@ -192,59 +309,45 @@ class GeminiService:
 
         # Format retrieved knowledge base context
         kb_context_lines = []
-        for i, kb in enumerate(retrieved_knowledge, 1):
+        for i, kb in enumerate(retrieved_knowledge or [], 1):
             title = kb.get("title_hi" if language == "hi" else "title", kb.get("title", ""))
             content = kb.get("content_hi" if language == "hi" else "content_en", kb.get("content_en", ""))
             source = kb.get("source", "Ministry of Health & Family Welfare")
             kb_context_lines.append(f"[{i}] {title}: {content} (Source: {source})")
-        
+
         kb_text = "\n\n".join(kb_context_lines) if kb_context_lines else "No specific approved document found in knowledge base."
+        app_data_text = app_context.strip() if (app_context and app_context.strip()) else "No specific patient or household records attached."
 
         if self.is_configured:
             candidate_models = self._get_candidate_models()
 
             sys_prompt = (
-                "You are SAHAYIKA, a trusted, warm, culturally respectful community health AI companion for rural India. "
-                f"User role is: {user_role}. Respond in: {language} (use natural Devanagari Hindi if 'hi', simple English if 'en').\n\n"
-                "CRITICAL SAFETY & TRUTH RULES:\n"
-                "1. Strictly ground your healthcare and scheme facts on the APPROVED KNOWLEDGE BASE CONTEXT provided below.\n"
-                "2. Do NOT invent eligibility rules, financial amounts, or medical advice.\n"
-                "3. NEVER diagnose any disease or prescribe medications or dosages.\n"
-                "4. If the question asks for a medicine/cure, politely refuse and advise consulting the MO (Medical Officer) or ASHA worker.\n"
-                "5. If emergency signs are described (e.g. heavy bleeding, convulsion, breathing difficulty), advise immediate 112/108 call or hospital visit.\n"
-                "6. If the approved context does not contain the answer, say that verified information is not currently available and recommend speaking with an ASHA worker.\n"
-                "7. Keep the answer brief, clear, and reassuring (maximum 3 to 4 sentences).\n\n"
-                f"APPROVED KNOWLEDGE BASE CONTEXT:\n{kb_text}"
+                "You are SAHAYIKA, a trusted, warm, culturally respectful community health AI companion for India's National Health Mission (supporting ASHA workers and rural families).\n"
+                f"User role is: {user_role}. Respond in: {language} (use simple, natural Hindi/Hinglish suitable for an ASHA worker if 'hi', simple English if 'en').\n\n"
+                "CRITICAL TRUTH & GROUNDING RULES:\n"
+                "1. Answer the exact question asked. Do NOT give unrelated generic health lectures.\n"
+                "2. When answering about beneficiaries, patients, visits, vaccinations, pregnancy/ANC, or tasks, strictly ground your facts on the RELEVANT APP & PATIENT RECORDS provided below.\n"
+                "3. UNAVAILABLE INFORMATION RULE: If the user asks about a patient's details, measurements, test results, medicines, or visits that are NOT present in the records below, you MUST clearly state in simple natural Hindi/Hinglish that this information is unavailable in the records ('रिकॉर्ड में यह जानकारी उपलब्ध नहीं है'). NEVER invent, assume, or fabricate patient dates, vitals, medicines, or clinical facts.\n"
+                "4. MEDICAL SAFETY: Never diagnose diseases or prescribe prescription medications or dosages. For illnesses or medication needs, advise consulting the Medical Officer (MO) or visiting the PHC/hospital.\n"
+                "5. Keep the answer concise, practical, and easy to understand (2 to 4 sentences).\n\n"
+                f"RELEVANT APP & PATIENT RECORDS:\n{app_data_text}\n\n"
+                f"APPROVED GOVERNMENT HEALTH SCHEMES & GUIDELINES:\n{kb_text}"
             )
             user_prompt = f"User question: {clean_query}"
 
             for m in candidate_models:
                 try:
-                    cfg_kwargs = {
-                        "temperature": 0.2,
-                        "max_output_tokens": 1500
-                    }
-                    if types is not None:
-                        if "flash-lite" not in m:
-                            cfg_kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
-                        call_config = types.GenerateContentConfig(**cfg_kwargs)
-                    else:
-                        call_config = cfg_kwargs
-
-                    response = self._client.models.generate_content(
-                        model=m,
-                        contents=[sys_prompt, user_prompt],
-                        config=call_config
-                    )
-                    if response and response.text:
+                    text_resp = await self._generate_with_model(m, sys_prompt, user_prompt)
+                    if text_resp:
                         self.last_used_model = m
-                        return response.text.strip()
+                        return text_resp.strip()
                 except Exception as e:
                     logger.warning(f"Gemini query answering with model '{m}' failed: {e}")
 
         # Fallback knowledge-grounded response
         self.last_used_model = "semantic-rule-engine"
-        return self._grounded_fallback_answer(clean_query, retrieved_knowledge, language)
+        return self._grounded_fallback_answer(clean_query, retrieved_knowledge, language, app_context=app_context)
+
 
     def _build_extraction_prompt(self, transcript: str, task_type: str, household_id: Optional[str]) -> str:
         schemas = {
@@ -574,23 +677,70 @@ class GeminiService:
         self,
         query: str,
         retrieved_knowledge: List[Dict[str, Any]],
-        language: str
+        language: str,
+        app_context: Optional[str] = None
     ) -> str:
         """
         Returns accurate verified information when offline or without Gemini API key.
+        Strictly prevents hallucinating missing patient records.
         """
+        clean_q = (query or "").lower().strip()
+
+        # Check if patient/household query with app context
+        if app_context and app_context.strip():
+            # Check if query asks for something not in the records
+            unavailable_terms = [
+                "sugar", "diabetes", "शुगर", "डायबिटीज", "blood sugar",
+                "cancer", "कैंसर", "malaria", "मलेरिया", "typhoid", "टाइफाइड",
+                "covid", "कोविड", "x-ray", "एक्स-रे", "ultrasound", "सोनोग्राफी"
+            ]
+            for term in unavailable_terms:
+                if term in clean_q and term not in app_context.lower():
+                    if language == "hi":
+                        return "रिकॉर्ड में यह जानकारी उपलब्ध नहीं है। उपलब्ध मरीज रिकॉर्ड में इसका कोई विवरण दर्ज नहीं है।"
+                    return "This information is unavailable in the patient records. No such details are currently recorded."
+
+            # If asking about delivery or pregnancy
+            if any(w in clean_q for w in ["delivery", "प्रसव", "डिलीवरी", "pregnant", "गर्भवती", "trimester", "week", "हफ्ते"]):
+                for line in app_context.split("\n"):
+                    if any(k in line.lower() for k in ["trimester", "pregnant", "delivery", "pregnancy", "status"]):
+                        if language == "hi":
+                            return f"उपलब्ध रिकॉर्ड के अनुसार: {line.strip()}।"
+                        return f"According to records: {line.strip()}."
+
+            # If asking about vaccination / tika
+            if any(w in clean_q for w in ["vaccin", "tika", "टीका", "immuniz"]):
+                for line in app_context.split("\n"):
+                    if any(k in line.lower() for k in ["vaccin", "tika", "immuniz", "due", "booster"]):
+                        if language == "hi":
+                            return f"उपलब्ध रिकॉर्ड के अनुसार टीकाकरण स्थिति: {line.strip()}।"
+                        return f"According to vaccination records: {line.strip()}."
+
+            # If asking about visit / pichla visit
+            if any(w in clean_q for w in ["visit", "विजिट", "दौरा", "checkup"]):
+                for line in app_context.split("\n"):
+                    if "visit" in line.lower() or "तारीख" in line:
+                        if language == "hi":
+                            return f"विजिट रिकॉर्ड के अनुसार: {line.strip()}।"
+                        return f"According to visit records: {line.strip()}."
+
+        # If knowledge base articles exist and are genuinely relevant to query
         if retrieved_knowledge:
             best = retrieved_knowledge[0]
+            keywords = [k.lower() for k in best.get("keywords", [])]
             title = best.get("title_hi" if language == "hi" else "title", "")
-            content = best.get("content_hi" if language == "hi" else "content_en", "")
-            source = best.get("source", "राष्ट्रीय स्वास्थ्य मिशन")
-            if language == "hi":
-                return f"{title}: {content} (स्रोत: {source})"
-            return f"{title}: {content} (Source: {source})"
+            title_words = [w.lower() for w in title.split() if len(w) > 3]
+            # Match query with keywords or significant title words
+            if any(k in clean_q for k in keywords) or any(tw in clean_q for tw in title_words):
+                content = best.get("content_hi" if language == "hi" else "content_en", "")
+                source = best.get("source", "राष्ट्रीय स्वास्थ्य मिशन")
+                if language == "hi":
+                    return f"{title}: {content} (स्रोत: {source})"
+                return f"{title}: {content} (Source: {source})"
 
         if language == "hi":
-            return "इस विषय पर स्वीकृत सरकारी दिशानिर्देश उपलब्ध नहीं हैं। कृपया अधिक जानकारी के लिए अपनी क्षेत्रीय आशा दीदी या प्राथमिक स्वास्थ्य केंद्र (PHC) से संपर्क करें।"
-        return "Verified guidelines for this specific query are currently not available. Please consult your local ASHA worker or Primary Health Centre (PHC)."
+            return "नमस्ते! आपके प्रश्न के संबंध में विशिष्ट स्वास्थ्य जानकारी या सलाह के लिए कृपया अपनी क्षेत्रीय आशा कार्यकर्ता (ASHA didi) या नजदीकी प्राथमिक स्वास्थ्य केंद्र (PHC) से संपर्क करें।"
+        return "For specific health guidance regarding your question, please consult your local ASHA worker or nearest Primary Health Centre (PHC)."
 
 gemini_service = GeminiService()
 

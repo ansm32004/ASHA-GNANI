@@ -315,6 +315,20 @@ export const SEEDED_TASKS = [
     priority: "Urgent",
     status: "Overdue",
     created_from: "Visit"
+  },
+  {
+    id: "task_007",
+    household_id: "hh_004",
+    household_name: "Pooja Singh Household",
+    beneficiary_name: "Ananya Singh (Child - 4 yrs)",
+    village: "Shanti Kunj",
+    task_type: "Child health follow-up",
+    description: "Routine home visit completed: child height/weight measured on growth chart",
+    due_date: "2026-11-03",
+    priority: "Low",
+    status: "Completed",
+    created_from: "Visit",
+    completion_notes: "Child growth is normal in Green Zone. Nutrition advice given to mother."
   }
 ];
 
@@ -329,10 +343,11 @@ export const SEEDED_REQUESTS = [
     description: "Experiencing sudden dizzy spells and blurred vision since this morning. Requested home visit.",
     time_received: "Today, 08:30 AM",
     priority: "Urgent",
-    status: "Acknowledged",
+    status: "Resolved",
     response_history: [
       "Received via community voice message at 08:30 AM",
-      "Acknowledged by ASHA Sunita Devi at 08:45 AM. Scheduled priority visit for 11:30 AM."
+      "Acknowledged by ASHA Sunita Devi at 08:45 AM. Scheduled priority visit for 11:30 AM.",
+      "Visit completed and resolved by ASHA Sunita Devi."
     ]
   },
   {
@@ -393,6 +408,104 @@ export const SEEDED_CLAIMS = [
     status: "Approved by MO/ANM",
     payment_status: "Disbursed",
     supervisor_notes: "All 22 activities verified with RCH register and approved by Medical Officer, Kashi PHC."
+  }
+];
+
+export const SEEDED_VISITS = [
+  {
+    id: "vis_001",
+    household_id: "hh_001",
+    household_name: "Meena Devi",
+    beneficiary_name: "Meena Devi",
+    visit_date: "2026-10-28",
+    activity_category: "Maternal Health",
+    activity_description: "ANC Home visit. Checked BP (118/76), distributed 30 IFA tablets, reminded about birth preparedness and 108 ambulance contact.",
+    speech_transcript: "Maine Meena Devi ke ghar jakar teesre trimester ka ANC checkup kiya. BP ek sau atharah aur chhiyattar tha, bilkul normal. Tees IFA ki laal goliyan di hain aur prasav ke samay ek sau aath ambulance ko call karne ki salah di.",
+    visit_outcome: "Normal",
+    follow_up_required: true,
+    follow_up_date: "2026-11-04",
+    priority: "Urgent",
+    notes: "Meena agreed to attend the next VHSND session at Anganwadi center.",
+    status: "Confirmed",
+    created_task_id: "task_001",
+    created_at: "2026-10-28T14:30:00Z",
+    synced: true
+  },
+  {
+    id: "vis_002",
+    household_id: "hh_002",
+    household_name: "Rekha Sharma",
+    beneficiary_name: "Golu Sharma",
+    visit_date: "2026-10-25",
+    activity_category: "Child Health",
+    activity_description: "Postnatal home visit (PNC day 14). Assessed umbilical cord, newborn feeding, temperature and maternal health.",
+    speech_transcript: "Rekha Sharma ke ghar chaudahve din ki PNC bhent ki. Golu baby ka naada theek se sukh gaya hai, stanpaan achhi tarah chal raha hai, bukhar nahi hai. Chheh mahine tak kewal maa ka doodh pilane ko bola.",
+    visit_outcome: "Normal",
+    follow_up_required: true,
+    follow_up_date: "2026-11-06",
+    priority: "Routine",
+    notes: "Baby is feeding well, exclusive breastfeeding reinforced.",
+    status: "Confirmed",
+    created_task_id: "task_004",
+    created_at: "2026-10-25T16:00:00Z",
+    synced: true
+  },
+  {
+    id: "vis_003",
+    household_id: "hh_004",
+    household_name: "Pooja Singh Household",
+    beneficiary_name: "Ananya Singh (Child - 4 yrs)",
+    visit_date: "2026-11-03",
+    activity_category: "Child Health",
+    activity_description: "Routine home visit completed: child height/weight measured on growth chart. Mother counseled on local nutritious diet.",
+    speech_transcript: "Pooja Singh ke ghar jakar Ananya beti ka vajan aur lambai lene gayi thi. Bachi ka weight theek hai, growth chart ke green zone mein hai. Maa ko poshan aahar aur hari sabjiyan khilane ko samjhaya.",
+    visit_outcome: "Normal",
+    follow_up_required: false,
+    follow_up_date: null,
+    priority: "Low",
+    notes: "Child growth is normal in Green Zone. Nutrition advice given to mother.",
+    status: "Confirmed",
+    created_task_id: "task_007",
+    created_at: "2026-11-03T10:00:00Z",
+    synced: true
+  },
+  {
+    id: "vis_004",
+    household_id: "hh_006",
+    household_name: "Geeta Maurya Household",
+    beneficiary_name: "Geeta Maurya (Pregnant)",
+    visit_date: "2026-10-31",
+    activity_category: "Maternal Health",
+    activity_description: "High-risk pregnancy visit. Assessed bilateral lower limb edema. Provided Calcium and IFA tablets; scheduled referral checkup at PHC.",
+    speech_transcript: "Geeta Maurya ke yahan visit kiya, unke pairon mein kafi sujan thi. Maine unhe pairo ke neeche takiya rakhkar aaram karne ko bola, calcium aur iron tablets di aur agle din PHC jakar doctor ko dikhane ki salah di.",
+    visit_outcome: "Requires Monitoring",
+    follow_up_required: true,
+    follow_up_date: "2026-11-02",
+    priority: "Urgent",
+    notes: "Severe leg swelling noted. Advised rest with legs elevated and PHC visit.",
+    status: "Confirmed",
+    created_task_id: "task_006",
+    created_at: "2026-10-31T11:00:00Z",
+    synced: true
+  },
+  {
+    id: "vis_005",
+    household_id: "hh_003",
+    household_name: "Sita Verma Household",
+    beneficiary_name: "Sita Verma (Mother)",
+    visit_date: "2026-10-30",
+    activity_category: "Maternal Health",
+    activity_description: "ANC Home visit. Confirmed PHC registration for 2nd trimester checkup and verified JSY bank account linking.",
+    speech_transcript: "Sita Verma ke ghar par checkup kiya, paanchva mahina chal raha hai. PHC registration confirm kiya aur Janani Suraksha Yojana ke bank account aur aadhar linking passbook scan karke update kiye.",
+    visit_outcome: "Normal",
+    follow_up_required: true,
+    follow_up_date: "2026-11-04",
+    priority: "Urgent",
+    notes: "Bank account verified for JSY cash assistance.",
+    status: "Confirmed",
+    created_task_id: "task_003",
+    created_at: "2026-10-30T12:00:00Z",
+    synced: true
   }
 ];
 

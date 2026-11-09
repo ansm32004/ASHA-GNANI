@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius } from '../../theme';
 import { SchemeHeroIllustration } from '../illustrations/CategoryVectors';
 
@@ -33,7 +34,10 @@ export const IllustrationCard = ({
               style={styles.actionBtn}
               accessibilityLabel={actionText}
             >
-              <Text style={styles.actionText}>{actionText} ➔</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.actionText}>{actionText}</Text>
+                <Ionicons name="chevron-forward" size={13} color="#0F766E" style={{ marginLeft: 2 }} />
+              </View>
             </TouchableOpacity>
           )}
         </View>

@@ -20,9 +20,11 @@ class ExtractedVisitFields(BaseModel):
     follow_up_date: Optional[str] = None
     priority: str = "Routine"  # Urgent, Priority, Routine
     notes: Optional[str] = None
+    speech_transcript: Optional[str] = None
 
 class VisitConfirmRequest(BaseModel):
     household_id: str
+    household_name: Optional[str] = None
     beneficiary_name: Optional[str] = None
     visit_date: str
     activity_category: str
@@ -32,6 +34,7 @@ class VisitConfirmRequest(BaseModel):
     follow_up_date: Optional[str] = None
     priority: str = "Routine"
     notes: Optional[str] = None
+    speech_transcript: Optional[str] = None
     auto_create_task: bool = True
 
 class VisitResponse(BaseModel):
@@ -42,6 +45,7 @@ class VisitResponse(BaseModel):
     visit_date: str
     activity_category: str
     activity_description: str
+    speech_transcript: Optional[str] = None
     visit_outcome: str
     follow_up_required: bool
     follow_up_date: Optional[str] = None

@@ -34,14 +34,6 @@ class TaskRepository:
         assigned_asha_id: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         self._ensure_synced()
-        if self._firestore.is_connected:
-            try:
-                remote_docs = self._firestore.list_all()
-                if remote_docs:
-                    self._tasks = remote_docs
-            except Exception as e:
-                logger.warning(f"Could not refresh tasks from Firestore: {e}")
-
         results = self._tasks.copy()
 
         if assigned_asha_id:
@@ -96,6 +88,7 @@ class TaskRepository:
             "priority": data.get("priority", "Medium"),
             "status": "Due today" if data["due_date"] == str(date.today()) else "Upcoming",
             "created_from": data.get("created_from", "Manual"),
+            "created_from_request_id": data.get("created_from_request_id"),
             "completion_notes": None,
             "created_at": now_iso,
             "updated_at": now_iso

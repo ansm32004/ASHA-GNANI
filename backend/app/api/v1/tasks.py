@@ -55,6 +55,20 @@ def create_task(payload: TaskCreate, current_user: str = Depends(get_current_use
 
     return task_service.create_task(payload.model_dump(), asha_id=current_user)
 
+@router.get("/{task_id}", response_model=TaskResponse)
+def get_task_details(task_id: str, current_user: str = Depends(get_current_user_id)):
+    """
+    Get detailed record of a task.
+    Enforces role isolation: Community members cannot view tasks belonging to other households.
+    """
+    task = task_service.get_task(task_id)
+    profile = auth_service.get_current_user_profile(current_user)
+    if profile.get("role") == "COMMUNITY":
+        user_hh = profile.get("household_id")
+        if task.get("household_id") != user_hh:
+            raise ForbiddenException("Access denied to task records outside your household.")
+    return task
+
 @router.patch("/{task_id}", response_model=TaskResponse)
 def update_task(task_id: str, payload: TaskUpdate, current_user: str = Depends(get_current_user_id)):
     """

@@ -199,14 +199,75 @@ class AudioService {
       // 1. Web handling
       if (Platform.OS === 'web' && this.webMediaRecorder) {
         return new Promise((resolve) => {
-          this.webMediaRecorder.onstop = () => {
-            const blob = new Blob(this.webAudioChunks, { type: 'audio/webm' });
-            const uri = URL.createObjectURL(blob);
-            this.webMediaRecorder.stream.getTracks().forEach((t) => t.stop());
+          this.webMediaRecorder.onstop = async () => {
+            const rawBlob = new Blob(this.webAudioChunks, { type: 'audio/webm' });
+            if (this.webMediaRecorder?.stream) {
+              this.webMediaRecorder.stream.getTracks().forEach((t) => t.stop());
+            }
             this.webMediaRecorder = null;
             this.webAudioChunks = [];
             this.isRecording = false;
-            resolve({ uri, size: blob.size, mime: 'audio/webm' });
+
+            let finalBlob = rawBlob;
+            try {
+              const arrayBuffer = await rawBlob.arrayBuffer();
+              const AudioCtx = window.AudioContext || window.webkitAudioContext;
+              if (AudioCtx) {
+                const audioCtx = new AudioCtx();
+                const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                const targetSampleRate = 16000;
+                const numChannels = 1;
+                const inputData = audioBuffer.getChannelData(0);
+                const inputSampleRate = audioBuffer.sampleRate;
+
+                let outputSamples;
+                if (inputSampleRate === targetSampleRate) {
+                  outputSamples = inputData;
+                } else {
+                  const ratio = inputSampleRate / targetSampleRate;
+                  const outputLength = Math.round(inputData.length / ratio);
+                  outputSamples = new Float32Array(outputLength);
+                  for (let i = 0; i < outputLength; i++) {
+                    const srcIdx = Math.floor(i * ratio);
+                    outputSamples[i] = inputData[srcIdx] || 0;
+                  }
+                }
+
+                const wavBuffer = new ArrayBuffer(44 + outputSamples.length * 2);
+                const view = new DataView(wavBuffer);
+                const writeStr = (offset, str) => {
+                  for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+                };
+
+                writeStr(0, 'RIFF');
+                view.setUint32(4, 36 + outputSamples.length * 2, true);
+                writeStr(8, 'WAVE');
+                writeStr(12, 'fmt ');
+                view.setUint32(16, 16, true);
+                view.setUint16(20, 1, true);
+                view.setUint16(22, numChannels, true);
+                view.setUint32(24, targetSampleRate, true);
+                view.setUint32(28, targetSampleRate * numChannels * 2, true);
+                view.setUint16(32, numChannels * 2, true);
+                view.setUint16(34, 16, true);
+                writeStr(36, 'data');
+                view.setUint32(40, outputSamples.length * 2, true);
+
+                let offset = 44;
+                for (let i = 0; i < outputSamples.length; i++) {
+                  const s = Math.max(-1, Math.min(1, outputSamples[i]));
+                  view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+                  offset += 2;
+                }
+                try { audioCtx.close(); } catch (_) {}
+                finalBlob = new Blob([view], { type: 'audio/wav' });
+              }
+            } catch (convErr) {
+              console.warn('[AudioService] Web AudioContext WAV conversion fallback:', convErr);
+            }
+
+            const uri = URL.createObjectURL(finalBlob);
+            resolve({ uri, size: finalBlob.size, mime: finalBlob.type || 'audio/wav' });
           };
           this.webMediaRecorder.stop();
         });

@@ -6,11 +6,13 @@ import { MinimalHeader } from '../../components/common/MinimalHeader';
 import { AppInput } from '../../components/common/AppInput';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
 import { VectorCategoryIcon } from '../../components/illustrations/VectorCategoryIcon';
+import { InlineDatePicker } from '../../components/common/InlineDatePicker';
 import { householdApi } from '../../services/api/householdApi';
 import { taskApi } from '../../services/api/taskApi';
 import { aiApi } from '../../services/api/aiApi';
 import { audioService } from '../../services/audio/audioService';
 import { useTranslation } from 'react-i18next';
+import { formatDate, toBackendDate } from '../../utils/dateUtils';
 
 const TASK_CATEGORIES = [
   { name: 'Household visit', type: 'household' },
@@ -41,7 +43,7 @@ export const CreateTaskScreen = ({ route, navigation }) => {
   const [taskType, setTaskType] = useState('Household visit');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState(
-    new Date(Date.now() + 86400000).toISOString().split('T')[0]
+    formatDate(new Date(Date.now() + 86400000))
   );
   const [priority, setPriority] = useState('Medium');
   const [loading, setLoading] = useState(false);
@@ -84,7 +86,7 @@ export const CreateTaskScreen = ({ route, navigation }) => {
           const base64 = await audioService.getAudioBase64(audioUri);
           await audioService.cleanupAudioFile(audioUri);
           if (base64) {
-            const isWebm = Platform.OS === 'web' || audioUri?.endsWith('.webm');
+            const isWebm = audioUri?.endsWith('.webm');
             const isM4a = Platform.OS === 'android' || audioUri?.endsWith('.m4a');
             const audioFormat = isWebm ? 'webm' : (isM4a ? 'm4a' : 'wav');
             const tr = await aiApi.transcribe({ audio_base64: base64, audio_format: audioFormat, language: 'hi' });
@@ -108,7 +110,7 @@ export const CreateTaskScreen = ({ route, navigation }) => {
         const ext = await aiApi.extract(transcript, 'follow_up_task', selectedHhId, 'hi');
         const f = ext.extracted_fields || {};
         if (f.description) setDescription(f.description);
-        if (f.due_date) setDueDate(f.due_date);
+        if (f.due_date) setDueDate(formatDate(f.due_date));
         if (f.priority) setPriority(f.priority);
         if (f.task_type) setTaskType(f.task_type);
 
@@ -145,7 +147,7 @@ export const CreateTaskScreen = ({ route, navigation }) => {
         village: selectedHh?.village || 'Rampur Kalan',
         task_type: taskType,
         description: description.trim(),
-        due_date: dueDate,
+        due_date: toBackendDate(dueDate),
         priority: priority,
         created_from: 'Manual'
       });
@@ -256,11 +258,12 @@ export const CreateTaskScreen = ({ route, navigation }) => {
             numberOfLines={3}
           />
 
-          <AppInput
-            label="Due Date (YYYY-MM-DD) *"
+          <InlineDatePicker
             value={dueDate}
-            onChangeText={setDueDate}
-            placeholder="2026-11-05"
+            onChangeDate={(formattedStr) => setDueDate(formattedStr)}
+            minDate={new Date()}
+            showShortcuts={true}
+            title="Follow-up Due Date *"
           />
 
           <Text style={styles.sectionTitle}>Priority Level</Text>

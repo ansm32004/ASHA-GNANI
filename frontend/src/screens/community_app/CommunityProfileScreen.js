@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius, shadows } from '../../theme';
+import { AvatarImage } from '../../components/common/AvatarImage';
 import { useAuthStore } from '../../store/authStore';
 import { useTranslation } from 'react-i18next';
 
@@ -75,9 +76,14 @@ export const CommunityProfileScreen = ({ navigation }) => {
 
         {/* User Profile Card */}
         <View style={styles.profileCard}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{user?.name?.charAt(0) || 'M'}</Text>
-          </View>
+          <AvatarImage
+            name={user?.name || 'Meena Devi'}
+            role="COMMUNITY"
+            size={52}
+            showBorder
+            borderColor={colors.coralLight}
+            style={{ marginRight: 14 }}
+          />
           <View style={styles.profileInfo}>
             <Text style={styles.userName}>{user?.name || 'Meena Devi'}</Text>
             <Text style={styles.userPhone}>+91 {user?.phone || '9871100221'}</Text>
@@ -91,9 +97,14 @@ export const CommunityProfileScreen = ({ navigation }) => {
         <Text style={styles.sectionTitle}>आपकी नामित आशा कार्यकर्ता (Assigned ASHA)</Text>
         <View style={styles.ashaCard}>
           <View style={styles.ashaTopRow}>
-            <View style={styles.ashaAvatarMini}>
-              <Text style={styles.ashaInitial}>S</Text>
-            </View>
+            <AvatarImage
+              name="Sunita Devi"
+              role="ASHA"
+              size={44}
+              showBorder
+              borderColor={colors.primaryMuted}
+              style={{ marginRight: 12 }}
+            />
             <View style={styles.ashaTextCol}>
               <Text style={styles.ashaName}>सुनीता देवी (Sunita Devi)</Text>
               <Text style={styles.ashaDesignation}>मान्यता प्राप्त सामाजिक स्वास्थ्य कार्यकर्ता (ASHA)</Text>

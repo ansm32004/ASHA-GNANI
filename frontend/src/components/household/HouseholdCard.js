@@ -4,6 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, typography, shadows } from '../../theme';
 import { PriorityBadge } from '../tasks/PriorityBadge';
 import { useTranslation } from 'react-i18next';
+import { formatDate } from '../../utils/dateUtils';
+import { AvatarImage } from '../common/AvatarImage';
 
 export const HouseholdCard = ({ household, onPress }) => {
   const { t } = useTranslation();
@@ -20,11 +22,14 @@ export const HouseholdCard = ({ household, onPress }) => {
       style={styles.card}
     >
       <View style={styles.topRow}>
-        <View style={styles.avatarCircle}>
-          <Text style={styles.avatarInitial}>
-            {household.primary_contact_name ? household.primary_contact_name.charAt(0) : 'H'}
-          </Text>
-        </View>
+        <AvatarImage
+          name={household.primary_contact_name}
+          role="COMMUNITY"
+          size={42}
+          showBorder
+          borderColor={colors.border}
+          style={{ marginRight: 12 }}
+        />
 
         <View style={styles.headInfo}>
           <Text style={styles.name}>{household.primary_contact_name}</Text>
@@ -48,32 +53,35 @@ export const HouseholdCard = ({ household, onPress }) => {
 
         {pregnantCount > 0 && (
           <View style={[styles.badgePill, styles.pregnantPill]}>
-            <Text style={styles.pregnantText}>🤰 {pregnantCount} Pregnant</Text>
+            <Ionicons name="female-outline" size={12} color="#D97706" style={{ marginRight: 4 }} />
+            <Text style={styles.pregnantText}>{pregnantCount} Pregnant</Text>
           </View>
         )}
 
         {infantCount > 0 && (
           <View style={[styles.badgePill, styles.infantPill]}>
-            <Text style={styles.infantText}>👶 {infantCount} Infant</Text>
+            <Ionicons name="happy-outline" size={12} color={colors.teal} style={{ marginRight: 4 }} />
+            <Text style={styles.infantText}>{infantCount} Infant</Text>
           </View>
         )}
 
         {highRiskCount > 0 && (
           <View style={[styles.badgePill, styles.highRiskPill]}>
-            <Text style={styles.highRiskText}>⚠️ High Risk</Text>
+            <Ionicons name="alert-circle-outline" size={12} color={colors.danger} style={{ marginRight: 4 }} />
+            <Text style={styles.highRiskText}>High Risk</Text>
           </View>
         )}
       </View>
 
       <View style={styles.footerRow}>
         <Text style={styles.footerText}>
-          Last visit: {household.last_visit_date || 'None'}
+          Last visit: {household.last_visit_date ? formatDate(household.last_visit_date) : 'None'}
         </Text>
         {household.next_follow_up && (
           <View style={styles.followupContainer}>
             <Ionicons name="time-outline" size={12} color={colors.primary} />
             <Text style={styles.followupText}>
-              Next: {household.next_follow_up}
+              Next: {formatDate(household.next_follow_up)}
             </Text>
           </View>
         )}

@@ -1,0 +1,50 @@
+# ==============================================================================
+# SAHAYIKA Gitleaks Configuration
+# ==============================================================================
+title = "SAHAYIKA Secret Detection Rules"
+
+[allowlist]
+description = "Narrowly scoped placeholders, demo credentials, test fixtures, and vendor dependency trees"
+paths = [
+  '''(?i)package-lock\.json$''',
+  '''(?i)(^|/)node_modules/''',
+  '''(?i)(^|/)\.venv/''',
+  '''(?i)(^|/)venv/''',
+]
+regexes = [
+  '''(?i)^your-[a-zA-Z0-9_-]+-here$''',
+  '''(?i)^your-secret-key-here$''',
+  '''(?i)^your-gnani-api-key-here$''',
+  '''(?i)^your-gemini-api-key-here$''',
+  '''(?i)^your-firebase-[a-zA-Z0-9_-]+$''',
+  '''^Sahayika@123$''',
+  '''^demo_token$''',
+  '''^mock_jwt_token_asha$''',
+  '''^asha_sunita_001$''',
+  '''^DUMMY_TEST_KEY_NOT_REAL$''',
+]
+
+[[rules]]
+id = "generic-api-key"
+description = "Generic API Key or Secret"
+regex = '''(?i)(?:key|api_key|apikey|secret|password|auth_token)\s*[:=]\s*["']([0-9a-zA-Z-_+/]{24,})["']'''
+secretGroup = 1
+keywords = ["key", "api_key", "apikey", "secret", "password", "auth_token"]
+
+[[rules]]
+id = "private-key"
+description = "Unencrypted Private Key"
+regex = '''-----BEGIN (?:RSA |EC |DSA |OPENSSH |ENCRYPTED )?PRIVATE KEY-----'''
+keywords = ["BEGIN PRIVATE KEY"]
+
+[[rules]]
+id = "google-api-key"
+description = "Google Web / Cloud API Key"
+regex = '''\bAIzaSy[0-9A-Za-z_-]{33}\b'''
+keywords = ["AIzaSy"]
+
+[[rules]]
+id = "signed-jwt"
+description = "Signed JSON Web Token (JWT)"
+regex = '''\beyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b'''
+keywords = ["eyJ"]

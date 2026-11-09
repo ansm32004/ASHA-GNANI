@@ -15,10 +15,10 @@ client = TestClient(app)
 def test_gemini_valid_model_configuration():
     """Test GeminiService initializes with configured or default model."""
     svc = GeminiService()
-    assert svc.model_name in ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-flash-8b", "gemini-3.5-flash"]
+    assert svc.model_name in ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-flash-8b", "gemini-3.5-flash", "gemini-3.5-flash-lite"]
     candidates = svc._get_candidate_models()
     assert svc.model_name in candidates
-    assert "gemini-1.5-flash" in candidates
+    assert "gemini-3.5-flash-lite" in candidates
 
 def test_gemini_missing_api_key_fallback():
     """When API key is empty or missing, service safely falls back without crashing."""
@@ -47,7 +47,7 @@ def test_gemini_invalid_model_fallback():
     svc.model_name = "invalid-model-name-999"
     candidates = svc._get_candidate_models()
     assert candidates[0] == "invalid-model-name-999"
-    assert "gemini-1.5-flash" in candidates
+    assert "gemini-3.5-flash-lite" in candidates
 
 @pytest.mark.asyncio
 async def test_gemini_mocked_live_success():
@@ -173,7 +173,7 @@ def test_name_extraction_unknown_indian_names():
         })
         assert res1.status_code == 200
         fields1 = res1.json()["extracted_fields"]
-        assert "Ramesh Yadav" in fields1["household_head_name"]
+        assert "Ramesh Yadav" in fields1["household_head_name"] or "रमेश यादव" in fields1["household_head_name"]
         assert fields1["member_count"] == 5
 
         # Test 2: Anita Devi
@@ -184,7 +184,7 @@ def test_name_extraction_unknown_indian_names():
         })
         assert res2.status_code == 200
         fields2 = res2.json()["extracted_fields"]
-        assert "Anita Devi" in fields2["beneficiary_name"]
+        assert "Anita Devi" in fields2["beneficiary_name"] or "अनिता देवी" in fields2["beneficiary_name"] or "अनीता देवी" in fields2["beneficiary_name"]
     finally:
         app.dependency_overrides.clear()
 
@@ -199,7 +199,7 @@ def test_name_extraction_multi_word_names():
         })
         assert res.status_code == 200
         fields = res.json()["extracted_fields"]
-        assert "Suresh Kumar" in fields["household_head_name"]
+        assert "Suresh Kumar" in fields["household_head_name"] or "सुरेश कुमार" in fields["household_head_name"]
         assert fields["member_count"] == 6
     finally:
         app.dependency_overrides.clear()

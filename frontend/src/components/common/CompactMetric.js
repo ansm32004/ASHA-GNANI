@@ -25,14 +25,20 @@ export const CompactMetric = ({
     }
   };
 
+  const todayFormatted = React.useMemo(() => {
+    const d = new Date();
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `Today, ${d.getDate()} ${months[d.getMonth()]}`;
+  }, []);
+
   return (
     <View style={styles.cardContainer}>
       <View style={styles.cardHeaderRow}>
         <View style={styles.headerLeft}>
           <View style={styles.livePulseDot} />
-          <Text style={styles.cardHeading}>TODAY'S ACTIVITY OVERVIEW</Text>
+          <Text style={styles.cardHeading}>Today's Activity</Text>
         </View>
-        <Text style={styles.dateBadge}>4 Nov 2026</Text>
+        <Text style={styles.dateBadge}>{todayFormatted}</Text>
       </View>
 
       <View style={styles.grid}>
@@ -69,16 +75,16 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     padding: spacing.cardInternal,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
     ...shadows.card
   },
   cardHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 14,
+    marginBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: colors.surfaceSecondary,
     paddingBottom: 10
   },
   headerLeft: {
@@ -86,22 +92,21 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   livePulseDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#10B981',
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: colors.success,
     marginRight: 8
   },
   cardHeading: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '700',
-    color: '#64748B',
-    letterSpacing: 0.8
+    color: colors.textPrimary
   },
   dateBadge: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#94A3B8'
+    fontSize: 12,
+    fontWeight: '500',
+    color: colors.textMuted
   },
   grid: {
     flexDirection: 'row',
@@ -113,13 +118,11 @@ const styles = StyleSheet.create({
     width: '48.5%',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderRadius: 14,
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.md,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    minHeight: 56,
-    borderWidth: 1,
-    borderColor: '#E2E8F0'
+    minHeight: 56
   },
   iconCircle: {
     width: 32,

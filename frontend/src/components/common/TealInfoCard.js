@@ -27,7 +27,10 @@ export const TealInfoCard = ({
               activeOpacity={0.7}
               style={styles.actionBtn}
             >
-              <Text style={styles.actionText}>{actionText} ➔</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.actionText}>{actionText}</Text>
+                <Ionicons name="chevron-forward" size={12} color={colors.tealDark} style={{ marginLeft: 2 }} />
+              </View>
             </TouchableOpacity>
           )}
         </View>

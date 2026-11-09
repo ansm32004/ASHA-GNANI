@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# SAHAYIKA Git Pre-Commit Hook (Secret & Credential Protection)
+# ==============================================================================
+set -e
+
+# Determine repository root
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+echo "🔍 [SAHAYIKA Guard] Scanning staged changes for secrets..."
+
+SCANNER_FAILED=0
+
+# 1. Run Gitleaks if installed locally
+if command -v gitleaks >/dev/null 2>&1; then
+    echo "🛡️  Running Gitleaks staged check..."
+    if ! gitleaks protect --staged --redact --config="$REPO_ROOT/.gitleaks.toml"; then
+        echo "❌ Gitleaks flagged potential secrets in staged files."
+        SCANNER_FAILED=1
+    fi
+fi
+
+# 2. Run Built-in Secret Scanner (Zero-dependency Python scanner)
+if [ -f "$REPO_ROOT/scripts/scan-secrets.py" ]; then
+    if ! python3 "$REPO_ROOT/scripts/scan-secrets.py"; then
+        SCANNER_FAILED=1
+    fi
+fi
+
+if [ "$SCANNER_FAILED" -ne 0 ]; then
+    echo "🚫 [SAHAYIKA Guard] Commit aborted due to potential secret exposure."
+    echo "👉 Ensure credentials are placed only in backend/.env or local secrets directories."
+    exit 1
+fi
+
+echo "✅ [SAHAYIKA Guard] Staged files clean. Proceeding with commit."
+exit 0

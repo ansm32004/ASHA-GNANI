@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert, Modal, TextInput, Platform } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import Svg, { Path, Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius, shadows } from '../../theme';
@@ -12,6 +13,7 @@ import {
   CommunityHealthIllustration
 } from '../../components/illustrations';
 import { ConversationBubble } from '../../components/visual/ConversationBubble';
+import { AvatarImage } from '../../components/common/AvatarImage';
 import { useAuthStore } from '../../store/authStore';
 import { requestApi } from '../../services/api/requestApi';
 import { aiApi } from '../../services/api/aiApi';
@@ -55,11 +57,63 @@ export const CommunityHomeScreen = ({ navigation }) => {
     };
   }, [isRecording]);
 
+  const getTodayFormatted = () => {
+    const now = new Date();
+    const d = String(now.getDate()).padStart(2, '0');
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const y = now.getFullYear();
+    return `${d}-${m}-${y}`;
+  };
+
+  const getTomorrowFormatted = () => {
+    const tmr = new Date();
+    tmr.setDate(tmr.getDate() + 1);
+    const d = String(tmr.getDate()).padStart(2, '0');
+    const m = String(tmr.getMonth() + 1).padStart(2, '0');
+    const y = tmr.getFullYear();
+    return `${d}-${m}-${y}`;
+  };
+
+  const getDayAfterFormatted = () => {
+    const da = new Date();
+    da.setDate(da.getDate() + 2);
+    const d = String(da.getDate()).padStart(2, '0');
+    const m = String(da.getMonth() + 1).padStart(2, '0');
+    const y = da.getFullYear();
+    return `${d}-${m}-${y}`;
+  };
+
   // Request Visit Modal State
   const [requestModalVisible, setRequestModalVisible] = useState(false);
   const [requestCategory, setRequestCategory] = useState('Household visit request');
   const [requestNotes, setRequestNotes] = useState('');
+  const [requestPreferredDate, setRequestPreferredDate] = useState(getTodayFormatted());
   const [requestSubmitting, setRequestSubmitting] = useState(false);
+  const [activeVisitRequest, setActiveVisitRequest] = useState(null);
+
+  const loadActiveRequest = useCallback(async () => {
+    try {
+      const all = await requestApi.getRequests();
+      const list = Array.isArray(all) ? all : [];
+      const userHhId = user?.household_id || 'hh_001';
+      // Find latest pending/scheduled visit request for this household that is not resolved or completed
+      const active = list.find(r =>
+        r &&
+        (r.household_id === userHhId || !r.household_id || r.household_id === 'hh_001') &&
+        (r.status || '').toLowerCase() !== 'resolved' &&
+        (r.status || '').toLowerCase() !== 'completed'
+      );
+      setActiveVisitRequest(active || null);
+    } catch (e) {
+      // Non-blocking
+    }
+  }, [user]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadActiveRequest();
+    }, [loadActiveRequest])
+  );
 
   const handleLanguageToggle = () => {
     const nextLang = i18n.language === 'hi' ? 'en' : 'hi';
@@ -69,6 +123,10 @@ export const CommunityHomeScreen = ({ navigation }) => {
   const handleVoiceQuery = async (queryText) => {
     const q = (queryText || textQuery || liveTranscription).trim();
     if (!q) return;
+
+    try {
+      await audioService.stopAudio();
+    } catch (_) {}
 
     setIsThinking(true);
     setLiveTranscription('');
@@ -86,15 +144,26 @@ export const CommunityHomeScreen = ({ navigation }) => {
 
       if (res.audio_url) {
         await audioService.playAudio(res.audio_url, null, 'community_reply');
+      } else if (res.reply_text) {
+        aiApi.speak({ text: res.reply_text, language: i18n.language })
+          .then((speakRes) => {
+            const url = speakRes?.audio_url || speakRes?.audio_content;
+            if (url) {
+              setAssistantReply((prev) => prev ? { ...prev, audio_url: url } : prev);
+              audioService.playAudio(url, null, 'community_reply').catch(() => {});
+            }
+          })
+          .catch(() => {});
       }
     } catch (e) {
       setIsThinking(false);
+      const errMsg = e.userFriendlyMessage || e.response?.data?.detail;
       setAssistantReply({
         query: q,
         text:
           i18n.language === 'hi'
-            ? 'माफ़ कीजिए, स्वास्थ्य सहायिका सर्वर से संपर्क नहीं हो पाया। कृपया इंटरनेट कनेक्शन जांचें और पुनः प्रयास करें।'
-            : 'Sorry, could not connect to the health assistant service. Please check your connection and try again.',
+            ? (errMsg || 'माफ़ कीजिए, स्वास्थ्य सहायिका सर्वर से संपर्क नहीं हो पाया। कृपया पुनः प्रयास करें।')
+            : (errMsg || 'Sorry, could not connect to the health assistant service. Please try again.'),
         audio_url: null,
         actions: ['Retry']
       });
@@ -103,6 +172,9 @@ export const CommunityHomeScreen = ({ navigation }) => {
 
   const handleToggleVoice = async () => {
     if (!isRecording) {
+      try {
+        await audioService.stopAudio();
+      } catch (_) {}
       try {
         const started = await audioService.startRecording();
         if (started) {
@@ -159,7 +231,7 @@ export const CommunityHomeScreen = ({ navigation }) => {
           return;
         }
 
-        const isWebm = Platform.OS === 'web' || audioUri?.endsWith('.webm');
+        const isWebm = audioUri?.endsWith('.webm');
         const isM4a = Platform.OS === 'android' || audioUri?.endsWith('.m4a');
         const audioFormat = isWebm ? 'webm' : (isM4a ? 'm4a' : 'wav');
 
@@ -239,35 +311,57 @@ export const CommunityHomeScreen = ({ navigation }) => {
   };
 
   const handleSubmitVisitRequest = async () => {
-    if (!requestNotes.trim()) {
-      Alert.alert('Required', 'Please describe what you need assistance with.');
-      return;
-    }
-
     setRequestSubmitting(true);
     try {
       const hhName = user?.name || user?.primary_contact_name || 'My Household';
-      await requestApi.createRequest({
+      const prefDate = requestPreferredDate.trim() || getTodayFormatted();
+      const finalDesc = requestNotes.trim() || `${requestCategory} requested for home visit / callback`;
+      console.log('[Community] Submitting visit request to ASHA:', {
+        category: requestCategory,
+        desc: finalDesc,
+        prefDate
+      });
+      const saved = await requestApi.createRequest({
+        household_id: user?.household_id || 'hh_001',
+        household_name: hhName,
+        beneficiary_name: user?.name || 'Beneficiary',
+        assigned_asha_id: user?.assigned_asha?.id || 'asha_sunita_001',
+        category: requestCategory,
+        description: finalDesc,
+        preferred_date: prefDate,
+        priority: requestCategory === 'Urgent health concern' ? 'Urgent' : 'High'
+      });
+      setActiveVisitRequest(saved || {
         household_id: user?.household_id || 'hh_001',
         household_name: hhName,
         beneficiary_name: user?.name || 'Beneficiary',
         category: requestCategory,
-        description: requestNotes.trim(),
-        priority: 'High'
+        description: finalDesc,
+        preferred_date: prefDate,
+        status: 'New'
       });
       setRequestSubmitting(false);
       setRequestModalVisible(false);
       setRequestNotes('');
       Alert.alert(
         'Request Sent to ASHA Di',
-        'Your request has been delivered to Sunita Devi. She will visit or contact you shortly.'
+        `Your request has been delivered to Sunita Devi for ${prefDate}. She will visit or contact you on this date.`
       );
     } catch (e) {
+      const prefDate = requestPreferredDate.trim() || getTodayFormatted();
+      const finalDesc = requestNotes.trim() || `${requestCategory} requested for home visit / callback`;
+      setActiveVisitRequest({
+        household_id: user?.household_id || 'hh_001',
+        category: requestCategory,
+        description: finalDesc,
+        preferred_date: prefDate,
+        status: 'New'
+      });
       setRequestSubmitting(false);
       setRequestModalVisible(false);
       Alert.alert(
         'Request Logged',
-        'Your visit request has been sent to ASHA worker Sunita Devi.'
+        `Your visit request has been sent to ASHA worker Sunita Devi for ${requestPreferredDate.trim() || 'your chosen date'}.`
       );
     }
   };
@@ -320,12 +414,23 @@ export const CommunityHomeScreen = ({ navigation }) => {
     },
     {
       id: 'asha',
-      title: 'My ASHA Di',
-      subtitle: 'Sunita Devi (Rampur)',
-      accent: colors.deepBlue,
-      bgColor: '#EFF6FD',
+      title: activeVisitRequest ? 'Visit Scheduled' : 'My ASHA Di',
+      subtitle: activeVisitRequest
+        ? `Visit on ${activeVisitRequest.preferred_date || 'Soon'}`
+        : 'Sunita Devi (Rampur)',
+      accent: activeVisitRequest ? colors.coral : colors.deepBlue,
+      bgColor: activeVisitRequest ? '#FFF5F2' : '#EFF6FD',
       Illustration: () => <CommunityHealthIllustration width={75} height={68} />,
-      onPress: () => setRequestModalVisible(true)
+      onPress: () => {
+        if (activeVisitRequest) {
+          Alert.alert(
+            'Visit Scheduled with Sunita Devi',
+            `Date: ${activeVisitRequest.preferred_date || 'Today'}\nReason: ${activeVisitRequest.category || 'Household visit'}\nStatus: ${activeVisitRequest.status || 'Scheduled'}\n\nSunita Devi has been notified and will visit your home on this date.`
+          );
+        } else {
+          setRequestModalVisible(true);
+        }
+      }
     }
   ];
 
@@ -337,34 +442,30 @@ export const CommunityHomeScreen = ({ navigation }) => {
           <View style={styles.greetingCol}>
             <View style={styles.communityPill}>
               <View style={styles.onlineDot} />
-              <Text style={styles.communityPillText}>SAHAYIKA COMMUNITY</Text>
+              <Text style={styles.communityPillText}>Sahayika Community</Text>
             </View>
-            <Text style={styles.greetingTitle}>Namaste, {user?.name || 'Meena ji'} 🙏</Text>
+            <Text style={styles.greetingTitle}>Namaste, {user?.name || 'Meena ji'}</Text>
             <Text style={styles.greetingSub}>{user?.village_name || 'Rampur Kalan'} • Household {user?.household_code || 'HH-RK-001'}</Text>
           </View>
 
-          <TouchableOpacity style={styles.langPill} onPress={handleLanguageToggle}>
-            <Text style={styles.langText}>{i18n.language === 'hi' ? 'हिन्दी' : 'English'}</Text>
-          </TouchableOpacity>
+          <View style={styles.headerRightActions}>
+            <TouchableOpacity style={styles.langPill} onPress={handleLanguageToggle}>
+              <Text style={styles.langText}>{i18n.language === 'hi' ? 'हिन्दी' : 'English'}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.notifBtn}
+              onPress={() => navigation.navigate('Notifications')}
+              accessibilityLabel="Notifications"
+            >
+              <Ionicons name="notifications-outline" size={20} color={colors.textPrimary} />
+              <View style={styles.notifDot} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* 2. Primary Voice Assistant Interaction Pod */}
         <View style={styles.voiceSectionCard}>
-          <View style={StyleSheet.absoluteFill}>
-            <Svg width="100%" height="100%" viewBox="0 0 360 200" preserveAspectRatio="none">
-              <Defs>
-                <LinearGradient id="commGrad" x1="0" y1="0" x2="360" y2="200" gradientUnits="userSpaceOnUse">
-                  <Stop stopColor="#EBF4FE" stopOpacity="0.8" />
-                  <Stop offset="0.7" stopColor={colors.tealLight} stopOpacity="0.4" />
-                  <Stop offset="1" stopColor={colors.surface} />
-                </LinearGradient>
-              </Defs>
-              <Path d="M0 0 H360 V160 C260 190, 100 185, 0 160 Z" fill="url(#commGrad)" />
-              <Circle cx="320" cy="35" r="45" fill={colors.yellowLight} opacity="0.6" />
-              <Circle cx="40" cy="140" r="30" fill={colors.coralLight} opacity="0.4" />
-            </Svg>
-          </View>
-
           <View style={styles.voicePromptArea}>
             <Text style={styles.voiceQuestion}>Aapko kis cheez mein madad chahiye?</Text>
             <Text style={styles.voicePromptSub}>
@@ -380,16 +481,7 @@ export const CommunityHomeScreen = ({ navigation }) => {
               activeOpacity={0.85}
               accessibilityLabel="Tap to speak"
             >
-              <Svg width={36} height={36} viewBox="0 0 24 24" fill="none">
-                <Path
-                  d="M12 2C10.34 2 9 3.34 9 5V11C9 12.66 10.34 14 12 14C13.66 14 15 12.66 15 11V5C15 3.34 13.66 2 12 2Z"
-                  fill={colors.surface}
-                />
-                <Path
-                  d="M19 10V11C19 14.53 16.39 17.44 13 17.93V21H11V17.93C7.61 17.44 5 14.53 5 11V10H7V11C7 13.76 9.24 16 12 16C14.76 16 17 13.76 17 11V10H19Z"
-                  fill={colors.surface}
-                />
-              </Svg>
+              <Ionicons name="mic" size={34} color={colors.surface} />
             </TouchableOpacity>
           </View>
 
@@ -503,25 +595,69 @@ export const CommunityHomeScreen = ({ navigation }) => {
           })}
         </View>
 
-        {/* 5. Assigned ASHA Worker & Request Visit Action */}
-        <View style={styles.ashaWorkerCard}>
-          <View style={styles.ashaAvatar}>
-            <Text style={styles.ashaAvatarInitial}>S</Text>
-          </View>
-          <View style={styles.ashaDetails}>
-            <Text style={styles.ashaName}>Sunita Devi (ASHA Di)</Text>
-            <Text style={styles.ashaArea}>Assigned for Rampur Kalan • +91 9876543210</Text>
-            <Text style={styles.ashaStatus}>✓ Active in your village today</Text>
+        {/* 5. Assigned ASHA Worker & Active Visit / Request Action */}
+        <View style={[styles.ashaWorkerCard, activeVisitRequest && styles.ashaWorkerCardActiveVisit]}>
+          <View style={styles.ashaWorkerTopRow}>
+            <AvatarImage
+              name="Sunita Devi"
+              role="ASHA"
+              size={48}
+              showBorder
+              borderColor={colors.primaryMuted}
+              style={{ marginRight: spacing.md }}
+            />
+            <View style={styles.ashaDetails}>
+              <Text style={styles.ashaName}>Sunita Devi (ASHA Di)</Text>
+              <Text style={styles.ashaArea}>Assigned for Rampur Kalan • +91 9876543210</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                <Ionicons name="checkmark-circle-outline" size={13} color={colors.teal} style={{ marginRight: 4 }} />
+                <Text style={styles.ashaStatus}>Active in your village today</Text>
+              </View>
+            </View>
+
+            {!activeVisitRequest && (
+              <TouchableOpacity
+                style={styles.requestVisitBtn}
+                onPress={() => setRequestModalVisible(true)}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="calendar-outline" size={14} color={colors.textWhite} />
+                <Text style={styles.requestVisitBtnText}>Request Visit</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
-          <TouchableOpacity
-            style={styles.requestVisitBtn}
-            onPress={() => setRequestModalVisible(true)}
-            activeOpacity={0.85}
-          >
-            <Ionicons name="calendar-outline" size={14} color={colors.textWhite} />
-            <Text style={styles.requestVisitBtnText}>Request Visit</Text>
-          </TouchableOpacity>
+          {activeVisitRequest ? (
+            <View style={styles.activeVisitBox}>
+              <View style={styles.activeVisitHeader}>
+                <View style={styles.activeVisitBadge}>
+                  <View style={styles.pulseDot} />
+                  <Text style={styles.activeVisitBadgeText}>Visit Requested</Text>
+                </View>
+                <View style={styles.activeVisitDatePill}>
+                  <Ionicons name="calendar" size={13} color={colors.coral} />
+                  <Text style={styles.activeVisitDateText}>
+                    Visit on {activeVisitRequest.preferred_date || 'Today'}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name="medkit-outline" size={14} color={colors.primary} style={{ marginRight: 5 }} />
+                <Text style={styles.activeVisitReason}>
+                  {activeVisitRequest.category || 'Household visit request'}
+                  {activeVisitRequest.description ? ` • ${activeVisitRequest.description}` : ''}
+                </Text>
+              </View>
+
+              <View style={styles.activeVisitFooter}>
+                <Ionicons name="checkmark-circle" size={14} color={colors.teal} style={{ marginRight: 5 }} />
+                <Text style={styles.activeVisitNote}>
+                  Sunita Devi is notified and will visit or call you on this date.
+                </Text>
+              </View>
+            </View>
+          ) : null}
         </View>
 
         <View style={{ height: 90 }} />
@@ -560,6 +696,39 @@ export const CommunityHomeScreen = ({ navigation }) => {
                   </Text>
                 </TouchableOpacity>
               ))}
+            </View>
+
+            <Text style={styles.inputLabel}>Preferred Date for ASHA Di Call / Visit</Text>
+            <View style={styles.dateChipsRow}>
+              {[
+                { label: 'Today', val: getTodayFormatted() },
+                { label: 'Tomorrow', val: getTomorrowFormatted() },
+                { label: 'Day After', val: getDayAfterFormatted() }
+              ].map((d) => (
+                <TouchableOpacity
+                  key={d.label}
+                  style={[styles.dateChip, requestPreferredDate === d.val && styles.dateChipActive]}
+                  onPress={() => setRequestPreferredDate(d.val)}
+                >
+                  <Text style={[styles.dateChipText, requestPreferredDate === d.val && styles.dateChipTextActive]}>
+                    {d.label}
+                  </Text>
+                  <Text style={[styles.dateChipSub, requestPreferredDate === d.val && styles.dateChipSubActive]}>
+                    {d.val.slice(0, 5)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <View style={styles.dateInputWrap}>
+              <Ionicons name="calendar-outline" size={16} color={colors.primary} style={{ marginRight: 8 }} />
+              <TextInput
+                style={styles.dateInput}
+                placeholder="Or enter custom date (DD-MM-YYYY)"
+                placeholderTextColor={colors.textMuted}
+                value={requestPreferredDate}
+                onChangeText={setRequestPreferredDate}
+              />
             </View>
 
             <Text style={styles.inputLabel}>Additional Notes / Symptoms</Text>
@@ -635,10 +804,9 @@ const styles = StyleSheet.create({
     marginRight: 6
   },
   communityPillText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: colors.deepBlue,
-    letterSpacing: 0.5
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.primaryDark
   },
   greetingTitle: {
     fontSize: 22,
@@ -662,6 +830,31 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: colors.primary
+  },
+  headerRightActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
+  },
+  notifBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    position: 'relative'
+  },
+  notifDot: {
+    position: 'absolute',
+    top: 7,
+    right: 8,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.danger
   },
   voiceSectionCard: {
     backgroundColor: colors.surface,
@@ -896,6 +1089,89 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.textWhite
   },
+  ashaWorkerCardActiveVisit: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    borderColor: colors.coral,
+    borderWidth: 1.5,
+    backgroundColor: '#FFFAF8'
+  },
+  ashaWorkerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%'
+  },
+  activeVisitBox: {
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: '#FFE5DE'
+  },
+  activeVisitHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6
+  },
+  activeVisitBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFE9E3',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    gap: 5
+  },
+  pulseDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.coral
+  },
+  activeVisitBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.coral,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5
+  },
+  activeVisitDatePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: radius.pill,
+    gap: 4,
+    borderWidth: 1,
+    borderColor: '#FFD9CF'
+  },
+  activeVisitDateText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.coral
+  },
+  activeVisitReason: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.primaryText,
+    marginBottom: 6,
+    lineHeight: 17
+  },
+  activeVisitFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.mintLight,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 8
+  },
+  activeVisitNote: {
+    fontSize: 11,
+    color: colors.teal,
+    fontWeight: '600',
+    flex: 1
+  },
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(32, 38, 49, 0.45)',
@@ -958,6 +1234,60 @@ const styles = StyleSheet.create({
   choiceTextActive: {
     color: colors.primary,
     fontWeight: '700'
+  },
+  dateChipsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8
+  },
+  dateChip: {
+    flex: 1,
+    paddingVertical: 7,
+    paddingHorizontal: 6,
+    borderRadius: 12,
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  dateChipActive: {
+    backgroundColor: colors.primaryLight,
+    borderColor: colors.primary
+  },
+  dateChipText: {
+    fontSize: 11,
+    color: colors.secondaryText,
+    fontWeight: '600'
+  },
+  dateChipTextActive: {
+    color: colors.primary,
+    fontWeight: '700'
+  },
+  dateChipSub: {
+    fontSize: 9,
+    color: colors.textMuted,
+    marginTop: 1
+  },
+  dateChipSubActive: {
+    color: colors.primary,
+    fontWeight: '600'
+  },
+  dateInputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: 12,
+    marginBottom: spacing.md
+  },
+  dateInput: {
+    flex: 1,
+    paddingVertical: 9,
+    fontSize: 12,
+    color: colors.primaryText
   },
   notesInput: {
     backgroundColor: colors.surfaceSecondary,

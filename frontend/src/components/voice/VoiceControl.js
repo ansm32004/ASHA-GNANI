@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadows.floating
+    ...shadows.soft
   },
   outerOrbActive: {
     backgroundColor: colors.dangerLight,

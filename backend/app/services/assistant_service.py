@@ -1,8 +1,9 @@
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime, timedelta
 import re
 from app.repositories.household_repository import household_repo
 from app.repositories.task_repository import task_repo
+from app.repositories.visit_repository import visit_repo
 from app.repositories.request_repository import request_repo
 from app.repositories.knowledge_base_repository import knowledge_base_repo
 from app.repositories.ai_conversation_repository import ai_conversation_repo
@@ -26,6 +27,9 @@ class AssistantService:
         household_id: Optional[str] = None
     ) -> Dict[str, Any]:
         raw_q = (query or "").strip()
+        if not raw_q:
+            raise ValueError("Question cannot be empty. Please provide a valid question.")
+
         lower_q = raw_q.lower()
 
         # 0. User profile resolution (for dynamic personalization, never hardcoding)
@@ -41,7 +45,7 @@ class AssistantService:
 
         # 1. Unclear / inaudible speech check (Acceptance Test D)
         unclear_tokens = ["...", "hmm", "shh", "kya", "hello?", "?", "sound", "noise", "uh", "um"]
-        if not raw_q or len(raw_q) < 3 or lower_q in unclear_tokens:
+        if len(raw_q) < 3 or lower_q in unclear_tokens:
             if language == "hi":
                 reply_text = "माफ़ कीजिए, आपकी आवाज़ स्पष्ट सुनाई नहीं दी। कृपया अपनी बात दोबारा बोलें।"
             else:
@@ -230,25 +234,15 @@ class AssistantService:
             self._log_audit(query, reply_text, user_id, household_id, language, "Upcoming Follow-ups", resp.get("audio_url"))
             return resp
 
-        # 6. Specific Household Lookup
-        # e.g. "Sita Verma ka status" or "Meena Devi ki jankari"
-        if any(term in lower_q for term in ["ka record", "ki jankari", "ka status", "का रिकॉर्ड", "की जानकारी", "का स्टेटस"]):
-            found_hhs = household_repo.list_all(search=raw_q, assigned_asha_id=user_id if user_role == "ASHA" else None)
-            if found_hhs:
-                hh = found_hhs[0]
-                name = hh.get("primary_contact_name", "Beneficiary")
-                last_vis = hh.get("last_visit_date") or "कोई नहीं"
-                prio = hh.get("priority", "Routine")
-                if language == "hi":
-                    reply_text = f"{name} का पिछला विजिट {last_vis} को हुआ था। वर्तमान श्रेणी: {prio}।"
-                else:
-                    reply_text = f"{name}'s last recorded visit was on {last_vis}. Current priority: {prio}."
-                suggested_actions = [f"Open {name} Profile", "Record Visit Now"]
-                resp = await self._finalize_response(reply_text, suggested_actions, referenced_households=[hh], language=language, voice_enabled=voice_enabled)
-                self._log_audit(query, reply_text, user_id, household_id, language, "Household Lookup", resp.get("audio_url"))
-                return resp
+        # 6. Gather Relevant Patient, Household, Visit, Vaccination & Task Context
+        app_context, matched_hhs, matched_tasks = self._build_app_context(
+            query=raw_q,
+            user_id=user_id,
+            user_role=user_role,
+            household_id=household_id
+        )
 
-        # 7. Grounded Clinical, Medical, Scheme & Health Q&A (Acceptance Test B)
+        # 7. Grounded Clinical, Medical, Scheme & Health Q&A with Gemini
         # Retrieve approved verified records from Firestore Knowledge Base
         retrieved_docs = knowledge_base_repo.list_approved(query=raw_q, limit=3)
 
@@ -256,7 +250,8 @@ class AssistantService:
             query=raw_q,
             retrieved_knowledge=retrieved_docs,
             language=language,
-            user_role=user_role
+            user_role=user_role,
+            app_context=app_context
         )
 
         reply_text = safety_service.post_generation_check(generated_reply, language=language)
@@ -270,10 +265,129 @@ class AssistantService:
             suggested_actions = ["Anganwadi Ration Rules", "Nutrition Diet Guide", "IFA Tablet Schedule"]
         elif any(w in lower_q for w in ["scheme", "jsy", "pmmvy", "योजना", "पैसे", "1400", "5000"]):
             suggested_actions = ["JSY Delivery Benefit", "PMMVY Registration", "Ayushman Card"]
+        elif matched_hhs:
+            name = matched_hhs[0].get("primary_contact_name", "Beneficiary")
+            suggested_actions = [f"View {name}'s Profile", "Record Visit", "Set Reminder"]
 
-        resp = await self._finalize_response(reply_text, suggested_actions, language=language, voice_enabled=voice_enabled)
+        resp = await self._finalize_response(
+            reply_text,
+            suggested_actions,
+            referenced_households=matched_hhs,
+            referenced_tasks=matched_tasks,
+            language=language,
+            voice_enabled=voice_enabled
+        )
         self._log_audit(query, reply_text, user_id, household_id, language, "Grounded Health Guidance", resp.get("audio_url"))
         return resp
+
+    def _build_app_context(
+        self,
+        query: str,
+        user_id: Optional[str] = None,
+        user_role: str = "ASHA",
+        household_id: Optional[str] = None
+    ) -> Tuple[str, List[Dict[str, Any]], List[Dict[str, Any]]]:
+        """
+        Extract relevant app context (beneficiary, household, saved visits, vaccinations, pregnancy/ANC/PNC, tasks).
+        """
+        lower_q = (query or "").lower()
+        matched_hhs: List[Dict[str, Any]] = []
+        matched_tasks: List[Dict[str, Any]] = []
+
+        all_hhs = household_repo.list_all(assigned_asha_id=user_id if user_role == "ASHA" else None)
+        if not all_hhs:
+            all_hhs = household_repo.list_all()
+
+        target_hh = None
+        if household_id:
+            for hh in all_hhs:
+                if hh.get("id") == household_id or hh.get("household_id") == household_id:
+                    target_hh = hh
+                    break
+
+        if not target_hh:
+            for hh in all_hhs:
+                head_name = (hh.get("primary_contact_name") or "").lower()
+                if head_name and head_name in lower_q:
+                    target_hh = hh
+                    break
+                for m in hh.get("members", []):
+                    m_name = (m.get("name") or "").lower()
+                    if m_name and (m_name in lower_q or any(part in lower_q for part in m_name.split() if len(part) > 3)):
+                        target_hh = hh
+                        break
+                if target_hh:
+                    break
+
+        context_lines = []
+        if target_hh:
+            matched_hhs.append(target_hh)
+            hh_id = target_hh.get("id") or target_hh.get("household_id")
+            context_lines.append(f"Household: {target_hh.get('primary_contact_name', 'Unknown')} (ID: {hh_id}, Village: {target_hh.get('village', 'Unknown')}, Priority: {target_hh.get('priority', 'Routine')})")
+
+            # Members details
+            members = target_hh.get("members", [])
+            for m in members:
+                m_info = f"- Member: {m.get('name')} | Relation: {m.get('relation')} | Age: {m.get('age')} | Gender: {m.get('gender')} | Category: {m.get('category', 'General')}"
+                if m.get("status"):
+                    m_info += f" | Pregnancy/Health Status: {m.get('status')}"
+                if m.get("pregnancy_month"):
+                    m_info += f" | Pregnancy Month: {m.get('pregnancy_month')} (3rd trimester)"
+                if m.get("expected_delivery_date"):
+                    m_info += f" | Expected Delivery Date (EDD): {m.get('expected_delivery_date')}"
+                if m.get("high_risk_reason"):
+                    m_info += f" | High Risk Note: {m.get('high_risk_reason')}"
+                if m.get("next_due_vaccine"):
+                    m_info += f" | Next Due Vaccine: {m.get('next_due_vaccine')}"
+                if m.get("next_checkup"):
+                    m_info += f" | Next Checkup: {m.get('next_checkup')}"
+                if m.get("next_vaccine"):
+                    m_info += f" | Next Vaccine: {m.get('next_vaccine')}"
+                if m.get("doctor_notes"):
+                    m_info += f" | Doctor Notes: {m.get('doctor_notes')}"
+                context_lines.append(m_info)
+
+                # Vitals
+                vitals = m.get("vitals", [])
+                if vitals:
+                    v_summaries = [f"(Date: {v.get('date')}, BP: {v.get('bp', 'N/A')}, Weight: {v.get('weight', 'N/A')}, Hb: {v.get('hb', 'N/A')})" for v in vitals[:2]]
+                    context_lines.append(f"  Vitals: {', '.join(v_summaries)}")
+
+                # Immunizations
+                immunizations = m.get("immunizations", [])
+                if immunizations:
+                    imm_summaries = [f"{im.get('vaccine')} ({im.get('status')}, {im.get('date', 'N/A')})" for im in immunizations]
+                    context_lines.append(f"  Vaccinations: {', '.join(imm_summaries)}")
+
+            # Saved visits for this household
+            if hh_id:
+                past_visits = visit_repo.list_all(household_id=hh_id)
+                if past_visits:
+                    v_strs = []
+                    for v in past_visits[:3]:
+                        v_strs.append(f"[Visit Date: {v.get('visit_date')}, Category: {v.get('activity_category')}, Outcome: {v.get('visit_outcome')}, Notes: {v.get('activity_description', '')[:60]}]")
+                    context_lines.append("Saved Past Visits:\n" + "\n".join(v_strs))
+
+            # Saved tasks for this household
+            if hh_id:
+                hh_tasks = task_repo.list_all(household_id=hh_id)
+                if hh_tasks:
+                    matched_tasks.extend(hh_tasks)
+                    t_strs = [f"- Task: {t.get('task_type')} | Description: {t.get('description')} | Due: {t.get('due_date')} | Priority: {t.get('priority')} | Status: {t.get('status')}" for t in hh_tasks[:3]]
+                    context_lines.append("Household Follow-up Tasks:\n" + "\n".join(t_strs))
+
+        # Also include today's tasks if ASHA worker and no specific household context
+        if not context_lines and user_role == "ASHA":
+            today_str = datetime.now().strftime("%Y-%m-%d")
+            all_user_tasks = task_repo.list_all(assigned_asha_id=user_id)
+            today_tasks = [t for t in all_user_tasks if t.get("status") == "Due today" or t.get("due_date") == today_str]
+            if today_tasks:
+                matched_tasks.extend(today_tasks)
+                t_strs = [f"- {t.get('household_name')}: {t.get('task_type')} ({t.get('description')})" for t in today_tasks[:3]]
+                context_lines.append("Today's Tasks:\n" + "\n".join(t_strs))
+
+        context_str = "\n".join(context_lines) if context_lines else ""
+        return context_str, matched_hhs, matched_tasks
 
     def _log_audit(
         self,
@@ -309,12 +423,19 @@ class AssistantService:
         voice_enabled: bool = False
     ) -> Dict[str, Any]:
         audio_url = None
-        if voice_enabled and reply_text:
-            try:
-                tts_data = await timbre_tts.speak(reply_text, language=language)
-                audio_url = tts_data.get("audio_url")
-            except Exception as e:
-                logger.error(f"TTS synthesis error in AssistantService: {e}")
+        if reply_text:
+            # 1. Fast path: check local audio cache (0ms)
+            cached = timbre_tts.get_cached_audio_url(reply_text, language=language)
+            if cached:
+                audio_url = cached
+            elif voice_enabled:
+                # 2. Synthesize the exact spoken words for this reply text
+                try:
+                    tts_res = await timbre_tts.speak(reply_text, language=language)
+                    if tts_res and tts_res.get("audio_url"):
+                        audio_url = tts_res.get("audio_url")
+                except Exception as tts_err:
+                    logger.warning(f"Error synthesizing speech for reply: {tts_err}")
 
         return {
             "reply_text": reply_text,
@@ -322,6 +443,7 @@ class AssistantService:
             "suggested_actions": suggested_actions,
             "referenced_households": referenced_households or [],
             "referenced_tasks": referenced_tasks or [],
+            "model_used": getattr(gemini_service, "last_used_model", "semantic-rule-engine"),
             "safety_disclaimer": "SAHAYIKA provides approved health information and operational guidance. It does not replace medical consultation with a qualified doctor or MO."
         }
 

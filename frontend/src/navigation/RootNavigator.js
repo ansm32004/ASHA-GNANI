@@ -23,11 +23,15 @@ import { MemberHealthDetailScreen } from '../screens/community_app/MemberHealthD
 // Shared Action & Feature Screens
 import { RecordVisitScreen } from '../screens/visits/RecordVisitScreen';
 import { VisitConfirmScreen } from '../screens/visits/VisitConfirmScreen';
+import { VisitDetailScreen } from '../screens/visits/VisitDetailScreen';
 import { AddHouseholdScreen } from '../screens/community/AddHouseholdScreen';
 import { HouseholdDetailScreen } from '../screens/community/HouseholdDetailScreen';
 import { CreateTaskScreen } from '../screens/tasks/CreateTaskScreen';
+import { TaskDetailScreen } from '../screens/tasks/TaskDetailScreen';
 import { RequestListScreen } from '../screens/requests/RequestListScreen';
 import { ClaimScreen } from '../screens/claims/ClaimScreen';
+import { MyIncentivesScreen } from '../screens/claims/MyIncentivesScreen';
+import { CreateClaimScreen } from '../screens/claims/CreateClaimScreen';
 import { SosScreen } from '../screens/sos/SosScreen';
 import { NotificationScreen } from '../screens/notifications/NotificationScreen';
 
@@ -70,11 +74,16 @@ export const RootNavigator = () => {
           <Stack.Screen name="MemberHealthDetail" component={MemberHealthDetailScreen} />
           <Stack.Screen name="RecordVisit" component={RecordVisitScreen} />
           <Stack.Screen name="VisitConfirm" component={VisitConfirmScreen} />
+          <Stack.Screen name="VisitDetail" component={VisitDetailScreen} />
           <Stack.Screen name="AddHousehold" component={AddHouseholdScreen} />
           <Stack.Screen name="HouseholdDetail" component={HouseholdDetailScreen} />
           <Stack.Screen name="CreateTask" component={CreateTaskScreen} />
+          <Stack.Screen name="TaskDetail" component={TaskDetailScreen} />
           <Stack.Screen name="CommunityRequests" component={RequestListScreen} />
-          <Stack.Screen name="WorkClaims" component={ClaimScreen} />
+          <Stack.Screen name="MyIncentives" component={MyIncentivesScreen} />
+          <Stack.Screen name="MyIncentivesScreen" component={MyIncentivesScreen} />
+          <Stack.Screen name="CreateClaim" component={CreateClaimScreen} />
+          <Stack.Screen name="WorkClaims" component={MyIncentivesScreen} />
           <Stack.Screen name="EmergencySos" component={SosScreen} />
           <Stack.Screen name="Notifications" component={NotificationScreen} />
           <Stack.Screen name="LanguageSettings" component={LanguageScreen} />

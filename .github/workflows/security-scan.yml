@@ -1,0 +1,66 @@
+name: Security Scan & Secret Protection
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  secret-scan:
+    name: Gitleaks & Secret Scanner
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run Built-in Secret Scanner
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x scripts/scan-secrets.py
+
+          ZERO_SHA="0000000000000000000000000000000000000000"
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE_REF="origin/${{ github.base_ref }}"
+            echo "Scanning PR commits against base ref: $BASE_REF"
+            python3 scripts/scan-secrets.py --commits "$BASE_REF..HEAD"
+          else
+            BEFORE_SHA="${{ github.event.before }}"
+            AFTER_SHA="${{ github.event.after }}"
+
+            if [ -n "$BEFORE_SHA" ] && [ "$BEFORE_SHA" != "$ZERO_SHA" ] && [ -n "$AFTER_SHA" ] && [ "$AFTER_SHA" != "$ZERO_SHA" ]; then
+              echo "Scanning push commit range: $BEFORE_SHA..$AFTER_SHA"
+              python3 scripts/scan-secrets.py --commits "$BEFORE_SHA..$AFTER_SHA"
+            else
+              # Initial push of repository, or new branch creation
+              echo "Initial push or new branch detected. Scanning full reachable commit history on HEAD..."
+              if git rev-parse --verify origin/main >/dev/null 2>&1 && [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
+                RANGE="origin/main..HEAD"
+                if [ -n "$(git rev-list "$RANGE" 2>/dev/null)" ]; then
+                  echo "Scanning new branch commits: $RANGE"
+                  python3 scripts/scan-secrets.py --commits "$RANGE"
+                else
+                  echo "Scanning full reachable history: HEAD"
+                  python3 scripts/scan-secrets.py --commits "HEAD"
+                fi
+              else
+                echo "Scanning complete reachable history: HEAD"
+                python3 scripts/scan-secrets.py --commits "HEAD"
+              fi
+            fi
+          fi
+
+      - name: Run Gitleaks Action
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: false

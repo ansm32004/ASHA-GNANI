@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius, shadows } from '../../theme';
+import { AvatarImage } from './AvatarImage';
 
 export const PrimaryInfoCard = ({
   beneficiaryName = 'Meena Devi',
@@ -19,9 +20,14 @@ export const PrimaryInfoCard = ({
       {/* Top Banner Row */}
       <View style={styles.topRow}>
         <View style={styles.doctorInfoRow}>
-          <View style={styles.avatarCircle}>
-            <Ionicons name="person" size={20} color={colors.primary} />
-          </View>
+          <AvatarImage
+            name={beneficiaryName}
+            role="Pregnant Woman"
+            size={42}
+            showBorder
+            borderColor={colors.border}
+            style={{ marginRight: 12 }}
+          />
           <View style={styles.nameColumn}>
             <Text style={styles.beneficiaryName}>{beneficiaryName}</Text>
             <Text style={styles.purposeText}>{visitPurpose}</Text>

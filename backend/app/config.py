@@ -1,6 +1,18 @@
 from pydantic_settings import BaseSettings
+from pydantic import model_validator
 from typing import List, Optional
 import os
+
+INSECURE_JWT_DEFAULTS = {
+    "sahayika_super_secret_jwt_key_for_development_mode_only",
+    "your-secret-key-here",
+    "secret",
+    "changeme",
+    "default_secret",
+    "admin",
+    "password",
+    "jwt_secret",
+}
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "SAHAYIKA - ASHA Digital Companion API"
@@ -8,7 +20,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
-    SECRET_KEY: str = "sahayika_super_secret_jwt_key_for_development_mode_only"
+    SECRET_KEY: Optional[str] = None
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
 
@@ -30,7 +42,7 @@ class Settings(BaseSettings):
 
     # Gemini AI Configuration
     GEMINI_API_KEY: Optional[str] = None
-    GEMINI_MODEL: str = "gemini-1.5-flash"
+    GEMINI_MODEL: str = "gemini-3.5-flash-lite"
 
     # Network, Hosting & Public Origin Configuration
     HOST: str = "0.0.0.0"
@@ -41,9 +53,33 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: List[str] = ["*"]
 
+    @model_validator(mode="after")
+    def validate_security_settings(self):
+        env = (self.ENVIRONMENT or "").strip().lower()
+        secret = (self.SECRET_KEY or "").strip()
+
+        if env == "production":
+            if not secret:
+                raise ValueError(
+                    "CRITICAL PRODUCTION SECURITY ERROR: SECRET_KEY is missing. "
+                    "In production, SECRET_KEY must be loaded from environment or backend/.env and cannot be empty."
+                )
+            if secret in INSECURE_JWT_DEFAULTS or len(secret) < 32:
+                raise ValueError(
+                    "CRITICAL PRODUCTION SECURITY ERROR: Insecure or weak SECRET_KEY detected. "
+                    "Production requires a cryptographically secure key of at least 32 characters."
+                )
+        elif not secret:
+            raise ValueError(
+                "SECRET_KEY is not configured in backend/.env. "
+                "Please configure a local SECRET_KEY in backend/.env to run the application."
+            )
+        return self
+
     model_config = {
         "env_file": [
             str(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")),
+            str(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".env")),
             ".env"
         ],
         "env_file_encoding": "utf-8",

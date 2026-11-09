@@ -1,16 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Linking, Alert } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius } from '../../theme';
 import { MinimalHeader } from '../../components/common/MinimalHeader';
 import { MinimalListRow } from '../../components/common/MinimalListRow';
 import { EditorialContentCard } from '../../components/visual/EditorialContentCard';
 import { StatusIndicator } from '../../components/common/StatusIndicator';
+import { AvatarImage } from '../../components/common/AvatarImage';
 import { HouseholdVisitVector } from '../../components/illustrations/CategoryVectors';
 import { householdApi } from '../../services/api/householdApi';
 import { visitApi } from '../../services/api/visitApi';
 import { taskApi } from '../../services/api/taskApi';
 import { useTranslation } from 'react-i18next';
+import { formatDate } from '../../utils/dateUtils';
 
 export const HouseholdDetailScreen = ({ route, navigation }) => {
   const { t } = useTranslation();
@@ -21,17 +24,20 @@ export const HouseholdDetailScreen = ({ route, navigation }) => {
   const [visits, setVisits] = useState([]);
   const [tasks, setTasks] = useState([]);
 
-  useEffect(() => {
-    const load = async () => {
-      const hh = await householdApi.getHouseholdById(householdId);
-      setHousehold(hh);
-      const vList = await visitApi.getVisits({ household_id: householdId });
-      setVisits(vList);
-      const tList = await taskApi.getTasks({ household_id: householdId });
-      setTasks(tList);
-    };
-    load();
+  const loadData = useCallback(async () => {
+    const hh = await householdApi.getHouseholdById(householdId);
+    setHousehold(hh);
+    const vList = await visitApi.getVisits({ household_id: householdId });
+    setVisits(vList);
+    const tList = await taskApi.getTasks({ household_id: householdId });
+    setTasks(tList);
   }, [householdId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
 
   if (!household) return null;
 
@@ -63,9 +69,14 @@ export const HouseholdDetailScreen = ({ route, navigation }) => {
         {/* Hero Profile Block */}
         <View style={styles.heroBlock}>
           <View style={styles.heroTop}>
-            <View style={styles.avatarWrap}>
-              <HouseholdVisitVector size={30} />
-            </View>
+            <AvatarImage
+              name={household.primary_contact_name}
+              role="COMMUNITY"
+              size={50}
+              showBorder
+              borderColor={colors.primaryMuted}
+              style={{ marginRight: spacing.md }}
+            />
             <View style={styles.heroInfo}>
               <View style={styles.nameRow}>
                 <Text style={styles.heroName}>{household.primary_contact_name}</Text>
@@ -158,9 +169,26 @@ export const HouseholdDetailScreen = ({ route, navigation }) => {
                 <Text style={styles.infoValue}>Hindi (हिन्दी)</Text>
               </View>
 
+              {household.last_visit_date && (
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Last Field Visit</Text>
+                  <Text style={styles.infoValue}>{formatDate(household.last_visit_date)}</Text>
+                </View>
+              )}
+
+              {household.next_follow_up && (
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Next Follow-up Due</Text>
+                  <Text style={[styles.infoValue, { color: colors.primary, fontWeight: '700' }]}>{formatDate(household.next_follow_up)}</Text>
+                </View>
+              )}
+
               <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
                 <Text style={styles.infoLabel}>Data Consent</Text>
-                <Text style={[styles.infoValue, { color: colors.teal, fontWeight: '700' }]}>✓ Verified Consent</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Ionicons name="checkmark-circle-outline" size={13} color={colors.teal} style={{ marginRight: 4 }} />
+                  <Text style={[styles.infoValue, { color: colors.teal, fontWeight: '700' }]}>Verified Consent</Text>
+                </View>
               </View>
             </View>
 
@@ -188,7 +216,7 @@ export const HouseholdDetailScreen = ({ route, navigation }) => {
                 category={m.category}
                 title={`${m.name} (${m.relation})`}
                 subtitle={`${m.age} yrs • ${m.gender} • ${m.category}`}
-                meta={m.is_high_risk ? `⚠️ High Risk: ${m.high_risk_reason || 'Requires monitoring'}` : (m.next_due_vaccine ? `Next vaccine: ${m.next_due_vaccine}` : null)}
+                meta={m.is_high_risk ? `High Risk: ${m.high_risk_reason || 'Requires monitoring'}` : (m.next_due_vaccine ? `Next vaccine: ${m.next_due_vaccine}` : null)}
                 priority={m.is_high_risk ? 'Urgent' : null}
                 showDivider={idx < (household.members || []).length - 1}
               />
@@ -207,8 +235,9 @@ export const HouseholdDetailScreen = ({ route, navigation }) => {
                   key={v.id || idx}
                   category={v.activity_category}
                   title={v.activity_description}
-                  subtitle={`Outcome: ${v.visit_outcome}${v.follow_up_date ? ` • Follow-up: ${v.follow_up_date}` : ''}`}
-                  meta={`Date: ${v.visit_date} • ${v.activity_category}`}
+                  subtitle={`Outcome: ${v.visit_outcome}${v.follow_up_date ? ` • Follow-up: ${formatDate(v.follow_up_date)}` : ''}`}
+                  meta={`Date: ${formatDate(v.visit_date)} • ${v.activity_category}`}
+                  onPress={() => navigation.navigate('VisitDetail', { visitId: v.id, visit: v })}
                   showDivider={idx < visits.length - 1}
                 />
               ))
@@ -228,9 +257,10 @@ export const HouseholdDetailScreen = ({ route, navigation }) => {
                   category={t.task_type}
                   title={t.task_type}
                   subtitle={t.description}
-                  meta={`Due: ${t.due_date}`}
+                  meta={`Due: ${formatDate(t.due_date)}`}
                   status={t.status}
                   priority={t.priority}
+                  onPress={() => navigation.navigate('TaskDetail', { taskId: t.id, task: t })}
                   showDivider={idx < tasks.length - 1}
                 />
               ))

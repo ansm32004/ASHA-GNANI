@@ -79,6 +79,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from starlette.middleware.gzip import GZipMiddleware
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
 # Exception handlers
 @app.exception_handler(SahayikaException)
 async def sahayika_exception_handler(request: Request, exc: SahayikaException):

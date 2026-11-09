@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography } from '../../theme';
 
 export const SectionHeader = ({
@@ -22,7 +23,10 @@ export const SectionHeader = ({
           style={styles.actionBtn}
           accessibilityLabel={actionText}
         >
-          <Text style={styles.actionText}>{actionText} ➔</Text>
+          <View style={styles.actionRow}>
+            <Text style={styles.actionText}>{actionText}</Text>
+            <Ionicons name="chevron-forward" size={13} color={colors.primary} style={{ marginLeft: 2 }} />
+          </View>
         </TouchableOpacity>
       )}
     </View>
@@ -57,6 +61,10 @@ const styles = StyleSheet.create({
     minHeight: 36,
     justifyContent: 'center',
     paddingLeft: 8
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center'
   },
   actionText: {
     fontSize: 13,

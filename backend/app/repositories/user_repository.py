@@ -1,4 +1,5 @@
-from typing import Dict, Any, Optional, List
+import time
+from typing import Dict, Any, Optional, List, Tuple
 from app.config import settings
 try:
     from google.cloud.firestore_v1 import FieldFilter
@@ -12,11 +13,13 @@ from app.core.logging import logger
 class UserRepository:
     """
     Repository for user profile and authentication records stored in Cloud Firestore,
-    with local in-memory mock fallback in demo mode.
+    with local in-memory mock fallback in demo mode and fast in-memory caching.
     """
     def __init__(self):
         self._firestore = FirestoreRepository("users")
         self._initialized = False
+        self._user_cache: Dict[str, Tuple[float, Dict[str, Any]]] = {}
+        self._user_cache_ttl: float = 60.0
         self._mock_users: Dict[str, Dict[str, Any]] = {
             "asha_sunita_001": {
                 **DEMO_ASHA_USER,
@@ -114,20 +117,45 @@ class UserRepository:
                 return data
             return None
         except Exception as e:
-            logger.error(f"Error fetching user by email '{clean_email}': {e}")
+            logger.warning(f"Error fetching user by email '{clean_email}' from Firestore ({e}). Falling back to demo records.")
+            if getattr(settings, "DEMO_MODE", False):
+                for u in self._mock_users.values():
+                    if u.get("email", "").lower() == clean_email:
+                        return u
             raise
 
     def get_by_id(self, user_id: str) -> Optional[Dict[str, Any]]:
+        now = time.time()
+        cached = self._user_cache.get(user_id)
+        if cached and (now - cached[0] < self._user_cache_ttl):
+            return cached[1].copy()
+
         self._ensure_initialized()
         if not self._firestore.is_connected:
             if not getattr(settings, "DEMO_MODE", False):
                 raise RuntimeError("Cloud Firestore is disconnected in live mode. Cannot fetch user.")
-            return self._mock_users.get(user_id)
-        return self._firestore.get(user_id)
+            user = self._mock_users.get(user_id)
+            if user:
+                self._user_cache[user_id] = (now, user.copy())
+            return user
+        try:
+            doc = self._firestore.get(user_id)
+            if doc:
+                self._user_cache[user_id] = (now, doc.copy())
+                return doc
+        except Exception as e:
+            logger.warning(f"Error fetching user {user_id} from Firestore: {e}")
+        if getattr(settings, "DEMO_MODE", False):
+            user = self._mock_users.get(user_id)
+            if user:
+                self._user_cache[user_id] = (now, user.copy())
+            return user
+        return None
 
     def create_user(self, user_data: Dict[str, Any]) -> Dict[str, Any]:
         self._ensure_initialized()
         user_id = str(user_data.get("id"))
+        self._user_cache.pop(user_id, None)
         if not self._firestore.is_connected:
             if not getattr(settings, "DEMO_MODE", False):
                 raise RuntimeError("Cloud Firestore is disconnected in live mode. Cannot create user.")

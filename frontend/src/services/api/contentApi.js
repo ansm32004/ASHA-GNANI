@@ -1,11 +1,21 @@
 import { apiClient } from './apiClient';
 
+let _guidesCache = null;
+let _guidesTime = 0;
+let _programsCache = null;
+let _programsTime = 0;
+const CACHE_TTL_MS = 60000;
+
 export const contentApi = {
   /**
    * Get verified public health guide content by ID
    * Expected backend endpoint: GET /api/v1/content/guides/{id}
    */
   getGuide: async (guideId) => {
+    if (_guidesCache) {
+      const found = _guidesCache.find(g => g.id === guideId);
+      if (found) return found;
+    }
     try {
       const res = await apiClient.get(`/content/guides/${guideId}`);
       return res.data;
@@ -20,8 +30,14 @@ export const contentApi = {
    * Expected backend endpoint: GET /api/v1/content/guides
    */
   listGuides: async (params = {}) => {
+    const now = Date.now();
+    if (_guidesCache && (now - _guidesTime < CACHE_TTL_MS)) {
+      return _guidesCache;
+    }
     try {
       const res = await apiClient.get('/content/guides', { params });
+      _guidesCache = res.data;
+      _guidesTime = Date.now();
       return res.data;
     } catch (e) {
       return [
@@ -38,8 +54,14 @@ export const contentApi = {
    * Expected backend endpoint: GET /api/v1/content/programs
    */
   getProgramUpdates: async () => {
+    const now = Date.now();
+    if (_programsCache && (now - _programsTime < CACHE_TTL_MS)) {
+      return _programsCache;
+    }
     try {
       const res = await apiClient.get('/content/programs');
+      _programsCache = res.data;
+      _programsTime = Date.now();
       return res.data;
     } catch (e) {
       return [

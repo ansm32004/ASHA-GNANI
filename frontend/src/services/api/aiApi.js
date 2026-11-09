@@ -2,7 +2,7 @@ import { apiClient } from './apiClient';
 
 export const aiApi = {
   transcribe: async (payload) => {
-    const res = await apiClient.post('/ai/transcribe', payload);
+    const res = await apiClient.post('/ai/transcribe', payload, { timeout: 35000 });
     return res.data;
   },
 
@@ -32,7 +32,8 @@ export const aiApi = {
     const res = await apiClient.post('/ai/transcribe', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
-      }
+      },
+      timeout: 35000
     });
     return res.data;
   },
@@ -43,7 +44,7 @@ export const aiApi = {
       task_type: 'visit_logging',
       household_id: householdId,
       language
-    });
+    }, { timeout: 35000 });
     const resData = res.data || {};
     if (resData.data && !resData.extracted_fields) {
       resData.extracted_fields = resData.data;
@@ -57,7 +58,7 @@ export const aiApi = {
       task_type: taskType,
       household_id: householdId,
       language
-    });
+    }, { timeout: 35000 });
     const resData = res.data || {};
     if (resData.data && !resData.extracted_fields) {
       resData.extracted_fields = resData.data;
@@ -66,12 +67,20 @@ export const aiApi = {
   },
 
   queryAssistant: async (query, language = 'hi', voiceEnabled = false) => {
-    const res = await apiClient.post('/ai/assistant', { query, language, voice_enabled: voiceEnabled });
+    const res = await apiClient.post(
+      '/ai/assistant',
+      { query, language, voice_enabled: voiceEnabled },
+      { timeout: 35000 }
+    );
     return res.data;
   },
 
   speak: async ({ text, language = 'hi', voice = 'Shivani' }) => {
-    const res = await apiClient.post('/ai/speak', { text, language, voice });
+    const res = await apiClient.post(
+      '/ai/speak',
+      { text, language, voice },
+      { timeout: 35000 }
+    );
     return res.data;
   }
 };

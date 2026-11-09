@@ -28,6 +28,55 @@ async def test_task_operations():
             assert resched_res.status_code == 200
             assert resched_res.json()["due_date"] == "2026-11-10"
 
+        # 4. Fetch task detail by ID
+        detail_res = await ac.get(f"/api/v1/tasks/{task_id}")
+        assert detail_res.status_code == 200
+        detail_data = detail_res.json()
+        assert detail_data["id"] == task_id
+        assert detail_data["status"] == "Completed"
+        assert "description" in detail_data
+        assert "task_type" in detail_data
+
+        # 5. Fetch non-existent task returns 404
+        nf_res = await ac.get("/api/v1/tasks/task_non_existent_999999")
+        assert nf_res.status_code == 404
+
+@pytest.mark.asyncio
+async def test_reschedule_task_sends_notification_to_person():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        # 1. Fetch available tasks
+        res = await ac.get("/api/v1/tasks")
+        assert res.status_code == 200
+        tasks = res.json()
+        assert len(tasks) > 0
+        target_task = tasks[0]
+        task_id = target_task["id"]
+        hh_id = target_task.get("household_id") or "hh_001"
+        target_user = "comm_meena_001" if hh_id == "hh_001" else hh_id
+
+        # 2. Reschedule the task
+        resched_res = await ac.post(f"/api/v1/tasks/{task_id}/reschedule", json={
+            "new_due_date": "2026-11-25",
+            "notes": "Rescheduled for post-natal checkup at convenient time"
+        })
+        assert resched_res.status_code == 200
+        assert resched_res.json()["due_date"] == "2026-11-25"
+
+        # 3. Verify notification was dispatched to the beneficiary / household
+        notif_res = await ac.get(f"/api/v1/notifications?user_id={target_user}")
+        assert notif_res.status_code == 200
+        notifs = notif_res.json()
+        matching = [
+            n for n in notifs
+            if n.get("action_id") == task_id and n.get("title") == "Visit Rescheduled"
+        ]
+        assert len(matching) > 0, f"Expected reschedule notification for {target_user}, found {notifs}"
+        resched_notif = matching[0]
+        assert "2026-11-25" in resched_notif["message"]
+        assert resched_notif["category"] == "Follow-up due"
+
+
 @pytest.mark.asyncio
 async def test_claims_simulation():
     from app.repositories.claim_repository import claim_repo

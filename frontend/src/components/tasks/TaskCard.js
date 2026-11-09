@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, typography, shadows } from '../../theme';
+import { formatDate } from '../../utils/dateUtils';
 import { PriorityBadge } from './PriorityBadge';
 import { StatusBadge } from '../common/StatusBadge';
 import { useTranslation } from 'react-i18next';
@@ -33,14 +34,15 @@ export const TaskCard = ({ task, onComplete, onReschedule, onPress }) => {
       <View style={styles.middleRow}>
         <View style={styles.dateRow}>
           <Ionicons name="calendar-outline" size={13} color={colors.textSecondary} />
-          <Text style={styles.dateText}>Due: {task.due_date}</Text>
+          <Text style={styles.dateText}>Due: {formatDate(task.due_date)}</Text>
         </View>
         <StatusBadge status={task.status} size="small" />
       </View>
 
       {task.completion_notes && (
         <View style={styles.completionBox}>
-          <Text style={styles.completionText}>✓ {task.completion_notes}</Text>
+          <Ionicons name="checkmark-circle-outline" size={13} color={colors.success} style={{ marginRight: 4 }} />
+          <Text style={styles.completionText}>{task.completion_notes}</Text>
         </View>
       )}
 
@@ -130,6 +132,8 @@ const styles = StyleSheet.create({
     marginLeft: 4
   },
   completionBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.successLight,
     padding: spacing.xs,
     borderRadius: radius.xs,

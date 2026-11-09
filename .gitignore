@@ -1,44 +1,122 @@
-# Git Ignore for SAHAYIKA
+# ==============================================================================
+# SAHAYIKA Comprehensive Multi-Layer Security & Environment Ignore Rules
+# ==============================================================================
 
-# Dependencies
+# ------------------------------------------------------------------------------
+# 1. Environment & Secrets (CRITICAL: NEVER commit secrets or credentials)
+# ------------------------------------------------------------------------------
+.env
+.env.*
+.env*.local
+*.env
+*.env.*
+*.env.local
+
+# Explicitly whitelist example and template files
+!**/.env.example
+!**/.env.*.example
+!**/.env.template
+!**/.env.*.template
+
+# Local secrets directories & credentials
+secrets/
+**/secrets/
+*service-account*.json
+*service_account*.json
+*firebase-adminsdk*.json
+*firebase-adminsdk*
+serviceAccountKey.json
+google-services.json
+**/google-services.json
+GoogleService-Info.plist
+**/GoogleService-Info.plist
+*credentials*.json
+*client_secret*.json
+
+# Private keys, certificates, keystores & tokens
+*.pem
+*.key
+*.pkcs12
+*.p12
+*.pfx
+*.keystore
+*.jks
+*.cer
+*.crt
+*.der
+*.p8
+*.mobileprovision
+*.bundle
+id_rsa*
+id_ed25519*
+
+# ------------------------------------------------------------------------------
+# 2. Runtime data, local databases, tokens & generated cache
+# ------------------------------------------------------------------------------
+data/
+backend/data/
+**/data/*.json
+*.db
+*.sqlite
+*.sqlite3
+*.dump
+*.sql.gz
+revoked_tokens.json
+**/revoked_tokens.json
+
+# Audio and generated media artifacts
+backend/app/static/audio/*.wav
+backend/app/static/audio/*.mp3
+backend/app/static/audio/*.ogg
+*.wav
+*.mp3
+
+# ------------------------------------------------------------------------------
+# 3. Dependencies & Virtual Environments
+# ------------------------------------------------------------------------------
 node_modules/
+**/node_modules/
 .venv/
+backend/.venv/
+venv/
+env/
+ENV/
 
-# Expo and Build artifacts
+# ------------------------------------------------------------------------------
+# 4. Expo, React Native & Mobile Build Artifacts
+# ------------------------------------------------------------------------------
 .expo/
+**/frontend/.expo/
 dist/
 web-build/
 /tmp/expo-dist/
+*.apk
+*.aab
+*.ipa
 
-# Environment Variables
-.env
-.env.local
-.env*.local
-
-# Python caches
+# ------------------------------------------------------------------------------
+# 5. Python Build, Cache & Test Artifacts
+# ------------------------------------------------------------------------------
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 .pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
 
-# Runtime data and caches
-backend/data/
-data/
-backend/app/static/audio/
-*.wav
-
-# OS and Editor
+# ------------------------------------------------------------------------------
+# 6. Operating System, IDE & Logs
+# ------------------------------------------------------------------------------
 .DS_Store
 Thumbs.db
 *.log
-
-
-# Firebase private credentials
-backend/secrets/
-secrets/
-*service-account*.json
-*.jsonjson
-serviceAccountKey.json
-*.pem
-*.key
-frontend/google-services.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.idea/
+.vscode/
+*.swp
+*.swo

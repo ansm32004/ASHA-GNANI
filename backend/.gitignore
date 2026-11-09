@@ -1,0 +1,56 @@
+# ==============================================================================
+# SAHAYIKA Backend Local Security & Environment Ignore Rules
+# ==============================================================================
+
+# Environment files
+.env
+.env.*
+.env*.local
+*.env
+*.env.*
+
+# Explicitly whitelist example / template files
+!**/.env.example
+!**/.env.template
+
+# Local secrets and credentials
+secrets/
+**/secrets/
+*service-account*.json
+*service_account*.json
+*firebase-adminsdk*.json
+serviceAccountKey.json
+*credentials*.json
+*client_secret*.json
+*.pem
+*.key
+*.p12
+*.keystore
+
+# Python artifacts & virtual environments
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Data, SQLite and runtime files
+data/
+*.db
+*.sqlite
+*.sqlite3
+revoked_tokens.json
+
+# Generated audio media
+app/static/audio/*.wav
+app/static/audio/*.mp3
+app/static/audio/*.ogg
+*.wav
+*.mp3
+
+# Logs
+*.log

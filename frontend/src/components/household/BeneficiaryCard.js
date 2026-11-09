@@ -1,6 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, typography, shadows } from '../../theme';
+import { formatDate } from '../../utils/dateUtils';
+import { AvatarImage } from '../common/AvatarImage';
 
 export const BeneficiaryCard = ({ member }) => {
   const getCategoryColor = () => {
@@ -19,6 +22,14 @@ export const BeneficiaryCard = ({ member }) => {
   return (
     <View style={[styles.card, member.is_high_risk && styles.highRiskCard]}>
       <View style={styles.headerRow}>
+        <AvatarImage
+          name={member.name}
+          role={member.category}
+          size={38}
+          showBorder
+          borderColor={colors.border}
+          style={{ marginRight: 10 }}
+        />
         <View style={styles.infoLeft}>
           <Text style={styles.name}>{member.name}</Text>
           <Text style={styles.meta}>{member.relation} • {member.age} yrs • {member.gender}</Text>
@@ -34,12 +45,15 @@ export const BeneficiaryCard = ({ member }) => {
 
       {member.is_high_risk && member.high_risk_reason && (
         <View style={styles.alertBox}>
-          <Text style={styles.alertText}>⚠️ High Risk: {member.high_risk_reason}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons name="alert-circle-outline" size={14} color={colors.danger} style={{ marginRight: 5 }} />
+            <Text style={styles.alertText}>High Risk: {member.high_risk_reason}</Text>
+          </View>
         </View>
       )}
 
       {member.pregnancy_month && (
-        <Text style={styles.subDetail}>Pregnancy: Month {member.pregnancy_month} (EDD: {member.expected_delivery_date || 'N/A'})</Text>
+        <Text style={styles.subDetail}>Pregnancy: Month {member.pregnancy_month} (EDD: {member.expected_delivery_date ? formatDate(member.expected_delivery_date) : 'N/A'})</Text>
       )}
 
       {member.next_due_vaccine && (

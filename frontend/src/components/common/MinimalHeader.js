@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Path } from 'react-native-svg';
 import { colors, typography, spacing, radius } from '../../theme';
+import { useNavigation } from '@react-navigation/native';
+import { AvatarImage } from './AvatarImage';
 
 export const MinimalHeader = ({
   workerName = 'Sunita Devi',
@@ -17,6 +19,34 @@ export const MinimalHeader = ({
   currentLanguage = 'hi',
   onPressLanguage = null
 }) => {
+  let navigation = null;
+  try {
+    navigation = useNavigation();
+  } catch (e) {
+    // Optional fallback if rendered outside NavigationContainer
+  }
+
+  const handleNotificationPress = () => {
+    if (onPressNotification) {
+      try {
+        onPressNotification();
+        return;
+      } catch (err) {
+        console.warn('[MinimalHeader] onPressNotification prop error:', err);
+      }
+    }
+    if (navigation) {
+      try {
+        navigation.navigate('Notifications');
+      } catch (err1) {
+        try {
+          navigation.getParent()?.navigate('Notifications');
+        } catch (err2) {
+          console.warn('[MinimalHeader] Navigation to Notifications failed:', err2);
+        }
+      }
+    }
+  };
   if (showBack) {
     return (
       <View style={styles.subScreenHeader}>
@@ -49,15 +79,20 @@ export const MinimalHeader = ({
         activeOpacity={0.8}
         style={styles.profileSection}
       >
-        <View style={styles.avatar}>
-          <Text style={styles.avatarInitial}>{workerName.charAt(0)}</Text>
-        </View>
+        <AvatarImage
+          name={workerName}
+          role="ASHA"
+          size={42}
+          showBorder
+          borderColor={colors.border}
+          style={{ marginRight: 10 }}
+        />
         <View style={styles.greetingTextCol}>
           <View style={styles.roleTag}>
             <View style={styles.roleDot} />
-            <Text style={styles.roleTagText}>ASHA • RAMPUR KALAN</Text>
+            <Text style={styles.roleTagText}>ASHA • Rampur Kalan</Text>
           </View>
-          <Text style={styles.greetingTitle}>Namaste, {workerName} 👋</Text>
+          <Text style={styles.greetingTitle}>Namaste, {workerName}</Text>
           <Text style={styles.greetingSubtitle}>{subtitle}</Text>
         </View>
       </TouchableOpacity>
@@ -78,10 +113,11 @@ export const MinimalHeader = ({
         )}
 
         <TouchableOpacity
-          onPress={onPressNotification}
+          onPress={handleNotificationPress}
           activeOpacity={0.75}
           style={styles.notificationBtn}
           accessibilityLabel="Notifications"
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
           <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
             <Path
@@ -154,14 +190,13 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#10B981',
+    backgroundColor: colors.success,
     marginRight: 6
   },
   roleTagText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#64748B',
-    letterSpacing: 0.8
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textSecondary
   },
   greetingTitle: {
     ...typography.heading2,

@@ -34,14 +34,6 @@ class HouseholdRepository:
         assigned_asha_id: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         self._ensure_synced()
-        if self._firestore.is_connected:
-            try:
-                remote_docs = self._firestore.list_all()
-                if remote_docs:
-                    self._households = remote_docs
-            except Exception as e:
-                logger.warning(f"Could not refresh households from Firestore: {e}")
-
         results = self._households.copy()
 
         if assigned_asha_id:

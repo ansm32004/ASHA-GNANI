@@ -13,7 +13,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, radius, shadows, spacing } from '../../theme';
+import { AvatarImage } from '../../components/common/AvatarImage';
 import { requestApi } from '../../services/api/requestApi';
+import { formatDate } from '../../utils/dateUtils';
 
 export const MemberHealthDetailScreen = ({ route, navigation }) => {
   const member = route.params?.member || {
@@ -28,12 +30,12 @@ export const MemberHealthDetailScreen = ({ route, navigation }) => {
     blood_group: 'B+',
     rch_id: 'RCH-UP-2026-89102',
     vitals: [
-      { date: '28 Oct 2026', bp: '118/76 mmHg', weight: '54 kg', hb: '9.2 g/dL' },
-      { date: '14 Sep 2026', bp: '114/72 mmHg', weight: '52 kg', hb: '9.5 g/dL' }
+      { date: '28-10-2026', bp: '118/76 mmHg', weight: '54 kg', hb: '9.2 g/dL' },
+      { date: '14-09-2026', bp: '114/72 mmHg', weight: '52 kg', hb: '9.5 g/dL' }
     ],
     immunizations: [
-      { vaccine: 'TT-1 (Tetanus Toxoid)', date: '14 Sep 2026', status: 'Given' },
-      { vaccine: 'TT-2 Booster', date: '12 Nov 2026', status: 'Due Soon' }
+      { vaccine: 'TT-1 (Tetanus Toxoid)', date: '14-09-2026', status: 'Given' },
+      { vaccine: 'TT-2 Booster', date: '12-11-2026', status: 'Due Soon' }
     ],
     schemes: [
       'प्रधानमंत्री मातृ वंदना योजना (PMMVY)',
@@ -111,13 +113,13 @@ export const MemberHealthDetailScreen = ({ route, navigation }) => {
           </View>
 
           <View style={styles.abhaMainRow}>
-            <View style={styles.avatarBox}>
-              <Ionicons
-                name={member.gender === 'Female' ? 'person' : 'person'}
-                size={36}
-                color="#FFFFFF"
-              />
-            </View>
+            <AvatarImage
+              name={member.name}
+              role={member.category}
+              size={56}
+              showBorder
+              borderColor="rgba(255,255,255,0.3)"
+            />
             <View style={styles.abhaInfo}>
               <Text style={styles.abhaName}>{member.name}</Text>
               <Text style={styles.abhaSub}>
@@ -212,12 +214,12 @@ export const MemberHealthDetailScreen = ({ route, navigation }) => {
           <View style={styles.sectionCard}>
             <Text style={styles.sectionTitle}>शारीरिक जांच इतिहास (Vitals History)</Text>
             {(member.vitals || [
-              { date: '28 Oct 2026', bp: '118/76 mmHg', weight: '54 kg', hb: '9.2 g/dL' }
+              { date: '28-10-2026', bp: '118/76 mmHg', weight: '54 kg', hb: '9.2 g/dL' }
             ]).map((v, i) => (
               <View key={i} style={styles.vitalCard}>
                 <View style={styles.vitalDateRow}>
                   <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
-                  <Text style={styles.vitalDate}>{v.date}</Text>
+                  <Text style={styles.vitalDate}>{formatDate(v.date)}</Text>
                   <Text style={styles.vitalBy}>जांचकर्ता: आशा सुनीता देवी</Text>
                 </View>
                 <View style={styles.vitalGrid}>
@@ -246,14 +248,14 @@ export const MemberHealthDetailScreen = ({ route, navigation }) => {
           <View style={styles.sectionCard}>
             <Text style={styles.sectionTitle}>टीकाकरण स्थिति (Immunization)</Text>
             {(member.immunizations || [
-              { vaccine: 'TT-1 (Tetanus Toxoid)', date: '14 Sep 2026', status: 'Given' },
-              { vaccine: 'TT-2 Booster', date: '12 Nov 2026', status: 'Due Soon' }
+              { vaccine: 'TT-1 (Tetanus Toxoid)', date: '14-09-2026', status: 'Given' },
+              { vaccine: 'TT-2 Booster', date: '12-11-2026', status: 'Due Soon' }
             ]).map((vac, i) => (
               <View key={i} style={styles.vaccineRow}>
                 <View style={[styles.vaccineDot, { backgroundColor: vac.status === 'Given' ? colors.teal : colors.warning }]} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.vaccineName}>{vac.vaccine}</Text>
-                  <Text style={styles.vaccineDate}>तारीख: {vac.date}</Text>
+                  <Text style={styles.vaccineDate}>तारीख: {formatDate(vac.date)}</Text>
                 </View>
                 <View style={[styles.vaccineBadge, { backgroundColor: vac.status === 'Given' ? '#ECFDF5' : '#FEF3C7' }]}>
                   <Text style={[styles.vaccineBadgeText, { color: vac.status === 'Given' ? '#065F46' : '#92400E' }]}>

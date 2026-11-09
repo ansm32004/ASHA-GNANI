@@ -29,7 +29,7 @@ VALID_WAV_HEADER = (
 @pytest.mark.asyncio
 async def test_stt_request_construction_and_headers():
     test_client = GnaniClient()
-    test_client.api_key = "test_gnani_secret_key_123"
+    test_client.api_key = "DUMMY_TEST_KEY_NOT_REAL"
 
     with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
         mock_post.return_value = httpx.Response(
@@ -58,7 +58,7 @@ async def test_stt_request_construction_and_headers():
         assert call_kwargs["data"]["model"] == "prisma-v3.0"
         assert call_kwargs["data"]["language_code"] == "hi-IN"
         assert call_kwargs["data"]["format"] == "transcribe"
-        assert call_kwargs["headers"]["X-API-Key-ID"] == "test_gnani_secret_key_123"
+        assert call_kwargs["headers"]["X-API-Key-ID"] == "DUMMY_TEST_KEY_NOT_REAL"
         assert "Authorization" not in call_kwargs["headers"]  # Official header only
         assert res["success"] is True
         assert res["transcript"] == "नमस्ते आशा दीदी"

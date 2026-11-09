@@ -7,12 +7,21 @@ from app.core.logging import logger
 class GnaniClient:
     """
     Client for Gnani AI Vachana platform APIs (Prisma STT, Timbre TTS, Evon NLU).
-    Uses official headers: X-API-Key-ID and Authorization Bearer.
+    Uses official headers: X-API-Key-ID and Authorization Bearer with persistent HTTP connection pooling.
     """
     def __init__(self):
         self.api_key = settings.GNANI_API_KEY
         self.base_url = settings.GNANI_API_ENDPOINT
-        self.timeout = 20.0
+        self.timeout = 10.0
+        self._client: Optional[httpx.AsyncClient] = None
+
+    def _get_client(self) -> httpx.AsyncClient:
+        if self._client is None or self._client.is_closed:
+            self._client = httpx.AsyncClient(
+                timeout=self.timeout,
+                limits=httpx.Limits(max_keepalive_connections=10, max_connections=25, keepalive_expiry=30.0)
+            )
+        return self._client
 
     @property
     def is_configured(self) -> bool:
@@ -50,26 +59,25 @@ class GnaniClient:
 
     async def post(self, endpoint_or_url: str, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
-        Generic JSON POST request.
+        Generic JSON POST request using persistent client.
         """
         if not self.is_configured:
             logger.info(f"Gnani API key not configured. Using fallback for {endpoint_or_url}")
             return None
 
         url = endpoint_or_url if endpoint_or_url.startswith("http") else f"{self.base_url.rstrip('/')}/{endpoint_or_url.lstrip('/')}"
-        
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            try:
-                response = await client.post(url, json=payload, headers=self.get_auth_headers("application/json"))
-                response.raise_for_status()
-                return response.json()
-            except Exception as e:
-                logger.error(f"Error calling Gnani API endpoint {url}: {e}")
-                return None
+        client = self._get_client()
+        try:
+            response = await client.post(url, json=payload, headers=self.get_auth_headers("application/json"))
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logger.error(f"Error calling Gnani API endpoint {url}: {e}")
+            return None
 
     async def post_tts(self, payload: Dict[str, Any], endpoint_or_url: Optional[str] = None) -> Optional[bytes]:
         """
-        Call Gnani Timbre TTS endpoint and return raw WAV audio bytes.
+        Call Gnani Timbre TTS endpoint and return raw WAV audio bytes using persistent connection.
         """
         if not self.is_configured:
             logger.info("Gnani API key not configured for TTS.")
@@ -80,14 +88,14 @@ class GnaniClient:
             url = f"{self.base_url.rstrip('/')}/{url.lstrip('/')}"
 
         headers = self.get_auth_headers("application/json")
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            try:
-                response = await client.post(url, json=payload, headers=headers)
-                response.raise_for_status()
-                return response.content
-            except Exception as e:
-                logger.error(f"Error calling Gnani Timbre TTS at {url}: {e}")
-                return None
+        client = self._get_client()
+        try:
+            response = await client.post(url, json=payload, headers=headers)
+            response.raise_for_status()
+            return response.content
+        except Exception as e:
+            logger.error(f"Error calling Gnani Timbre TTS at {url}: {e}")
+            return None
 
     async def post_stt(
         self,

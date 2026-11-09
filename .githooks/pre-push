@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# SAHAYIKA Git Pre-Push Hook (Outbound Push Secret Protection)
+# ==============================================================================
+set -e
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+echo "🔍 [SAHAYIKA Guard] Scanning outbound commits for secrets before push..."
+
+SCANNER_FAILED=0
+ZERO_SHA="0000000000000000000000000000000000000000"
+
+scan_range() {
+    local range="$1"
+    echo "🛡️  Checking commit range: $range"
+
+    # 1. Run Gitleaks if installed locally
+    if command -v gitleaks >/dev/null 2>&1; then
+        if ! gitleaks git --log-opts="$range" --redact --config="$REPO_ROOT/.gitleaks.toml"; then
+            echo "❌ Gitleaks flagged potential secrets in commit range: $range"
+            SCANNER_FAILED=1
+        fi
+    fi
+
+    # 2. Run Built-in Secret Scanner
+    if [ -f "$REPO_ROOT/scripts/scan-secrets.py" ]; then
+        if ! python3 "$REPO_ROOT/scripts/scan-secrets.py" --commits "$range"; then
+            echo "❌ Secret scanner flagged violations in commit range: $range"
+            SCANNER_FAILED=1
+        fi
+    fi
+}
+
+# Read refs from stdin (passed automatically by git push)
+HAS_STDIN=0
+while read -r local_ref local_sha remote_ref remote_sha; do
+    HAS_STDIN=1
+    # If deleting a remote branch, skip scanning
+    if [ "$local_sha" = "$ZERO_SHA" ]; then
+        continue
+    fi
+
+    if [ "$remote_sha" = "$ZERO_SHA" ]; then
+        # New branch being created on remote: scan against origin/main if it exists
+        if git rev-parse --verify origin/main >/dev/null 2>&1; then
+            scan_range "origin/main..$local_sha"
+        else
+            scan_range "$local_sha"
+        fi
+    else
+        # Existing branch update: scan all new commits from remote_sha to local_sha
+        scan_range "$remote_sha..$local_sha"
+    fi
+done
+
+# If invoked manually or stdin had no entries, use upstream tracking branch or origin/main
+if [ "$HAS_STDIN" -eq 0 ]; then
+    UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null || echo "origin/main")
+    scan_range "$UPSTREAM..HEAD"
+fi
+
+if [ "$SCANNER_FAILED" -ne 0 ]; then
+    echo ""
+    echo "🚫 [SAHAYIKA Guard] Push aborted! Detected sensitive credentials in outgoing commits."
+    echo "👉 Fix commits locally using git reset or git commit --amend before pushing to GitHub."
+    exit 1
+fi
+
+echo "✅ [SAHAYIKA Guard] Outgoing commits verified clean. Proceeding with push."
+exit 0

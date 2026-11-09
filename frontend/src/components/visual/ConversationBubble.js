@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, shadows, radius, spacing } from '../../theme';
+import { AvatarImage } from '../common/AvatarImage';
 
 /**
  * ConversationBubble
@@ -51,9 +51,11 @@ export const ConversationBubble = ({
       >
         {isAssistant && (
           <View style={styles.assistantHeader}>
-            <View style={styles.avatarMini}>
-              <Text style={styles.avatarInitial}>S</Text>
-            </View>
+            <AvatarImage
+              name="Sahayika Companion"
+              role="ASHA"
+              size={20}
+            />
             <Text style={styles.assistantName}>Sahayika Companion</Text>
             {audioPlayable && (onPlayAudio || onToggleAudio) && (
               <View style={styles.audioControlsRow}>
@@ -79,22 +81,7 @@ export const ConversationBubble = ({
                   ) : isPausedAudio ? (
                     <Ionicons name="play" size={13} color="#15803D" />
                   ) : (
-                    <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
-                      <Path
-                        d="M11 5L6 9H2V15H6L11 19V5Z"
-                        stroke={colors.primary}
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <Path
-                        d="M19.07 4.93C20.94 6.81 22 9.35 22 12C22 14.65 20.94 17.19 19.07 19.07M15.54 8.46C16.47 9.4 17 10.66 17 12C17 13.34 16.47 14.6 15.54 15.54"
-                        stroke={colors.primary}
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </Svg>
+                    <Ionicons name="volume-high-outline" size={14} color={colors.primary} />
                   )}
                   <Text
                     style={[

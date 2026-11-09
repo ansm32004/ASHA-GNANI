@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import os
+import subprocess
 from typing import Optional, Dict, Any
 from app.config import settings
 from app.integrations.gnani.client import gnani_client
@@ -29,6 +30,21 @@ class TimbreTTSService:
         if public_origin:
             return f"{public_origin}{relative_path}"
         return relative_path
+
+    def get_cached_audio_url(self, text: str, voice: Optional[str] = None, language: str = "hi") -> Optional[str]:
+        """
+        Check if audio for text is already cached on disk. Returns audio URL in 0ms if present.
+        """
+        clean_text = (text or "").strip()
+        if not clean_text:
+            return None
+        selected_voice = voice or "Shivani"
+        hash_key = hashlib.md5(f"{clean_text}_{selected_voice}".encode("utf-8")).hexdigest()
+        cache_filename = f"{hash_key}.wav"
+        cache_path = os.path.join(CACHE_DIR, cache_filename)
+        if os.path.exists(cache_path) and os.path.getsize(cache_path) > 44:
+            return self._get_audio_url(cache_filename)
+        return None
 
     async def speak(
         self,
@@ -122,9 +138,43 @@ class TimbreTTSService:
             except Exception as e:
                 logger.error(f"Gnani Timbre TTS error: {e}")
 
-        # Fallback simulation response
+        # Fallback speech synthesis for exact text: ensures the assistant ALWAYS speaks the real answer!
+        if os.path.exists("/usr/bin/say"):
+            try:
+                say_voice = "Lekha" if (language or "hi").startswith("hi") else "Samantha"
+                cmd = ["/usr/bin/say", "-v", say_voice, "--data-format=LEI16@22050", "-o", cache_path, clean_text]
+                proc = subprocess.run(cmd, capture_output=True, timeout=3.5)
+                if proc.returncode == 0 and os.path.exists(cache_path) and os.path.getsize(cache_path) > 44:
+                    with open(cache_path, "rb") as f:
+                        audio_bytes = f.read()
+                    b64_str = base64.b64encode(audio_bytes).decode("utf-8")
+                    data_uri = f"data:audio/wav;base64,{b64_str}"
+                    direct_url = self._get_audio_url(cache_filename)
+                    duration_sec = round(len(audio_bytes) / 44100.0, 2)
+                    logger.info(f"Local TTS synthesized exact text into {cache_filename} ({duration_sec}s)")
+                    return {
+                        "audio_url": direct_url,
+                        "audio_content": data_uri,
+                        "cache_file": cache_filename,
+                        "text": clean_text,
+                        "language": language,
+                        "voice": say_voice,
+                        "duration_seconds": duration_sec,
+                        "is_simulated": False
+                    }
+            except Exception as say_err:
+                logger.warning(f"Local TTS fallback error: {say_err}")
+
+        # Ultimate fallback if synthesis completely unavailable
+        # Only return default greeting audio if clean_text is genuinely the initial greeting
+        is_greeting = "नमस्ते सुनीता" in clean_text or "Hello Sunita" in clean_text
+        direct_url = None
+        if is_greeting:
+            default_file = "e36fe86111fe134de3ace5342e507b40.wav" if language == "hi" else "40a769cd08e733fd395f062541796b5b.wav"
+            direct_url = self._get_audio_url(default_file)
+
         return {
-            "audio_url": None,
+            "audio_url": direct_url,
             "text": clean_text,
             "language": language,
             "voice": selected_voice or f"timbre_{language}_{voice_gender}_standard",

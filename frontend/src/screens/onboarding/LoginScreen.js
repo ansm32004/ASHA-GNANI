@@ -8,6 +8,7 @@ import { AppHeader } from '../../components/common/AppHeader';
 import { useAuthStore } from '../../store/authStore';
 import { authApi } from '../../services/api/authApi';
 import { useTranslation } from 'react-i18next';
+import { toBackendDate } from '../../utils/dateUtils';
 
 export const LoginScreen = ({ navigation }) => {
   const { t } = useTranslation();
@@ -101,7 +102,7 @@ export const LoginScreen = ({ navigation }) => {
       email: signupEmail.trim().toLowerCase(),
       phone: cleanPhone,
       password: signupPassword,
-      dob: signupDob.trim() || undefined,
+      dob: signupDob.trim() ? toBackendDate(signupDob.trim()) : undefined,
       gender: signupGender,
       address: signupAddress.trim() || undefined,
       state: signupState.trim() || 'Uttar Pradesh',
@@ -196,9 +197,12 @@ export const LoginScreen = ({ navigation }) => {
           <Text style={styles.title}>Welcome to SAHAYIKA</Text>
           <Text style={styles.subtitle}>Select your application role or sign in below</Text>
 
-          {/* Role Selection & Demo Accounts Section */}
+          {/* Role Selection & Quick Access Section */}
           <View style={styles.roleCard}>
-            <Text style={styles.roleSectionTitle}>⚡ ONE-TAP DEMO ACCESS</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="flash-outline" size={13} color={colors.deepBlue} style={{ marginRight: 4 }} />
+              <Text style={styles.roleSectionTitle}>Quick Role Access</Text>
+            </View>
             <Text style={styles.roleSectionDesc}>
               Two independent experiences for ASHA Workers and Community Members.
             </Text>
@@ -216,7 +220,7 @@ export const LoginScreen = ({ navigation }) => {
                 <View style={styles.roleHeaderRow}>
                   <Text style={styles.roleTitle}>Continue as ASHA Worker</Text>
                   <View style={[styles.roleBadge, { backgroundColor: colors.primaryLight }]}>
-                    <Text style={[styles.roleBadgeText, { color: colors.primary }]}>PHASE 1</Text>
+                    <Text style={[styles.roleBadgeText, { color: colors.primary }]}>Field App</Text>
                   </View>
                 </View>
                 <Text style={styles.roleSubtitle}>Professional field-work & household management app</Text>
@@ -238,7 +242,7 @@ export const LoginScreen = ({ navigation }) => {
                 <View style={styles.roleHeaderRow}>
                   <Text style={styles.roleTitle}>Continue as Community Member</Text>
                   <View style={[styles.roleBadge, { backgroundColor: colors.tealLight }]}>
-                    <Text style={[styles.roleBadgeText, { color: colors.teal }]}>PHASE 2</Text>
+                    <Text style={[styles.roleBadgeText, { color: colors.teal }]}>Family App</Text>
                   </View>
                 </View>
                 <Text style={styles.roleSubtitle}>Voice-first health guide & ASHA connection for families</Text>
@@ -430,8 +434,8 @@ export const LoginScreen = ({ navigation }) => {
                 <View style={styles.rowInputs}>
                   <View style={{ flex: 1, marginRight: 6 }}>
                     <AppInput
-                      label="Date of Birth"
-                      placeholder="YYYY-MM-DD"
+                      label="Date of Birth (DD-MM-YYYY)"
+                      placeholder="DD-MM-YYYY (e.g. 15-08-1995)"
                       value={signupDob}
                       onChangeText={setSignupDob}
                     />
@@ -626,13 +630,12 @@ const styles = StyleSheet.create({
     ...shadows.card
   },
   roleSectionTitle: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
-    color: colors.deepBlue,
-    letterSpacing: 0.6
+    color: colors.deepBlue
   },
   roleSectionDesc: {
-    fontSize: 11,
+    fontSize: 12,
     color: colors.secondaryText,
     marginTop: 2,
     marginBottom: 10
@@ -669,16 +672,16 @@ const styles = StyleSheet.create({
     color: colors.primaryText
   },
   roleBadge: {
-    paddingHorizontal: 6,
+    paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: radius.pill
   },
   roleBadgeText: {
-    fontSize: 9,
-    fontWeight: '700'
+    fontSize: 11,
+    fontWeight: '600'
   },
   roleSubtitle: {
-    fontSize: 11,
+    fontSize: 12,
     color: colors.secondaryText,
     marginTop: 1
   },

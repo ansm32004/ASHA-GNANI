@@ -15,6 +15,7 @@ import { AppButton } from '../../components/common/AppButton';
 import { AppInput } from '../../components/common/AppInput';
 import { AppHeader } from '../../components/common/AppHeader';
 import { useAuthStore } from '../../store/authStore';
+import { toBackendDate } from '../../utils/dateUtils';
 
 export const SignupScreen = ({ navigation }) => {
   const { register } = useAuthStore();
@@ -84,7 +85,7 @@ export const SignupScreen = ({ navigation }) => {
       email: email.trim().toLowerCase(),
       phone: cleanPhone,
       password,
-      dob: dob.trim() || undefined,
+      dob: dob.trim() ? toBackendDate(dob.trim()) : undefined,
       gender,
       address: address.trim() || undefined,
       state: state.trim() || 'Uttar Pradesh',
@@ -236,8 +237,8 @@ export const SignupScreen = ({ navigation }) => {
             <View style={styles.rowInputs}>
               <View style={{ flex: 1, marginRight: 6 }}>
                 <AppInput
-                  label="Date of Birth"
-                  placeholder="YYYY-MM-DD"
+                  label="Date of Birth (DD-MM-YYYY)"
+                  placeholder="DD-MM-YYYY (e.g. 15-08-1995)"
                   value={dob}
                   onChangeText={setDob}
                 />

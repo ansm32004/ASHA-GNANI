@@ -34,14 +34,6 @@ class RequestRepository:
         assigned_asha_id: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         self._ensure_synced()
-        if self._firestore.is_connected:
-            try:
-                remote_docs = self._firestore.list_all()
-                if remote_docs:
-                    self._requests = remote_docs
-            except Exception as e:
-                logger.warning(f"Could not refresh requests from Firestore: {e}")
-
         results = self._requests.copy()
         if household_id:
             results = [r for r in results if r.get("household_id") == household_id]
@@ -91,6 +83,7 @@ class RequestRepository:
             "description": data["description"],
             "time_received": "Just now",
             "priority": data.get("priority", "Medium"),
+            "preferred_date": data.get("preferred_date"),
             "status": "New",
             "response_history": [f"Request logged at {datetime.now().strftime('%H:%M')}"],
             "created_at": now_iso,

@@ -314,16 +314,21 @@ export const useAuthStore = create((set, get) => ({
     // 2. Purge secure credentials
     await secureStorage.deleteItem('@sahayika_token');
 
-    // 2. Purge private user records to prevent cross-role data leaks on shared devices
-    const privateKeys = [
-      '@sahayika_user',
-      '@sahayika_households',
-      '@sahayika_visits',
-      '@sahayika_tasks',
-      '@sahayika_requests',
-      '@sahayika_claims',
-      '@sahayika_notifications'
-    ];
+    // 2. Purge private user records
+    // In production, wipe all private records to prevent cross-role leaks.
+    // In demo development mode, preserve shared records (@sahayika_requests, @sahayika_tasks, @sahayika_notifications)
+    // so switching between Meena Devi and Sunita Devi demo accounts does not wipe created requests and calendar tasks.
+    const privateKeys = ['@sahayika_user'];
+    if (!IS_DEMO_ENABLED) {
+      privateKeys.push(
+        '@sahayika_households',
+        '@sahayika_visits',
+        '@sahayika_tasks',
+        '@sahayika_requests',
+        '@sahayika_claims',
+        '@sahayika_notifications'
+      );
+    }
     await AsyncStorage.multiRemove(privateKeys);
 
     // NOTE: @sahayika_offline_queue is intentionally preserved so un-synced offline records are not lost.

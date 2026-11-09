@@ -29,6 +29,8 @@ def get_current_user_id(token: str = Depends(get_token_from_header)) -> str:
     user_id = verify_token(token)
     if not user_id:
         if demo_allowed and (token.startswith("demo_token_") or token == "mock_jwt_token_asha"):
+            if "comm" in token:
+                return "comm_meena_001"
             return "asha_sunita_001"
         raise UnauthorizedException("Invalid or expired session token")
     return user_id

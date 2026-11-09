@@ -78,7 +78,7 @@ export const LanguageScreen = ({ navigation, route }) => {
 
         <View style={styles.bottomBar}>
           <AppButton
-            title={isFromSettings ? t('common.save') || 'Save' : t('common.next') || 'Next ➔'}
+            title={isFromSettings ? t('common.save') || 'Save' : t('common.next') || 'Next'}
             onPress={handleContinue}
             size="large"
           />

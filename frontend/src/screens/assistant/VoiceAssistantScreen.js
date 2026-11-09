@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, TextInput, Platform, Alert } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, TextInput, Platform, Alert, Animated } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius, shadows } from '../../theme';
@@ -23,6 +23,102 @@ export const VoiceAssistantScreen = ({ navigation }) => {
 
   const audioPlayback = useAudioPlayback();
 
+  // Scroll and Animation References
+  const scrollViewRef = useRef(null);
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const rippleAnim = useRef(new Animated.Value(1)).current;
+  const rippleOpacity = useRef(new Animated.Value(0)).current;
+  const waveAnim1 = useRef(new Animated.Value(0.4)).current;
+  const waveAnim2 = useRef(new Animated.Value(1.0)).current;
+  const waveAnim3 = useRef(new Animated.Value(0.7)).current;
+
+  // Smooth scroll to bottom where question & answer appear
+  const scrollToQuestion = (animated = true) => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated });
+    }, 120);
+  };
+
+  // Mic pulse, ripple, and voice wave animation when recording
+  useEffect(() => {
+    let pulseLoop = null;
+    let waveLoop = null;
+
+    if (voiceState === 'listening') {
+      pulseLoop = Animated.loop(
+        Animated.parallel([
+          Animated.sequence([
+            Animated.timing(pulseAnim, {
+              toValue: 1.15,
+              duration: 650,
+              useNativeDriver: true
+            }),
+            Animated.timing(pulseAnim, {
+              toValue: 1,
+              duration: 650,
+              useNativeDriver: true
+            })
+          ]),
+          Animated.sequence([
+            Animated.parallel([
+              Animated.timing(rippleAnim, {
+                toValue: 1.6,
+                duration: 1300,
+                useNativeDriver: true
+              }),
+              Animated.timing(rippleOpacity, {
+                toValue: 0,
+                duration: 1300,
+                useNativeDriver: true
+              })
+            ]),
+            Animated.parallel([
+              Animated.timing(rippleAnim, {
+                toValue: 1,
+                duration: 0,
+                useNativeDriver: true
+              }),
+              Animated.timing(rippleOpacity, {
+                toValue: 0.7,
+                duration: 0,
+                useNativeDriver: true
+              })
+            ])
+          ])
+        ])
+      );
+      pulseLoop.start();
+
+      waveLoop = Animated.loop(
+        Animated.sequence([
+          Animated.parallel([
+            Animated.timing(waveAnim1, { toValue: 1.4, duration: 240, useNativeDriver: true }),
+            Animated.timing(waveAnim2, { toValue: 0.4, duration: 240, useNativeDriver: true }),
+            Animated.timing(waveAnim3, { toValue: 1.2, duration: 240, useNativeDriver: true })
+          ]),
+          Animated.parallel([
+            Animated.timing(waveAnim1, { toValue: 0.4, duration: 240, useNativeDriver: true }),
+            Animated.timing(waveAnim2, { toValue: 1.5, duration: 240, useNativeDriver: true }),
+            Animated.timing(waveAnim3, { toValue: 0.5, duration: 240, useNativeDriver: true })
+          ])
+        ])
+      );
+      waveLoop.start();
+    } else {
+      pulseAnim.setValue(1);
+      rippleAnim.setValue(1);
+      rippleOpacity.setValue(0);
+      waveAnim1.setValue(0.4);
+      waveAnim2.setValue(1.0);
+      waveAnim3.setValue(0.7);
+    }
+
+    return () => {
+      if (pulseLoop) pulseLoop.stop();
+      if (waveLoop) waveLoop.stop();
+    };
+  }, [voiceState]);
+
   // Stop playback when navigating away or unmounting
   useEffect(() => {
     const unsubBlur = navigation.addListener('blur', () => {
@@ -34,12 +130,12 @@ export const VoiceAssistantScreen = ({ navigation }) => {
     };
   }, [navigation]);
 
-  // Synchronize voice state if audio completes or is stopped externally
+  // Synchronize voice state if audio completes or is paused/stopped externally
   useEffect(() => {
-    if (audioPlayback.isIdle && voiceState === 'speaking') {
+    if ((audioPlayback.isIdle || audioPlayback.isPaused) && voiceState === 'speaking') {
       setVoiceState('idle');
     }
-  }, [audioPlayback.isIdle]);
+  }, [audioPlayback.isIdle, audioPlayback.isPaused]);
 
   // Elapsed recording seconds timer
   useEffect(() => {
@@ -70,6 +166,13 @@ export const VoiceAssistantScreen = ({ navigation }) => {
       actions: ["Today's Visits", 'ANC Checkup List', 'Vaccination Schedule']
     }
   ]);
+
+  // Automatically scroll down whenever new conversation bubble is added
+  useEffect(() => {
+    if (conversation && conversation.length > 1 && voiceState !== 'listening') {
+      scrollToQuestion(true);
+    }
+  }, [conversation?.length]);
 
   // Pre-fetch initial greeting TTS audio if missing
   useEffect(() => {
@@ -106,6 +209,13 @@ export const VoiceAssistantScreen = ({ navigation }) => {
     const q = (queryText || textQuery || liveTranscription).trim();
     if (!q) return;
 
+    // Immediately stop and unload any active or paused audio playback
+    if (audioPlayback.isPlaying || audioPlayback.isPaused || voiceState === 'speaking') {
+      try {
+        await audioService.stopAudio();
+      } catch (_) {}
+    }
+
     setTextQuery('');
     setLiveTranscription('');
     setVoiceState('processing');
@@ -118,6 +228,7 @@ export const VoiceAssistantScreen = ({ navigation }) => {
     };
 
     setConversation((prev) => [...prev, userMessage]);
+    scrollToQuestion(true);
 
     try {
       const res = await aiApi.queryAssistant(q, i18n.language, voiceEnabled);
@@ -131,6 +242,7 @@ export const VoiceAssistantScreen = ({ navigation }) => {
         audioUrl: res.audio_url || null
       };
       setConversation((prev) => [...prev, asstMsg]);
+      scrollToQuestion(true);
 
       // Pre-fetch TTS audio in background if not already present
       if (!res.audio_url && res.reply_text) {
@@ -141,6 +253,9 @@ export const VoiceAssistantScreen = ({ navigation }) => {
               setConversation((prev) =>
                 prev.map((m) => (m.id === asstMsg.id ? { ...m, audioUrl: url } : m))
               );
+              if (voiceEnabled) {
+                handlePlayAudio(url, res.reply_text, asstMsg.id);
+              }
             }
           })
           .catch(() => {});
@@ -168,32 +283,8 @@ export const VoiceAssistantScreen = ({ navigation }) => {
   };
 
   const handleToggleVoice = async () => {
-    if (voiceState === 'idle' || voiceState === 'error') {
-      try {
-        const started = await audioService.startRecording();
-        if (started) {
-          setVoiceState('listening');
-          setSeconds(0);
-          setLiveTranscription(
-            i18n.language === 'hi' ? 'बोलिए... (सुन रहे हैं)' : 'Listening... Speak now'
-          );
-        } else {
-          setVoiceState('error');
-          setLiveTranscription(
-            i18n.language === 'hi'
-              ? 'रिकॉर्डर प्रारंभ करने में विफल। कृपया पुनः प्रयास करें।'
-              : 'Recorder initialization failed. Please try again.'
-          );
-        }
-      } catch (err) {
-        setVoiceState('error');
-        setLiveTranscription(
-          err.permanentlyDenied
-            ? (i18n.language === 'hi' ? 'माइक्रोफ़ोन अनुमति हमेशा के लिए अस्वीकृत है। सेटिंग्स में चालू करें।' : 'Microphone permission permanently denied. Enable in Settings.')
-            : (i18n.language === 'hi' ? 'माइक्रोफ़ोन अनुमति अस्वीकृत। कृपया अनुमति दें।' : 'Microphone permission denied. Please allow microphone access.')
-        );
-      }
-    } else if (voiceState === 'listening') {
+    // 1. If currently recording speech, finish recording and process
+    if (voiceState === 'listening') {
       setVoiceState('processing');
       try {
         const recResult = await audioService.stopRecording();
@@ -225,7 +316,7 @@ export const VoiceAssistantScreen = ({ navigation }) => {
         }
 
         try {
-          const isWebm = Platform.OS === 'web' || audioUri?.endsWith('.webm');
+          const isWebm = audioUri?.endsWith('.webm');
           const isM4a = Platform.OS === 'android' || audioUri?.endsWith('.m4a');
           const audioFormat = isWebm ? 'webm' : (isM4a ? 'm4a' : 'wav');
           const tr = await aiApi.transcribe({ audio_base64: base64, audio_format: audioFormat, language: i18n.language });
@@ -257,21 +348,63 @@ export const VoiceAssistantScreen = ({ navigation }) => {
           procErr.userFriendlyMessage || procErr.message || 'Recording processing failed'
         );
       }
+      return;
+    }
+
+    // 2. If AI is currently generating response, ignore mic taps
+    if (voiceState === 'processing') {
+      return;
+    }
+
+    // 3. If audio playback is active or paused, stop and unload it completely
+    // so the user can immediately record a new question
+    if (audioPlayback.isPlaying || audioPlayback.isPaused || voiceState === 'speaking') {
+      try {
+        await audioService.stopAudio();
+      } catch (_) {}
+    }
+
+    // 4. Start recording new question
+    try {
+      const started = await audioService.startRecording();
+      if (started) {
+        setVoiceState('listening');
+        setSeconds(0);
+        setLiveTranscription(
+          i18n.language === 'hi' ? 'बोलिए... (सुन रहे हैं)' : 'Listening... Speak now'
+        );
+      } else {
+        setVoiceState('error');
+        setLiveTranscription(
+          i18n.language === 'hi'
+            ? 'रिकॉर्डर प्रारंभ करने में विफल। कृपया पुनः प्रयास करें।'
+            : 'Recorder initialization failed. Please try again.'
+        );
+      }
+    } catch (err) {
+      setVoiceState('error');
+      setLiveTranscription(
+        err.permanentlyDenied
+          ? (i18n.language === 'hi' ? 'माइक्रोफ़ोन अनुमति हमेशा के लिए अस्वीकृत है। सेटिंग्स में चालू करें।' : 'Microphone permission permanently denied. Enable in Settings.')
+          : (i18n.language === 'hi' ? 'माइक्रोफ़ोन अनुमति अस्वीकृत। कृपया अनुमति दें।' : 'Microphone permission denied. Please allow microphone access.')
+      );
     }
   };
 
   const handlePlayAudio = async (audioUrl = null, text = null, msgId = null) => {
     const targetId = msgId || audioUrl || text;
     const currentStatus = audioService.getPlaybackStatus();
+    const isSameAudio = Boolean(currentStatus.audioId && currentStatus.audioId === targetId);
 
-    // If currently playing, pause it immediately
-    if ((currentStatus.isPlaying || voiceState === 'speaking') && !currentStatus.isPaused) {
+    // If currently playing this audio, pause it immediately
+    if ((currentStatus.isPlaying || voiceState === 'speaking') && !currentStatus.isPaused && isSameAudio) {
       await audioService.pauseAudio();
+      setVoiceState('idle');
       return;
     }
 
-    // If currently paused, resume it immediately
-    if (currentStatus.isPaused) {
+    // If currently paused on this audio, resume it immediately
+    if (currentStatus.isPaused && isSameAudio) {
       await audioService.resumeAudio();
       setVoiceState('speaking');
       return;
@@ -318,6 +451,7 @@ export const VoiceAssistantScreen = ({ navigation }) => {
 
   const handlePauseAudio = async () => {
     await audioService.pauseAudio();
+    setVoiceState('idle');
   };
 
   const handleResumeAudio = async () => {
@@ -328,12 +462,14 @@ export const VoiceAssistantScreen = ({ navigation }) => {
   const handleToggleAudio = async (audioUrl = null, text = null, msgId = null) => {
     const targetId = msgId || audioUrl || text;
     const currentStatus = audioService.getPlaybackStatus();
+    const isSameAudio = !currentStatus.audioId || currentStatus.audioId === targetId;
 
-    if ((currentStatus.isPlaying || voiceState === 'speaking') && !currentStatus.isPaused) {
+    if ((currentStatus.isPlaying || voiceState === 'speaking') && !currentStatus.isPaused && isSameAudio) {
       await audioService.pauseAudio();
+      setVoiceState('idle');
       return;
     }
-    if (currentStatus.isPaused) {
+    if (currentStatus.isPaused && isSameAudio) {
       await audioService.resumeAudio();
       setVoiceState('speaking');
       return;
@@ -349,22 +485,52 @@ export const VoiceAssistantScreen = ({ navigation }) => {
   ];
 
   const getStatePill = () => {
-    switch (voiceState) {
-      case 'listening':
-        return { text: `Listening... 00:0${seconds}`, bg: colors.dangerLight, color: colors.danger, dot: colors.danger };
-      case 'processing':
-        return { text: 'Analyzing with AI...', bg: colors.warningLight, color: colors.warning, dot: colors.warning };
-      case 'speaking':
-        if (audioPlayback.isPaused) {
-          return { text: 'Voice paused (tap Resume)', bg: '#FEF3C7', color: '#B45309', dot: '#D97706' };
-        }
-        return { text: 'Playing voice response...', bg: colors.tealLight, color: colors.teal, dot: colors.teal };
-      case 'error':
-        return { text: 'Retry microphone', bg: colors.dangerLight, color: colors.danger, dot: colors.danger };
-      case 'idle':
-      default:
-        return { text: 'Tap mic to speak in Hindi/English', bg: colors.surfaceSecondary, color: colors.secondaryText, dot: colors.primary };
+    if (voiceState === 'listening') {
+      return {
+        text: `Listening... 00:0${seconds}`,
+        bg: colors.dangerLight,
+        color: colors.danger,
+        dot: colors.danger
+      };
     }
+    if (voiceState === 'processing') {
+      return {
+        text: i18n.language === 'hi' ? 'एआई द्वारा उत्तर तैयार हो रहा है...' : 'Analyzing with AI...',
+        bg: colors.warningLight,
+        color: colors.warning,
+        dot: colors.warning
+      };
+    }
+    if (audioPlayback.isPaused) {
+      return {
+        text: i18n.language === 'hi' ? 'आवाज़ रुकी हुई है (माइक दबाकर नया प्रश्न पूछें)' : 'Voice paused (tap mic to ask new question)',
+        bg: '#FEF3C7',
+        color: '#B45309',
+        dot: '#D97706'
+      };
+    }
+    if (voiceState === 'speaking' || audioPlayback.isPlaying) {
+      return {
+        text: i18n.language === 'hi' ? 'उत्तर सुनाया जा रहा है...' : 'Playing voice response...',
+        bg: colors.tealLight,
+        color: colors.teal,
+        dot: colors.teal
+      };
+    }
+    if (voiceState === 'error') {
+      return {
+        text: i18n.language === 'hi' ? 'माइक्रोफ़ोन पुनः प्रयास करें' : 'Retry microphone',
+        bg: colors.dangerLight,
+        color: colors.danger,
+        dot: colors.danger
+      };
+    }
+    return {
+      text: i18n.language === 'hi' ? 'हिंदी / अंग्रेज़ी में बोलने के लिए माइक दबाएँ' : 'Tap mic to speak in Hindi/English',
+      bg: colors.surfaceSecondary,
+      color: colors.secondaryText,
+      dot: colors.primary
+    };
   };
 
   const stateInfo = getStatePill();
@@ -379,7 +545,16 @@ export const VoiceAssistantScreen = ({ navigation }) => {
         onPressLanguage={handleLanguageToggle}
       />
 
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollViewRef}
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+        onContentSizeChange={() => {
+          if (voiceState === 'processing') {
+            scrollToQuestion(true);
+          }
+        }}
+      >
         {/* Compact Voice Interaction Pod (Space-Efficient & Balanced) */}
         <View style={styles.compactVoicePod}>
           {/* Status Capsule Indicator */}
@@ -390,28 +565,53 @@ export const VoiceAssistantScreen = ({ navigation }) => {
             </Text>
           </View>
 
-          {/* Compact Mic Button */}
-          <TouchableOpacity
-            style={[
-              styles.compactMicBtn,
-              voiceState === 'listening' && styles.micBtnListening,
-              voiceState === 'processing' && styles.micBtnProcessing
-            ]}
-            onPress={handleToggleVoice}
-            activeOpacity={0.85}
-            accessibilityLabel="Microphone control"
-          >
-            <Svg width={26} height={26} viewBox="0 0 24 24" fill="none">
-              <Path
-                d="M12 2C10.34 2 9 3.34 9 5V11C9 12.66 10.34 14 12 14C13.66 14 15 12.66 15 11V5C15 3.34 13.66 2 12 2Z"
-                fill={colors.surface}
-              />
-              <Path
-                d="M19 10V11C19 14.53 16.39 17.44 13 17.93V21H11V17.93C7.61 17.44 5 14.53 5 11V10H7V11C7 13.76 9.24 16 12 16C14.76 16 17 13.76 17 11V10H19Z"
-                fill={colors.surface}
-              />
-            </Svg>
-          </TouchableOpacity>
+          {/* Animated Mic Container with Ripple Wave */}
+          <View style={styles.micContainer}>
+            <Animated.View
+              style={[
+                styles.micRipple,
+                {
+                  transform: [{ scale: rippleAnim }],
+                  opacity: rippleOpacity,
+                  backgroundColor: voiceState === 'listening' ? colors.danger : colors.primary
+                }
+              ]}
+            />
+            <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+              <TouchableOpacity
+                style={[
+                  styles.compactMicBtn,
+                  voiceState === 'listening' && styles.micBtnListening,
+                  voiceState === 'processing' && styles.micBtnProcessing
+                ]}
+                onPress={handleToggleVoice}
+                activeOpacity={0.85}
+                accessibilityLabel="Microphone control"
+              >
+                <Svg width={26} height={26} viewBox="0 0 24 24" fill="none">
+                  <Path
+                    d="M12 2C10.34 2 9 3.34 9 5V11C9 12.66 10.34 14 12 14C13.66 14 15 12.66 15 11V5C15 3.34 13.66 2 12 2Z"
+                    fill={colors.surface}
+                  />
+                  <Path
+                    d="M19 10V11C19 14.53 16.39 17.44 13 17.93V21H11V17.93C7.61 17.44 5 14.53 5 11V10H7V11C7 13.76 9.24 16 12 16C14.76 16 17 13.76 17 11V10H19Z"
+                    fill={colors.surface}
+                  />
+                </Svg>
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
+
+          {/* Dynamic Voice Waveform Animation when Speaking */}
+          {voiceState === 'listening' && (
+            <View style={styles.waveRow}>
+              <Animated.View style={[styles.waveBar, { transform: [{ scaleY: waveAnim1 }] }]} />
+              <Animated.View style={[styles.waveBar, { transform: [{ scaleY: waveAnim2 }] }]} />
+              <Animated.View style={[styles.waveBar, { transform: [{ scaleY: waveAnim3 }] }]} />
+              <Animated.View style={[styles.waveBar, { transform: [{ scaleY: waveAnim2 }] }]} />
+              <Animated.View style={[styles.waveBar, { transform: [{ scaleY: waveAnim1 }] }]} />
+            </View>
+          )}
 
           {/* Live Transcription or Hint */}
           <Text style={styles.transcriptionHint} numberOfLines={1}>
@@ -540,6 +740,35 @@ const styles = StyleSheet.create({
     marginVertical: 4,
     ...shadows.subtle
   },
+  micContainer: {
+    width: 72,
+    height: 72,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative'
+  },
+  micRipple: {
+    position: 'absolute',
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+    pointerEvents: 'none'
+  },
+  waveRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    height: 22,
+    marginTop: 4,
+    marginBottom: 2
+  },
+  waveBar: {
+    width: 3.5,
+    height: 16,
+    borderRadius: 2,
+    backgroundColor: colors.danger
+  },
   statusCapsule: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -567,7 +796,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 3,
     borderColor: '#EAF3FD',
-    ...shadows.raised
+    ...shadows.soft
   },
   micBtnListening: {
     backgroundColor: colors.danger,

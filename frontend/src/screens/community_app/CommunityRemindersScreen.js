@@ -128,7 +128,7 @@ export const CommunityRemindersScreen = () => {
       id: 'vhsnd_camp_3',
       title: 'पोषण राशन वितरण एवं परामर्श (POSHAN VHSND)',
       beneficiary: 'समस्त परिवार (Family)',
-      dateText: '10 नवंबर 2026, सुबह 09:30 बजे',
+      dateText: '10-11-2026, सुबह 09:30 बजे (10-11-2026)',
       provider: 'आंगनवाड़ी केंद्र, वार्ड 3',
       details: 'गर्भवती महिलाओं और धात्री माताओं के लिए मासिक टेक-होम राशन (THR) वितरण।',
       priority: 'Routine',
