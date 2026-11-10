@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { secureStorage } from '../services/storage/secureStorage';
 import { authApi } from '../services/api/authApi';
+import { setOnUnauthorizedHandler } from '../services/api/apiClient';
 import { notificationService } from '../services/notifications/notificationService';
 
 // Explicit development configuration for demo accounts
@@ -107,9 +108,10 @@ const loginDemoAccount = async (set, profile, devToken) => {
 };
 
 export const useAuthStore = create((set, get) => ({
-  user: DEMO_ASHA_PROFILE, // Default active dev profile
-  token: 'demo_token_asha_sunita_001',
-  isAuthenticated: true,
+  // Only local development starts signed in; deployed builds must log in for a JWT.
+  user: __DEV__ ? DEMO_ASHA_PROFILE : null,
+  token: __DEV__ ? 'demo_token_asha_sunita_001' : null,
+  isAuthenticated: __DEV__,
   isLoading: false,
   isOnboardingCompleted: true,
 
@@ -119,7 +121,10 @@ export const useAuthStore = create((set, get) => ({
       const storedToken = await secureStorage.getItem('@sahayika_token');
       const storedUser = await AsyncStorage.getItem('@sahayika_user');
 
-      if (storedToken && storedUser) {
+      // Earlier builds stored a fixed demo token that deployed backends reject.
+      const isUsableToken = storedToken && (__DEV__ || !storedToken.startsWith('demo_token'));
+
+      if (isUsableToken && storedUser) {
         set({
           token: storedToken,
           user: JSON.parse(storedUser),
@@ -329,3 +334,12 @@ export const useAuthStore = create((set, get) => ({
     });
   }
 }));
+
+if (!__DEV__) {
+  setOnUnauthorizedHandler(() => {
+    secureStorage.deleteItem('@sahayika_token').catch(() => {});
+    AsyncStorage.removeItem('@sahayika_user').catch(() => {});
+    useAuthStore.setState({ user: null, token: null, isAuthenticated: false });
+  });
+  useAuthStore.getState().initializeAuth();
+}
