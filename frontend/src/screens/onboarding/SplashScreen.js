@@ -1,33 +1,26 @@
 import { tr } from '../../localisation/tr';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, StatusBar, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, radius, shadows } from '../../theme';
-import { useAuthStore } from '../../store/authStore';
+import { setOnboardingStartRoute } from '../../navigation/onboardingFlow';
 
 export const SplashScreen = ({ navigation }) => {
-  const { initializeAuth } = useAuthStore();
-
-  useEffect(() => {
-    const init = async () => {
-      await initializeAuth();
-      const timer = setTimeout(() => {
-        navigation.replace('MainTabs');
-      }, 1400);
-      return () => clearTimeout(timer);
-    };
-    init();
-  }, []);
+  // The app always starts here: splash → language → login (role choice).
+  const goToLanguage = () => {
+    setOnboardingStartRoute('LanguageSelection');
+    navigation.replace('LanguageSelection');
+  };
 
   return (
     <TouchableOpacity
       activeOpacity={0.95}
-      onPress={() => navigation.replace('MainTabs')}
+      onPress={goToLanguage}
       style={styles.container}
     >
       <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
       <View style={styles.logoBadge}>
-        <Ionicons name="heart-pulse" size={54} color={colors.primary} />
+        <Ionicons name="pulse" size={54} color={colors.primary} />
       </View>
       <Text style={styles.title}>{tr('सहायिका')}</Text>
       <Text style={styles.subTitle}>{tr('SAHAYIKA')}</Text>

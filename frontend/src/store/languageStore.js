@@ -21,9 +21,10 @@ export const useLanguageStore = create((set, get) => ({
 
   setUiLanguage: async (langCode) => {
     try {
+      // Store the choice first: changing i18n remounts the screens, which read it.
+      set({ uiLanguage: langCode });
       await i18n.changeLanguage(langCode);
       await AsyncStorage.setItem('@sahayika_ui_lang', langCode);
-      set({ uiLanguage: langCode });
     } catch (e) {
       console.error('Error changing UI language', e);
     }

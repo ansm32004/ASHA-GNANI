@@ -8,6 +8,7 @@ import { AppHeader } from '../../components/common/AppHeader';
 import { useLanguageStore } from '../../store/languageStore';
 import { SUPPORTED_LANGUAGES } from '../../localisation';
 import { useTranslation } from 'react-i18next';
+import { setOnboardingStartRoute } from '../../navigation/onboardingFlow';
 
 export const LanguageScreen = ({ navigation, route }) => {
   const { t } = useTranslation();
@@ -16,6 +17,8 @@ export const LanguageScreen = ({ navigation, route }) => {
   const [selectedLang, setSelectedLang] = useState(uiLanguage);
 
   const handleSelectLanguage = (langCode) => {
+    // Changing language remounts the navigator; come back to this screen.
+    if (!isFromSettings) setOnboardingStartRoute('LanguageSelection');
     setSelectedLang(langCode);
     setUiLanguage(langCode);
     setVoiceLanguage(langCode);
@@ -25,6 +28,7 @@ export const LanguageScreen = ({ navigation, route }) => {
     if (isFromSettings) {
       navigation.goBack();
     } else {
+      setOnboardingStartRoute('Login');
       navigation.navigate('Login');
     }
   };

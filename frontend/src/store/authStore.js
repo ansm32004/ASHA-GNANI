@@ -108,10 +108,10 @@ const loginDemoAccount = async (set, profile, devToken) => {
 };
 
 export const useAuthStore = create((set, get) => ({
-  // Only local development starts signed in; deployed builds must log in for a JWT.
-  user: __DEV__ ? DEMO_ASHA_PROFILE : null,
-  token: __DEV__ ? 'demo_token_asha_sunita_001' : null,
-  isAuthenticated: __DEV__,
+  // Every launch starts signed out so the app opens on splash → language → login.
+  user: null,
+  token: null,
+  isAuthenticated: false,
   isLoading: false,
   isOnboardingCompleted: true,
 
@@ -341,5 +341,4 @@ if (!__DEV__) {
     AsyncStorage.removeItem('@sahayika_user').catch(() => {});
     useAuthStore.setState({ user: null, token: null, isAuthenticated: false });
   });
-  useAuthStore.getState().initializeAuth();
 }

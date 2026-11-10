@@ -180,7 +180,7 @@ export const LoginScreen = ({ navigation }) => {
     if (navigation?.canGoBack && navigation.canGoBack()) {
       navigation.goBack();
     } else {
-      navigation.navigate('Welcome');
+      navigation.navigate('LanguageSelection');
     }
   };
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuthStore } from '../store/authStore';
+import { getOnboardingStartRoute } from './onboardingFlow';
 
 // Onboarding & Auth Screens
 import { LoginScreen } from '../screens/onboarding/LoginScreen';
@@ -42,17 +43,20 @@ export const RootNavigator = () => {
   const isCommunityUser = isAuthenticated && user?.role === 'COMMUNITY';
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false, animation: 'fade' }}>
+    <Stack.Navigator
+      initialRouteName={!isAuthenticated ? getOnboardingStartRoute() : undefined}
+      screenOptions={{ headerShown: false, animation: 'fade' }}
+    >
       {!isAuthenticated ? (
         // Unauthenticated Stack (Login & Onboarding)
         <Stack.Group>
+          <Stack.Screen name="Splash" component={SplashScreen} />
+          <Stack.Screen name="LanguageSelection" component={LanguageScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Signup" component={SignupScreen} />
           <Stack.Screen name="OtpVerification" component={OtpScreen} />
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
-          <Stack.Screen name="LanguageSelection" component={LanguageScreen} />
           <Stack.Screen name="Permissions" component={PermissionsScreen} />
-          <Stack.Screen name="Splash" component={SplashScreen} />
         </Stack.Group>
       ) : isCommunityUser ? (
         // Phase 2: Community / Beneficiary App Stack
