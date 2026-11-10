@@ -1,11 +1,17 @@
 import { tr } from '../../localisation/tr';
-import React from 'react';
+import React, { useEffect } from 'react';
+import { warmUpServer } from '../../services/api/apiClient';
 import { View, Text, StyleSheet, StatusBar, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, radius, shadows } from '../../theme';
 import { setOnboardingStartRoute } from '../../navigation/onboardingFlow';
 
 export const SplashScreen = ({ navigation }) => {
+  // Wake the sleeping backend now so it is ready by the time the user signs in.
+  useEffect(() => {
+    warmUpServer();
+  }, []);
+
   // The app always starts here: splash → language → login (role choice).
   const goToLanguage = () => {
     setOnboardingStartRoute('LanguageSelection');

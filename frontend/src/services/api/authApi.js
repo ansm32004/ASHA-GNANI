@@ -1,4 +1,4 @@
-import { apiClient } from './apiClient';
+import { apiClient, AUTH_TIMEOUT_MS } from './apiClient';
 
 /**
  * Centralised Authentication API Service
@@ -35,11 +35,11 @@ export const authApi = {
    * Endpoint: POST /api/v1/auth/login-credentials
    */
   loginWithCredentials: async (email, password, role = null) => {
-    const res = await apiClient.post('/auth/login-credentials', {
-      email,
-      password,
-      role
-    });
+    const res = await apiClient.post(
+      '/auth/login-credentials',
+      { email, password, role },
+      { timeout: AUTH_TIMEOUT_MS }
+    );
     return res.data;
   },
 
@@ -48,7 +48,9 @@ export const authApi = {
    * Endpoint: POST /api/v1/auth/register
    */
   register: async (registrationData) => {
-    const res = await apiClient.post('/auth/register', registrationData);
+    const res = await apiClient.post('/auth/register', registrationData, {
+      timeout: AUTH_TIMEOUT_MS
+    });
     return res.data;
   },
 

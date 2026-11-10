@@ -24,6 +24,21 @@ export const apiClient = axios.create({
   }
 });
 
+// The free Render backend sleeps when idle and takes up to about a minute to
+// wake, so sign-in requests get a longer timeout than regular requests.
+export const AUTH_TIMEOUT_MS = 70000;
+
+// Starts waking the backend early (called from the splash screen) so it is
+// ready by the time the user signs in. /health does not touch the database.
+let warmUpStarted = false;
+export const warmUpServer = () => {
+  if (warmUpStarted) return;
+  warmUpStarted = true;
+  axios.get(`${API_ORIGIN}/health`, { timeout: AUTH_TIMEOUT_MS }).catch(() => {
+    warmUpStarted = false;
+  });
+};
+
 // Optional callback listener for session expiration (401)
 let onUnauthorizedHandler = null;
 

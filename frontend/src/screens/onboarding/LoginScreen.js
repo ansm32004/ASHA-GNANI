@@ -1,6 +1,7 @@
 import { tr } from '../../localisation/tr';
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert, BackHandler } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert, BackHandler, ActivityIndicator } from 'react-native';
+import { warmUpServer } from '../../services/api/apiClient';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius, shadows } from '../../theme';
 import { AppButton } from '../../components/common/AppButton';
@@ -41,19 +42,27 @@ export const LoginScreen = ({ navigation }) => {
   const [signupHouseholdCode, setSignupHouseholdCode] = useState('');
   const [signupSubArea, setSignupSubArea] = useState('');
 
-  const handleDemoAshaLogin = async () => {
+  // Which role card is signing in; the first sign-in can take up to a minute
+  // while the server wakes, so the cards show progress and ignore repeat taps.
+  const [roleLoading, setRoleLoading] = useState(null);
+
+  const runDemoLogin = async (role, login) => {
+    if (loading || roleLoading) return;
+    setError(null);
+    setRoleLoading(role);
     setLoading(true);
-    const result = await loginDemoAsha();
+    const result = await login();
     if (!result?.success) setError(result?.error || 'Demo login failed. Please try again.');
     setLoading(false);
+    setRoleLoading(null);
   };
 
-  const handleDemoCommunityLogin = async () => {
-    setLoading(true);
-    const result = await loginDemoCommunity();
-    if (!result?.success) setError(result?.error || 'Demo login failed. Please try again.');
-    setLoading(false);
-  };
+  const handleDemoAshaLogin = () => runDemoLogin('ASHA', loginDemoAsha);
+  const handleDemoCommunityLogin = () => runDemoLogin('COMMUNITY', loginDemoCommunity);
+
+  useEffect(() => {
+    warmUpServer();
+  }, []);
 
   const handleCredentialsLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -228,7 +237,11 @@ export const LoginScreen = ({ navigation }) => {
               <Text style={styles.roleTitle}>ASHA Worker</Text>
               <Text style={styles.roleSubtitle}>फील्ड भेंट और परिवारों का रिकॉर्ड</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+            {roleLoading === 'ASHA' ? (
+              <ActivityIndicator size="small" color={colors.primary} />
+            ) : (
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -244,8 +257,18 @@ export const LoginScreen = ({ navigation }) => {
               <Text style={styles.roleTitle}>Community Member</Text>
               <Text style={styles.roleSubtitle}>स्वास्थ्य जानकारी और आशा दीदी से संपर्क</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+            {roleLoading === 'COMMUNITY' ? (
+              <ActivityIndicator size="small" color={colors.primary} />
+            ) : (
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+            )}
           </TouchableOpacity>
+
+          {roleLoading ? (
+            <Text style={styles.connectingNote}>
+              Connecting to the server, this can take up to a minute · सर्वर से जुड़ रहे हैं
+            </Text>
+          ) : null}
 
           <View style={styles.formCard}>
             <Text style={styles.sectionTitle}>
@@ -576,6 +599,12 @@ const styles = StyleSheet.create({
     ...typography.bodySmall,
     color: colors.textMuted,
     marginTop: 2
+  },
+  connectingNote: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: spacing.md
   },
   formCard: {
     backgroundColor: colors.surface,
