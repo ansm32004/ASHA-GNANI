@@ -211,30 +211,6 @@ Never commit `.env` files, private keys or service-account credentials.
 
 ---
 
-## Deployment architecture
-
-```mermaid
-flowchart TB
-    FE["SAHAYIKA FRONTEND<br/>Render"]
-    BE["FASTAPI BACKEND<br/>Render"]
-    FB[("FIREBASE<br/>Cloud Firestore")]
-    AI["GNANI / GEMINI<br/>External Services"]
-
-    FE -->|"API requests"| BE
-    BE <-->|"Data persistence"| FB
-    BE <-->|"Voice & AI services"| AI
-
-    classDef frontend fill:#DCEAF2,stroke:#416B87,color:#24465A
-    classDef backend fill:#E9E0F0,stroke:#8061A1,color:#59436F
-    classDef firebase fill:#F4EBD5,stroke:#A77B36,color:#725326
-    classDef ai fill:#D8EEE1,stroke:#176B5B,color:#16463D
-
-    class FE frontend
-    class BE backend
-    class FB firebase
-    class AI ai
-```
-
 ### Live services
 
 | SERVICE | DESTINATION |
