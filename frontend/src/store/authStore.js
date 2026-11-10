@@ -6,6 +6,7 @@ import { notificationService } from '../services/notifications/notificationServi
 
 // Explicit development configuration for demo accounts
 const IS_DEMO_ENABLED = __DEV__ || process.env.EXPO_PUBLIC_ENABLE_DEMO_LOGIN === 'true';
+const DEMO_ACCOUNT_PASSWORD = 'Sahayika@123';
 
 export const DEMO_ASHA_PROFILE = {
   id: 'asha_sunita_001',
@@ -73,6 +74,38 @@ export const DEMO_COMMUNITY_PROFILE = {
   ]
 };
 
+const loginDemoAccount = async (set, profile, devToken) => {
+  if (!IS_DEMO_ENABLED) {
+    return { success: false, error: 'Demo logins are disabled in production builds.' };
+  }
+  try {
+    let token = devToken;
+    let user = profile;
+    try {
+      const res = await authApi.loginWithCredentials(profile.email, DEMO_ACCOUNT_PASSWORD);
+      token = res.access_token;
+      user = { ...profile, ...res.user };
+    } catch (apiErr) {
+      // Only local development may continue offline with the dev token.
+      if (!__DEV__) throw apiErr;
+    }
+    await secureStorage.setItem('@sahayika_token', token);
+    await AsyncStorage.setItem('@sahayika_user', JSON.stringify(user));
+    await AsyncStorage.setItem('@sahayika_onboarded', 'true');
+    set({
+      token,
+      user,
+      isAuthenticated: true,
+      isOnboardingCompleted: true,
+      isLoading: false
+    });
+    notificationService.registerForPushNotificationsAsync().catch(() => {});
+    return { success: true, user };
+  } catch (e) {
+    return { success: false, error: e.userFriendlyMessage || e.message };
+  }
+};
+
 export const useAuthStore = create((set, get) => ({
   user: DEMO_ASHA_PROFILE, // Default active dev profile
   token: 'demo_token_asha_sunita_001',
@@ -95,7 +128,7 @@ export const useAuthStore = create((set, get) => ({
           isLoading: false
         });
         notificationService.registerForPushNotificationsAsync().catch(() => {});
-      } else if (IS_DEMO_ENABLED) {
+      } else if (__DEV__) {
         // Dev convenience default
         set({
           user: DEMO_ASHA_PROFILE,
@@ -136,53 +169,9 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  loginDemoAsha: async () => {
-    if (!IS_DEMO_ENABLED) {
-      return { success: false, error: 'Demo logins are disabled in production builds.' };
-    }
-    try {
-      const token = 'demo_token_asha_sunita_001';
-      const user = DEMO_ASHA_PROFILE;
-      await secureStorage.setItem('@sahayika_token', token);
-      await AsyncStorage.setItem('@sahayika_user', JSON.stringify(user));
-      await AsyncStorage.setItem('@sahayika_onboarded', 'true');
-      set({
-        token,
-        user,
-        isAuthenticated: true,
-        isOnboardingCompleted: true,
-        isLoading: false
-      });
-      notificationService.registerForPushNotificationsAsync().catch(() => {});
-      return { success: true, user };
-    } catch (e) {
-      return { success: false, error: e.message };
-    }
-  },
+  loginDemoAsha: () => loginDemoAccount(set, DEMO_ASHA_PROFILE, 'demo_token_asha_sunita_001'),
 
-  loginDemoCommunity: async () => {
-    if (!IS_DEMO_ENABLED) {
-      return { success: false, error: 'Demo logins are disabled in production builds.' };
-    }
-    try {
-      const token = 'demo_token_comm_meena_001';
-      const user = DEMO_COMMUNITY_PROFILE;
-      await secureStorage.setItem('@sahayika_token', token);
-      await AsyncStorage.setItem('@sahayika_user', JSON.stringify(user));
-      await AsyncStorage.setItem('@sahayika_onboarded', 'true');
-      set({
-        token,
-        user,
-        isAuthenticated: true,
-        isOnboardingCompleted: true,
-        isLoading: false
-      });
-      notificationService.registerForPushNotificationsAsync().catch(() => {});
-      return { success: true, user };
-    } catch (e) {
-      return { success: false, error: e.message };
-    }
-  },
+  loginDemoCommunity: () => loginDemoAccount(set, DEMO_COMMUNITY_PROFILE, 'demo_token_comm_meena_001'),
 
   loginWithCredentials: async (email, password) => {
     try {

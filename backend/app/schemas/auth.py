@@ -53,13 +53,13 @@ class UserProfile(BaseModel):
     name: str
     phone: str
     role: str = "ASHA"
-    asha_id: str
+    asha_id: Optional[str] = None
     village_name: str
-    sub_centre: str
-    phc_name: str
+    sub_centre: Optional[str] = None
+    phc_name: Optional[str] = None
     district: str
     state: str
-    assigned_clusters: List[str]
+    assigned_clusters: List[str] = Field(default_factory=list)
     preferred_ui_language: str = "hi"
     preferred_voice_language: str = "hi"
     total_assigned_households: int = 42

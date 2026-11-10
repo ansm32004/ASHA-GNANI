@@ -41,13 +41,15 @@ export const LoginScreen = ({ navigation }) => {
 
   const handleDemoAshaLogin = async () => {
     setLoading(true);
-    await loginDemoAsha();
+    const result = await loginDemoAsha();
+    if (!result?.success) setError(result?.error || 'Demo login failed. Please try again.');
     setLoading(false);
   };
 
   const handleDemoCommunityLogin = async () => {
     setLoading(true);
-    await loginDemoCommunity();
+    const result = await loginDemoCommunity();
+    if (!result?.success) setError(result?.error || 'Demo login failed. Please try again.');
     setLoading(false);
   };
 

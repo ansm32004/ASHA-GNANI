@@ -145,7 +145,14 @@ class AuthService:
             }
 
         # Save to Firestore
-        user_repository.create_user(user_data)
+        try:
+            user_repository.create_user(user_data)
+        except Exception as e:
+            logger.error(f"Could not save user {user_id}: {type(e).__name__}: {e}")
+            raise SahayikaException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                message="Unable to save user registration. Database write failed."
+            )
 
         if role == "COMMUNITY" and user_data.get("household_id"):
             try:

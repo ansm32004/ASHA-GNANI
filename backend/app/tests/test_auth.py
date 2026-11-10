@@ -309,4 +309,48 @@ async def test_token_revocation_security_and_hashing():
         assert me_after.status_code == 401
 
 
+@pytest.mark.asyncio
+async def test_community_user_can_fetch_profile():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        login = await ac.post("/api/v1/auth/login-credentials", json={
+            "email": "community.demo@sahayika.test",
+            "password": "Sahayika@123",
+        })
+        assert login.status_code == 200
+        headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+        profile = await ac.get("/api/v1/auth/me", headers=headers)
+        assert profile.status_code == 200
+        assert profile.json()["role"] == "COMMUNITY"
+        assert profile.json()["asha_id"] is None
+
+
+@pytest.mark.asyncio
+async def test_register_reports_database_failures_without_leaking_details():
+    payload = {
+        "role": "ASHA",
+        "name": "Write Failure",
+        "email": "write.failure@sahayika.test",
+        "phone": "9876512399",
+        "password": "StrongPassword123!",
+        "village_name": "Rampur Kalan",
+        "district": "Varanasi",
+        "state": "Uttar Pradesh",
+    }
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        with patch.object(user_repository, "get_by_email", return_value=None), \
+             patch.object(user_repository, "create_user", side_effect=RuntimeError("internal-detail")):
+            write_res = await ac.post("/api/v1/auth/register", json=payload)
+        assert write_res.status_code == 503
+        assert write_res.json()["message"] == "Unable to save user registration. Database write failed."
+        assert "internal-detail" not in write_res.text
+
+        with patch.object(user_repository, "get_by_email", side_effect=RuntimeError("internal-detail")):
+            lookup_res = await ac.post("/api/v1/auth/register", json=payload)
+        assert lookup_res.status_code == 503
+        assert lookup_res.json()["message"] == "Unable to verify user registration. Database query failed."
+        assert "internal-detail" not in lookup_res.text
+
+
 
