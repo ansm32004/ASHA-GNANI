@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, KeyboardAvoidin
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius, shadows } from '../../theme';
 import { AppButton } from '../../components/common/AppButton';
+import { GradientOrb } from '../../components/common/GradientOrb';
 import { AppInput } from '../../components/common/AppInput';
 import { AppHeader } from '../../components/common/AppHeader';
 import { useAuthStore } from '../../store/authStore';
@@ -183,80 +184,75 @@ export const LoginScreen = ({ navigation }) => {
     }
   };
 
+  const signupLabels = [
+    ['Full name', 'पूरा नाम'],
+    ['Email address', 'ईमेल पता'],
+    ['Mobile number', 'मोबाइल नंबर'],
+    ['Date of birth', 'जन्म तिथि'],
+    ['Gender', 'लिंग']
+  ];
+  const label = (en, hi, required = false) => `${en}${required ? ' *' : ''} · ${hi}`;
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <AppHeader title="SAHAYIKA Access" showBack onBack={handleHeaderBack} />
+      <AppHeader title="Sahayika" showBack onBack={handleHeaderBack} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-          {/* Logo Brand Emblem */}
-          <View style={styles.iconCircle}>
-            <Ionicons name="medical" size={32} color={colors.primary} />
+          <View style={styles.hero}>
+            <GradientOrb size={56}>
+              <Ionicons name="medical" size={24} color={colors.textWhite} />
+            </GradientOrb>
+            <Text style={styles.title}>Welcome to Sahayika</Text>
+            <Text style={styles.subtitle}>आशा कार्यकर्ताओं और परिवारों की स्वास्थ्य साथी</Text>
           </View>
 
-          <Text style={styles.title}>{tr('Welcome to SAHAYIKA')}</Text>
-          <Text style={styles.subtitle}>{tr('Select your application role or sign in below')}</Text>
+          <View style={styles.sectionHead}>
+            <Text style={styles.sectionTitle}>Choose your role</Text>
+            <Text style={styles.sectionSubtitle}>अपनी भूमिका चुनें</Text>
+          </View>
 
-          {/* Role Selection & Quick Access Section */}
-          <View style={styles.roleCard}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="flash-outline" size={13} color={colors.deepBlue} style={{ marginRight: 4 }} />
-              <Text style={styles.roleSectionTitle}>{tr('Quick Role Access')}</Text>
+          <TouchableOpacity
+            style={styles.roleOption}
+            onPress={handleDemoAshaLogin}
+            activeOpacity={0.85}
+            accessibilityLabel="Continue as ASHA Worker"
+          >
+            <View style={styles.roleIconPod}>
+              <Ionicons name="clipboard-outline" size={21} color={colors.ink} />
             </View>
-            <Text style={styles.roleSectionDesc}>{tr('Two independent experiences for ASHA Workers and Community Members.')}</Text>
+            <View style={styles.roleTextCol}>
+              <Text style={styles.roleTitle}>ASHA Worker</Text>
+              <Text style={styles.roleSubtitle}>फील्ड भेंट और परिवारों का रिकॉर्ड</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+          </TouchableOpacity>
 
-            {/* 1. Continue as ASHA Worker */}
-            <TouchableOpacity
-              style={styles.roleOption}
-              onPress={handleDemoAshaLogin}
-              activeOpacity={0.85}
-            >
-              <View style={[styles.roleIconPod, { backgroundColor: colors.primaryLight }]}>
-                <Ionicons name="clipboard-outline" size={22} color={colors.primary} />
-              </View>
-              <View style={styles.roleTextCol}>
-                <View style={styles.roleHeaderRow}>
-                  <Text style={styles.roleTitle}>{tr('Continue as ASHA Worker')}</Text>
-                  <View style={[styles.roleBadge, { backgroundColor: colors.primaryLight }]}>
-                    <Text style={[styles.roleBadgeText, { color: colors.primary }]}>{tr('Field App')}</Text>
-                  </View>
-                </View>
-                <Text style={styles.roleSubtitle}>{tr('Professional field-work & household management app')}</Text>
-                <Text style={styles.credentialPill}>{tr('asha.demo@sahayika.test • Sunita Devi')}</Text>
-              </View>
-              <Ionicons name="arrow-forward" size={18} color={colors.primary} />
-            </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.roleOption}
+            onPress={handleDemoCommunityLogin}
+            activeOpacity={0.85}
+            accessibilityLabel="Continue as Community Member"
+          >
+            <View style={styles.roleIconPod}>
+              <Ionicons name="heart-outline" size={21} color={colors.ink} />
+            </View>
+            <View style={styles.roleTextCol}>
+              <Text style={styles.roleTitle}>Community Member</Text>
+              <Text style={styles.roleSubtitle}>स्वास्थ्य जानकारी और आशा दीदी से संपर्क</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+          </TouchableOpacity>
 
-            {/* 2. Continue as Community Member */}
-            <TouchableOpacity
-              style={[styles.roleOption, { borderColor: colors.border, marginTop: 10 }]}
-              onPress={handleDemoCommunityLogin}
-              activeOpacity={0.85}
-            >
-              <View style={[styles.roleIconPod, { backgroundColor: colors.tealLight }]}>
-                <Ionicons name="heart-outline" size={22} color={colors.teal} />
-              </View>
-              <View style={styles.roleTextCol}>
-                <View style={styles.roleHeaderRow}>
-                  <Text style={styles.roleTitle}>{tr('Continue as Community Member')}</Text>
-                  <View style={[styles.roleBadge, { backgroundColor: colors.tealLight }]}>
-                    <Text style={[styles.roleBadgeText, { color: colors.teal }]}>{tr('Family App')}</Text>
-                  </View>
-                </View>
-                <Text style={styles.roleSubtitle}>{tr('Voice-first health guide & ASHA connection for families')}</Text>
-                <Text style={[styles.credentialPill, { color: colors.teal }]}>{tr('community.demo@sahayika.test • Meena Devi')}</Text>
-              </View>
-              <Ionicons name="arrow-forward" size={18} color={colors.teal} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Credentials Card (In-place Sign In or Sign Up Form) */}
           <View style={styles.formCard}>
-            <Text style={styles.formCardTitle}>
-              {tr(formMode === 'signin' ? 'Or Sign In with Credentials' : 'Create New Account')}
+            <Text style={styles.sectionTitle}>
+              {formMode === 'signin' ? 'Sign in with email' : 'Create an account'}
+            </Text>
+            <Text style={[styles.sectionSubtitle, styles.formSubtitle]}>
+              {formMode === 'signin' ? 'ईमेल और पासवर्ड से साइन इन करें' : 'नया खाता बनाएं'}
             </Text>
 
             {error ? <Text style={styles.errorText}>{tr(error)}</Text> : null}
@@ -264,8 +260,8 @@ export const LoginScreen = ({ navigation }) => {
             {formMode === 'signin' ? (
               <>
                 <AppInput
-                  label="Email Address"
-                  placeholder={tr('e.g. asha.demo@sahayika.test')}
+                  label={label('Email address', 'ईमेल पता')}
+                  placeholder="name@example.com"
                   value={email}
                   onChangeText={(v) => {
                     setEmail(v);
@@ -276,8 +272,8 @@ export const LoginScreen = ({ navigation }) => {
                 />
 
                 <AppInput
-                  label="Password"
-                  placeholder={tr('Enter password')}
+                  label={label('Password', 'पासवर्ड')}
+                  placeholder="••••••••"
                   value={password}
                   onChangeText={(v) => {
                     setPassword(v);
@@ -287,7 +283,7 @@ export const LoginScreen = ({ navigation }) => {
                 />
 
                 <AppButton
-                  title="Sign In with Email"
+                  title="Sign in · साइन इन करें"
                   onPress={handleCredentialsLogin}
                   loading={loading}
                   size="large"
@@ -295,7 +291,7 @@ export const LoginScreen = ({ navigation }) => {
                 />
 
                 <View style={styles.signupPromptRow}>
-                  <Text style={styles.signupPromptText}>{tr('Don\'t have an account?')}{' '}</Text>
+                  <Text style={styles.signupPromptText}>New here? · खाता नहीं है?{' '}</Text>
                   <TouchableOpacity
                     onPress={() => {
                       setFormMode('signup');
@@ -303,98 +299,37 @@ export const LoginScreen = ({ navigation }) => {
                     }}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.signupLinkText}>{tr('Sign Up')}</Text>
+                    <Text style={styles.signupLinkText}>Sign up</Text>
                   </TouchableOpacity>
                 </View>
               </>
             ) : (
               <>
-                {/* Role Tabs for in-place signup */}
                 <View style={styles.roleSelector}>
-                  <TouchableOpacity
-                    style={[
-                      styles.roleTab,
-                      signupRole === 'ASHA' && [
-                        styles.roleTabActive,
-                        { borderColor: colors.border, backgroundColor: colors.primaryLight }
-                      ]
-                    ]}
-                    onPress={() => {
-                      setSignupRole('ASHA');
-                      setError(null);
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <Ionicons
-                      name="clipboard-outline"
-                      size={16}
-                      color={signupRole === 'ASHA' ? colors.primary : colors.textMuted}
-                    />
-                    <Text
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.8}
-                      style={[
-                        styles.roleTabText,
-                        signupRole === 'ASHA' && { color: colors.primary, fontWeight: '600' }
-                      ]}
-                    >{tr('ASHA Worker')}</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.roleTab,
-                      signupRole === 'COMMUNITY' && [
-                        styles.roleTabActive,
-                        { borderColor: colors.border, backgroundColor: colors.tealLight }
-                      ]
-                    ]}
-                    onPress={() => {
-                      setSignupRole('COMMUNITY');
-                      setError(null);
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <Ionicons
-                      name="heart-outline"
-                      size={16}
-                      color={signupRole === 'COMMUNITY' ? colors.teal : colors.textMuted}
-                    />
-                    <Text
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.8}
-                      style={[
-                        styles.roleTabText,
-                        signupRole === 'COMMUNITY' && { color: colors.teal, fontWeight: '600' }
-                      ]}
-                    >{tr('Community Member')}</Text>
-                  </TouchableOpacity>
-                </View>
-
-                <View style={styles.formCardHeader}>
-                  <View
-                    style={[
-                      styles.badgePill,
-                      { backgroundColor: signupRole === 'ASHA' ? colors.primaryLight : colors.tealLight }
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.badgeText,
-                        { color: signupRole === 'ASHA' ? colors.primary : colors.teal }
-                      ]}
+                  {[
+                    ['ASHA', 'ASHA Worker', 'आशा कार्यकर्ता'],
+                    ['COMMUNITY', 'Community Member', 'समुदाय सदस्य']
+                  ].map(([value, en, hi]) => (
+                    <TouchableOpacity
+                      key={value}
+                      style={[styles.roleTab, signupRole === value && styles.roleTabActive]}
+                      onPress={() => {
+                        setSignupRole(value);
+                        setError(null);
+                      }}
+                      activeOpacity={0.8}
                     >
-                      {tr(signupRole === 'ASHA'
-                        ? 'ASHA WORKER REGISTRATION'
-                        : 'COMMUNITY MEMBER REGISTRATION')}
-                    </Text>
-                  </View>
+                      <Text numberOfLines={1} style={[styles.roleTabText, signupRole === value && styles.roleTabTextActive]}>
+                        {en}
+                      </Text>
+                      <Text numberOfLines={1} style={styles.roleTabHint}>{hi}</Text>
+                    </TouchableOpacity>
+                  ))}
                 </View>
 
                 <AppInput
-                  label="Full Name *"
-                  placeholder={tr('e.g. Sunita Devi')}
+                  label={label(...signupLabels[0], true)}
+                  placeholder="Sunita Devi"
                   value={signupName}
                   onChangeText={(v) => {
                     setSignupName(v);
@@ -403,8 +338,8 @@ export const LoginScreen = ({ navigation }) => {
                 />
 
                 <AppInput
-                  label="Email Address *"
-                  placeholder={tr('e.g. name@example.com')}
+                  label={label(...signupLabels[1], true)}
+                  placeholder="name@example.com"
                   value={signupEmail}
                   onChangeText={(v) => {
                     setSignupEmail(v);
@@ -415,8 +350,8 @@ export const LoginScreen = ({ navigation }) => {
                 />
 
                 <AppInput
-                  label="10-Digit Mobile Number *"
-                  placeholder={tr('e.g. 9876543210')}
+                  label={label(...signupLabels[2], true)}
+                  placeholder="9876543210"
                   value={signupPhone}
                   onChangeText={(v) => {
                     setSignupPhone(v);
@@ -429,16 +364,16 @@ export const LoginScreen = ({ navigation }) => {
                 <View style={styles.rowInputs}>
                   <View style={{ flex: 1, marginRight: 6 }}>
                     <AppInput
-                      label="Date of Birth (DD-MM-YYYY)"
-                      placeholder={tr('DD-MM-YYYY (e.g. 15-08-1995)')}
+                      label={label(...signupLabels[3])}
+                      placeholder="DD-MM-YYYY"
                       value={signupDob}
                       onChangeText={setSignupDob}
                     />
                   </View>
                   <View style={{ flex: 1, marginLeft: 6 }}>
                     <AppInput
-                      label="Gender"
-                      placeholder={tr('Female / Male')}
+                      label={label(...signupLabels[4])}
+                      placeholder="Female / महिला"
                       value={signupGender}
                       onChangeText={setSignupGender}
                     />
@@ -448,14 +383,14 @@ export const LoginScreen = ({ navigation }) => {
                 {signupRole === 'ASHA' ? (
                   <>
                     <AppInput
-                      label="ASHA Worker ID / Badge"
-                      placeholder={tr('e.g. ASHA-UP-VNS-2026-001')}
+                      label={label('ASHA ID', 'आशा ID')}
+                      placeholder="ASHA-UP-VNS-2026-001"
                       value={signupAshaId}
                       onChangeText={setSignupAshaId}
                     />
                     <AppInput
-                      label="Block / Sub-District"
-                      placeholder={tr('e.g. Kashi Block')}
+                      label={label('Block', 'ब्लॉक')}
+                      placeholder="Kashi Block"
                       value={signupBlock}
                       onChangeText={setSignupBlock}
                     />
@@ -463,14 +398,14 @@ export const LoginScreen = ({ navigation }) => {
                 ) : (
                   <>
                     <AppInput
-                      label="Household / Family Code"
-                      placeholder={tr('e.g. HH-RK-042')}
+                      label={label('Household code', 'परिवार कोड')}
+                      placeholder="HH-RK-042"
                       value={signupHouseholdCode}
                       onChangeText={setSignupHouseholdCode}
                     />
                     <AppInput
-                      label="Ward / Sub-Area"
-                      placeholder={tr('e.g. Ward 3, Near Primary School')}
+                      label={label('Ward / area', 'वार्ड / क्षेत्र')}
+                      placeholder="Ward 3"
                       value={signupSubArea}
                       onChangeText={setSignupSubArea}
                     />
@@ -478,8 +413,8 @@ export const LoginScreen = ({ navigation }) => {
                 )}
 
                 <AppInput
-                  label="Village / Assigned Area *"
-                  placeholder={tr('e.g. Rampur Kalan')}
+                  label={label('Village', 'गांव', true)}
+                  placeholder="Rampur Kalan"
                   value={signupVillageName}
                   onChangeText={(v) => {
                     setSignupVillageName(v);
@@ -490,16 +425,16 @@ export const LoginScreen = ({ navigation }) => {
                 <View style={styles.rowInputs}>
                   <View style={{ flex: 1, marginRight: 6 }}>
                     <AppInput
-                      label="District"
-                      placeholder={tr('District')}
+                      label={label('District', 'ज़िला')}
+                      placeholder="Varanasi"
                       value={signupDistrict}
                       onChangeText={setSignupDistrict}
                     />
                   </View>
                   <View style={{ flex: 1, marginLeft: 6 }}>
                     <AppInput
-                      label="State"
-                      placeholder={tr('State')}
+                      label={label('State', 'राज्य')}
+                      placeholder="Uttar Pradesh"
                       value={signupState}
                       onChangeText={setSignupState}
                     />
@@ -507,15 +442,15 @@ export const LoginScreen = ({ navigation }) => {
                 </View>
 
                 <AppInput
-                  label="Street Address"
-                  placeholder={tr('House number, street or landmark')}
+                  label={label('Address', 'पता')}
+                  placeholder="House, street or landmark"
                   value={signupAddress}
                   onChangeText={setSignupAddress}
                 />
 
                 <AppInput
-                  label="Password (min 8 characters) *"
-                  placeholder={tr('Create strong password')}
+                  label={label('Password', 'पासवर्ड', true)}
+                  placeholder="Min 8 characters · कम से कम 8 अक्षर"
                   value={signupPassword}
                   onChangeText={(v) => {
                     setSignupPassword(v);
@@ -525,8 +460,8 @@ export const LoginScreen = ({ navigation }) => {
                 />
 
                 <AppInput
-                  label="Confirm Password *"
-                  placeholder={tr('Re-enter password')}
+                  label={label('Confirm password', 'पासवर्ड दोबारा', true)}
+                  placeholder="••••••••"
                   value={signupConfirmPassword}
                   onChangeText={(v) => {
                     setSignupConfirmPassword(v);
@@ -536,16 +471,15 @@ export const LoginScreen = ({ navigation }) => {
                 />
 
                 <AppButton
-                  title={`${tr('Register as')} ${tr(signupRole === 'ASHA' ? 'ASHA Worker' : 'Community Member')}`}
+                  title="Create account · खाता बनाएं"
                   onPress={handleSignup}
                   loading={loading}
                   size="large"
-                  variant={signupRole === 'ASHA' ? 'primary' : 'teal'}
                   style={{ marginTop: spacing.md }}
                 />
 
                 <View style={styles.signupPromptRow}>
-                  <Text style={styles.signupPromptText}>{tr('Already have an account?')}{' '}</Text>
+                  <Text style={styles.signupPromptText}>Have an account? · पहले से खाता है?{' '}</Text>
                   <TouchableOpacity
                     onPress={() => {
                       setFormMode('signin');
@@ -553,19 +487,12 @@ export const LoginScreen = ({ navigation }) => {
                     }}
                     activeOpacity={0.7}
                   >
-                    <Text
-                      style={[
-                        styles.signupLinkText,
-                        { color: signupRole === 'ASHA' ? colors.primary : colors.teal }
-                      ]}
-                    >{tr('Sign In')}</Text>
+                    <Text style={styles.signupLinkText}>Sign in</Text>
                   </TouchableOpacity>
                 </View>
               </>
             )}
           </View>
-
-          <Text style={styles.footerNote}>{tr('SAHAYIKA Ecosystem • Shared Backend & Dedicated Experiences')}</Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -581,192 +508,142 @@ const styles = StyleSheet.create({
     flex: 1
   },
   container: {
-    padding: spacing.screenPadding,
-    alignItems: 'center',
+    paddingHorizontal: spacing.screenPadding,
+    paddingTop: spacing.base,
     paddingBottom: spacing.xxxl
   },
-  iconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.primaryLight,
+  hero: {
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.xs,
-    borderWidth: 1.5,
-    borderColor: colors.primaryMuted,
-    ...shadows.soft
+    marginBottom: spacing.xl
   },
   title: {
-    fontSize: 22,
-    fontWeight: '600',
-    color: colors.primaryText,
-    textAlign: 'center'
+    ...typography.displayLarge,
+    color: colors.textPrimary,
+    textAlign: 'center',
+    marginTop: spacing.base
   },
   subtitle: {
-    fontSize: 13,
-    color: colors.secondaryText,
+    ...typography.bodyMedium,
+    color: colors.textSecondary,
     textAlign: 'center',
-    marginTop: 2,
-    marginBottom: spacing.md
+    marginTop: spacing.xs
   },
-  roleCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 22,
-    padding: spacing.cardPadding,
-    width: '100%',
-    borderWidth: 1,
-    borderColor: colors.border,
+  sectionHead: {
     marginBottom: spacing.md,
-    ...shadows.card
+    paddingHorizontal: spacing.xs
   },
-  roleSectionTitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.deepBlue
+  sectionTitle: {
+    ...typography.heading2,
+    color: colors.textPrimary
   },
-  roleSectionDesc: {
-    fontSize: 12,
-    color: colors.secondaryText,
-    marginTop: 2,
-    marginBottom: 10
+  sectionSubtitle: {
+    ...typography.bodySmall,
+    color: colors.textMuted,
+    marginTop: 2
+  },
+  formSubtitle: {
+    marginBottom: spacing.base
   },
   roleOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: 22,
-    padding: 12,
-    borderWidth: 1.5,
-    borderColor: colors.border
+    backgroundColor: colors.surface,
+    borderRadius: radius.card,
+    paddingVertical: spacing.base,
+    paddingHorizontal: spacing.base,
+    marginBottom: spacing.md,
+    ...shadows.card
   },
   roleIconPod: {
     width: 44,
     height: 44,
     borderRadius: 22,
+    backgroundColor: colors.surfaceSecondary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10
+    marginRight: spacing.md
   },
   roleTextCol: {
-    flex: 1
-  },
-  roleHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingRight: 6
+    flex: 1,
+    marginRight: spacing.sm
   },
   roleTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.primaryText
-  },
-  roleBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: radius.pill
-  },
-  roleBadgeText: {
-    fontSize: 11,
-    fontWeight: '600'
+    ...typography.heading3,
+    fontSize: 16,
+    color: colors.textPrimary
   },
   roleSubtitle: {
-    fontSize: 12,
-    color: colors.secondaryText,
-    marginTop: 1
-  },
-  credentialPill: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: colors.primary,
-    marginTop: 3
+    ...typography.bodySmall,
+    color: colors.textMuted,
+    marginTop: 2
   },
   formCard: {
     backgroundColor: colors.surface,
-    borderRadius: 24,
-    paddingHorizontal: 16,
-    paddingVertical: spacing.cardPadding,
-    width: '100%',
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderRadius: radius.card,
+    padding: spacing.lg,
+    marginTop: spacing.lg,
     ...shadows.card
   },
-  formCardTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.primaryText,
-    marginBottom: 8
-  },
   errorText: {
-    fontSize: 12,
+    ...typography.bodySmall,
     color: colors.danger,
-    marginBottom: 8
-  },
-  footerNote: {
-    fontSize: 11,
-    color: colors.textMuted,
-    textAlign: 'center',
-    marginTop: spacing.lg
+    backgroundColor: colors.dangerLight,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.md,
+    overflow: 'hidden'
   },
   signupPromptRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: spacing.md
+    marginTop: spacing.base
   },
   signupPromptText: {
-    fontSize: 13,
-    color: colors.secondaryText
+    ...typography.bodySmall,
+    color: colors.textSecondary
   },
   signupLinkText: {
-    fontSize: 13,
+    ...typography.bodySmall,
     fontWeight: '600',
-    color: colors.primary
+    color: colors.textPrimary,
+    textDecorationLine: 'underline'
   },
   roleSelector: {
     flexDirection: 'row',
-    width: '100%',
     backgroundColor: colors.surfaceSecondary,
-    borderRadius: 16,
-    padding: 3,
-    marginBottom: spacing.md,
-    gap: 6
+    borderRadius: radius.pill,
+    padding: 4,
+    marginBottom: spacing.base
   },
   roleTab: {
     flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 9,
+    paddingVertical: 8,
     paddingHorizontal: 6,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'transparent',
-    overflow: 'hidden'
+    borderRadius: radius.pill
   },
   roleTabActive: {
-    ...shadows.soft
+    backgroundColor: colors.surface,
+    ...shadows.subtle
   },
   roleTabText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.textSecondary,
-    marginLeft: 5,
-    flexShrink: 1
+    ...typography.label,
+    fontSize: 13,
+    color: colors.textMuted
   },
-  formCardHeader: {
-    marginBottom: spacing.sm,
-    alignItems: 'center'
+  roleTabTextActive: {
+    color: colors.textPrimary
   },
-  badgePill: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 16
-  },
-  badgeText: {
+  roleTabHint: {
+    ...typography.caption,
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '400',
+    color: colors.textMuted,
+    marginTop: 1
   },
   rowInputs: {
     flexDirection: 'row'
