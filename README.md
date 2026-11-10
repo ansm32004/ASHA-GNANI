@@ -8,7 +8,7 @@
 
 <br/>
 
-[**LIVE APPLICATION ↗**](https://sahayika-frontend.onrender.com/) · [**BACKEND API ↗**](https://sahayika-backend.onrender.com/) · [**SOURCE CODE ↗**](https://github.com/ansm32004/ASHA-GNANI)
+[**LIVE APPLICATION ↗**](https://sahayika-frontend.onrender.com/) · [**SOURCE CODE ↗**](https://github.com/ansm32004/ASHA-GNANI)
 
 <br/>
 
