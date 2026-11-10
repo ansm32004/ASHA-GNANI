@@ -59,7 +59,6 @@ Sahayika brings essential digital workflows together in one place — helping or
 
 <div align="center">
 
-**FOUR CAPABILITIES · ONE CONNECTED EXPERIENCE**
 
 <table>
 <tr>
@@ -67,7 +66,7 @@ Sahayika brings essential digital workflows together in one place — helping or
 
 <h2>01 / ASHA WORKSPACE</h2>
 
-### 🩺 Field operations
+### Field operations
 
 A dedicated workspace for everyday ASHA activities.
 
@@ -86,7 +85,7 @@ A dedicated workspace for everyday ASHA activities.
 
 <h2>02 / COMMUNITY</h2>
 
-### 🏡 Community experience
+### Community experience
 
 A separate experience designed for community users.
 
@@ -107,7 +106,7 @@ A separate experience designed for community users.
 
 <h2>03 / VOICE INTELLIGENCE</h2>
 
-### 🎙 Speech & AI
+### Speech & AI
 
 Voice-enabled capabilities for more natural interaction.
 
@@ -124,7 +123,7 @@ Voice-enabled capabilities for more natural interaction.
 
 <h2>04 / CONNECTED SUPPORT</h2>
 
-### 🛡 Cloud & support
+### Cloud & support
 
 Connected services supporting application workflows.
 
