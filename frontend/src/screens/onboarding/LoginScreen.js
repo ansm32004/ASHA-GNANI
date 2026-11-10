@@ -248,13 +248,13 @@ export const LoginScreen = ({ navigation }) => {
             style={styles.roleOption}
             onPress={handleDemoCommunityLogin}
             activeOpacity={0.85}
-            accessibilityLabel="Continue as Community Member"
+            accessibilityLabel="Continue as Household Member"
           >
             <View style={styles.roleIconPod}>
               <Ionicons name="heart-outline" size={21} color={colors.ink} />
             </View>
             <View style={styles.roleTextCol}>
-              <Text style={styles.roleTitle}>Community Member</Text>
+              <Text style={styles.roleTitle}>Household Member</Text>
               <Text style={styles.roleSubtitle}>स्वास्थ्य जानकारी और आशा दीदी से संपर्क</Text>
             </View>
             {roleLoading === 'COMMUNITY' ? (
@@ -331,7 +331,7 @@ export const LoginScreen = ({ navigation }) => {
                 <View style={styles.roleSelector}>
                   {[
                     ['ASHA', 'ASHA Worker', 'आशा कार्यकर्ता'],
-                    ['COMMUNITY', 'Community Member', 'समुदाय सदस्य']
+                    ['COMMUNITY', 'Household Member', 'परिवार सदस्य']
                   ].map(([value, en, hi]) => (
                     <TouchableOpacity
                       key={value}

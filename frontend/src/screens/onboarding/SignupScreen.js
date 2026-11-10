@@ -179,7 +179,7 @@ export const SignupScreen = ({ navigation }) => {
                 adjustsFontSizeToFit
                 minimumFontScale={0.8}
                 style={[styles.roleTabText, !isAsha && { color: colors.teal, fontWeight: '600' }]}
-              >{tr('Community Member')}</Text>
+              >{tr('Household Member')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -345,7 +345,7 @@ export const SignupScreen = ({ navigation }) => {
 
             {/* Submit Button */}
             <AppButton
-              title={`${tr('Register as')} ${tr(isAsha ? 'ASHA Worker' : 'Community Member')}`}
+              title={`${tr('Register as')} ${tr(isAsha ? 'ASHA Worker' : 'Household Member')}`}
               onPress={handleSignup}
               loading={loading}
               size="large"
