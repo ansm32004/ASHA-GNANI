@@ -144,7 +144,7 @@ Connected services supporting application workflows.
 
 ---
 
-## ◈ System workflow
+## System workflow
 
 *From community interaction to intelligent services — one connected architecture.*
 
@@ -152,11 +152,9 @@ Connected services supporting application workflows.
   <img src="assets/sahayika-workflow.svg" width="100%" alt="Sahayika System Workflow"/>
 </p>
 
-<p align="center">
-  <sub>FIG 01 — SAHAYIKA SYSTEM WORKFLOW</sub>
-</p>
 
-## ◈ Repository map
+
+## Repository map
 
 ```text
 ASHA-GNANI/
@@ -175,7 +173,7 @@ ASHA-GNANI/
 
 ---
 
-## ◈ Run locally
+## Run locally
 
 **01 — Clone the repository**
 
@@ -213,7 +211,7 @@ Never commit `.env` files, private keys or service-account credentials.
 
 ---
 
-## ◈ Deployment architecture
+## Deployment architecture
 
 ```mermaid
 flowchart TB
@@ -247,7 +245,7 @@ flowchart TB
 
 ---
 
-## ◈ Built with responsibility
+## Built with responsibility
 
 - Protect user data and keep credentials out of source control.
 - Use backend validation and database security rules.
@@ -256,7 +254,7 @@ flowchart TB
 
 ---
 
-## ◈ The bigger picture
+## The bigger picture
 
 Sahayika is inspired by the role of ASHA workers in India's community-health ecosystem.
 
