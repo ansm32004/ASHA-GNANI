@@ -149,7 +149,7 @@ Connected services supporting application workflows.
 *From community interaction to intelligent services — one connected architecture.*
 
 <p align="center">
-  <img src="assets/sahayika-workflow.svg" width="100%" alt="Sahayika System Workflow"/>
+ <img src="assets/sahayika-workflow.svg" width="100%" alt="Sahayika System Workflow"/>
 </p>
 
 
