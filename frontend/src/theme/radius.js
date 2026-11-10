@@ -1,12 +1,12 @@
 export const radius = {
-  xs: 6,
-  sm: 10,
-  small: 10,
-  md: 14,
-  medium: 14,
-  card: 20,
-  lg: 20,
-  largeCard: 24,
-  xl: 24,
+  xs: 8,
+  sm: 12,
+  small: 12,
+  md: 16,
+  medium: 16,
+  card: 24,
+  lg: 24,
+  largeCard: 28,
+  xl: 28,
   pill: 999
 };

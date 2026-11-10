@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -60,13 +61,13 @@ export const VisitConfirmScreen = ({ route, navigation }) => {
       setSaving(false);
 
       Alert.alert(
-        'Visit Record Confirmed!',
-        `Visit saved successfully.${
-          followUpRequired ? ` Follow-up task scheduled for ${followUpDate}.` : ''
+        tr('Visit Record Confirmed!'),
+        `${tr('Visit saved successfully.')}${
+          followUpRequired ? ` ${tr('Follow-up task scheduled for')} ${followUpDate}.` : ''
         }`,
         [
           {
-            text: 'Go to Dashboard',
+            text: tr('Go to Dashboard'),
             onPress: () =>
               navigation.navigate('MainTabs', {
                 screen: 'HomeTab',
@@ -78,7 +79,7 @@ export const VisitConfirmScreen = ({ route, navigation }) => {
     } catch (e) {
       setSaving(false);
       console.warn('Confirm visit error:', e);
-      Alert.alert('Error', 'Could not confirm visit record. Please try again.');
+      Alert.alert(tr('Error'), tr('Could not confirm visit record. Please try again.'));
     }
   };
 
@@ -110,8 +111,8 @@ export const VisitConfirmScreen = ({ route, navigation }) => {
               <Ionicons name="mic" size={15} color={colors.primary} />
             </View>
             <View style={styles.transcriptTextCol}>
-              <Text style={styles.transcriptLabel}>Spoken Voice Note:</Text>
-              <Text style={styles.transcriptBody}>"{rawTranscript}"</Text>
+              <Text style={styles.transcriptLabel}>{tr('Spoken Voice Note:')}</Text>
+              <Text style={styles.transcriptBody}>"{tr(rawTranscript)}"</Text>
             </View>
           </View>
         ) : null}
@@ -127,10 +128,10 @@ export const VisitConfirmScreen = ({ route, navigation }) => {
             label="Visit Date (DD-MM-YYYY)"
             value={visitDate}
             onChangeText={setVisitDate}
-            placeholder="e.g. 07-11-2026"
+            placeholder={tr('e.g. 07-11-2026')}
           />
 
-          <Text style={styles.label}>Activity Category</Text>
+          <Text style={styles.label}>{tr('Activity Category')}</Text>
           <View style={styles.pillRow}>
             {categories.map((cat) => {
               const isSelected = category === cat.label;
@@ -142,7 +143,7 @@ export const VisitConfirmScreen = ({ route, navigation }) => {
                 >
                   <VectorCategoryIcon category={cat.type} size={16} style={{ marginRight: 5 }} />
                   <Text style={[styles.pillText, isSelected && styles.pillTextActive]}>
-                    {cat.label}
+                    {tr(cat.label)}
                   </Text>
                 </TouchableOpacity>
               );
@@ -157,7 +158,7 @@ export const VisitConfirmScreen = ({ route, navigation }) => {
             numberOfLines={3}
           />
 
-          <Text style={styles.label}>Visit Outcome</Text>
+          <Text style={styles.label}>{tr('Visit Outcome')}</Text>
           <View style={styles.pillRow}>
             {outcomes.map((out) => {
               const isSelected = outcome === out;
@@ -167,7 +168,7 @@ export const VisitConfirmScreen = ({ route, navigation }) => {
                   onPress={() => setOutcome(out)}
                   style={[styles.pill, isSelected && styles.pillActive]}
                 >
-                  <Text style={[styles.pillText, isSelected && styles.pillTextActive]}>{out}</Text>
+                  <Text style={[styles.pillText, isSelected && styles.pillTextActive]}>{tr(out)}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -183,7 +184,7 @@ export const VisitConfirmScreen = ({ route, navigation }) => {
               size={20}
               color={colors.primary}
             />
-            <Text style={styles.toggleText}>Follow-up visit required</Text>
+            <Text style={styles.toggleText}>{tr('Follow-up visit required')}</Text>
           </TouchableOpacity>
 
           {followUpRequired && (
@@ -192,18 +193,16 @@ export const VisitConfirmScreen = ({ route, navigation }) => {
                 label="Follow-up Due Date (DD-MM-YYYY)"
                 value={followUpDate}
                 onChangeText={setFollowUpDate}
-                placeholder="e.g. 11-11-2026"
+                placeholder={tr('e.g. 11-11-2026')}
               />
               <View style={styles.noticeRow}>
                 <Ionicons name="checkmark-circle" size={13} color={colors.primary} />
-                <Text style={styles.autoTaskNotice}>
-                  Task will be scheduled automatically on your calendar.
-                </Text>
+                <Text style={styles.autoTaskNotice}>{tr('Task will be scheduled automatically on your calendar.')}</Text>
               </View>
             </View>
           )}
 
-          <Text style={styles.label}>Priority</Text>
+          <Text style={styles.label}>{tr('Priority')}</Text>
           <View style={styles.pillRow}>
             {priorities.map((p) => {
               const isSelected = priority === p;
@@ -213,7 +212,7 @@ export const VisitConfirmScreen = ({ route, navigation }) => {
                   onPress={() => setPriority(p)}
                   style={[styles.pill, isSelected && styles.pillActive]}
                 >
-                  <Text style={[styles.pillText, isSelected && styles.pillTextActive]}>{p}</Text>
+                  <Text style={[styles.pillText, isSelected && styles.pillTextActive]}>{tr(p)}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -239,7 +238,7 @@ export const VisitConfirmScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   container: {
     paddingHorizontal: spacing.screenPadding,
@@ -251,7 +250,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     backgroundColor: colors.surface,
     padding: spacing.md,
-    borderRadius: 20,
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: colors.border,
     marginBottom: spacing.base
@@ -259,7 +258,7 @@ const styles = StyleSheet.create({
   micCircle: {
     width: 28,
     height: 28,
-    borderRadius: 14,
+    borderRadius: 18,
     backgroundColor: colors.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
@@ -270,7 +269,7 @@ const styles = StyleSheet.create({
   },
   transcriptLabel: {
     ...typography.caption,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primary
   },
   transcriptBody: {
@@ -282,19 +281,17 @@ const styles = StyleSheet.create({
   },
   formGroup: {
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: 24,
     padding: spacing.base,
     borderWidth: 1,
     borderColor: colors.border
   },
   label: {
     ...typography.caption,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textSecondary,
     marginTop: spacing.sm,
     marginBottom: spacing.xs,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5
   },
   pillRow: {
     flexDirection: 'row',
@@ -324,7 +321,7 @@ const styles = StyleSheet.create({
   },
   pillTextActive: {
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   toggleRow: {
     flexDirection: 'row',
@@ -341,7 +338,7 @@ const styles = StyleSheet.create({
   followupBox: {
     backgroundColor: colors.surfaceSecondary,
     padding: spacing.md,
-    borderRadius: 16,
+    borderRadius: 22,
     marginBottom: spacing.sm
   },
   noticeRow: {

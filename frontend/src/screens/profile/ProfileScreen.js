@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert, Switch, Modal, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,14 +26,14 @@ export const ProfileScreen = ({ navigation }) => {
     const result = await syncService.syncPendingRecords();
     setSyncing(false);
     Alert.alert(
-      'Database Sync Status',
-      `Synchronized ${result.syncedCount || 0} offline records. All field data is up to date.`
+      tr('Database Sync Status'),
+      `${tr('Synchronized')} ${result.syncedCount || 0} ${tr('offline records. All field data is up to date.')}`
     );
   };
 
   const handleCallSupervisor = () => {
     Linking.openURL('tel:18001801104').catch(() => {
-      Alert.alert('Supervisor Helpline', 'Dialing ANM/Supervisor Helpline: 1800-180-1104');
+      Alert.alert(tr('Supervisor Helpline'), tr('Dialing ANM/Supervisor Helpline: 1800-180-1104'));
     });
   };
 
@@ -72,64 +73,62 @@ export const ProfileScreen = ({ navigation }) => {
           />
           <View style={styles.workerInfo}>
             <View style={styles.nameRow}>
-              <Text style={styles.userName}>{user?.name || 'Sunita Devi'}</Text>
+              <Text style={styles.userName}>{tr(user?.name || 'Sunita Devi')}</Text>
               <View style={styles.activeBadge}>
                 <View style={styles.activeDot} />
-                <Text style={styles.activeText}>Active</Text>
+                <Text style={styles.activeText}>{tr('Active')}</Text>
               </View>
             </View>
-            <Text style={styles.userRole}>ASHA Worker (स्वास्थ्य सखी)</Text>
-            <Text style={styles.userPhone}>+91 {user?.phone || '98765 43210'}</Text>
+            <Text style={styles.userRole}>{tr('ASHA Worker (स्वास्थ्य सखी)')}</Text>
+            <Text style={styles.userPhone}>+91 {tr(user?.phone || '98765 43210')}</Text>
           </View>
         </View>
 
         {/* 2. ASHA Credentials & Coverage Card */}
         <View style={styles.groupCard}>
-          <Text style={styles.groupHeader}>ASHA Credentials & Coverage</Text>
+          <Text style={styles.groupHeader}>{tr('ASHA Credentials & Coverage')}</Text>
           
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>{t('profile.ashaId') || 'ASHA ID'}</Text>
-            <Text style={styles.infoValue}>{user?.asha_id || 'ASHA-UP-VNS-2024-042'}</Text>
+            <Text style={styles.infoLabel}>{tr(t('profile.ashaId') || 'ASHA ID')}</Text>
+            <Text style={styles.infoValue}>{tr(user?.asha_id || 'ASHA-UP-VNS-2024-042')}</Text>
           </View>
           
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>{t('profile.assignedSubcentre') || 'Subcentre'}</Text>
-            <Text style={styles.infoValue}>{user?.sub_centre || 'Rampur SC-04'}</Text>
+            <Text style={styles.infoLabel}>{tr(t('profile.assignedSubcentre') || 'Subcentre')}</Text>
+            <Text style={styles.infoValue}>{tr(user?.sub_centre || 'Rampur SC-04')}</Text>
           </View>
           
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>{t('profile.assignedPhc') || 'PHC'}</Text>
-            <Text style={styles.infoValue}>{user?.phc_name || 'Kashi PHC'}</Text>
+            <Text style={styles.infoLabel}>{tr(t('profile.assignedPhc') || 'PHC')}</Text>
+            <Text style={styles.infoValue}>{tr(user?.phc_name || 'Kashi PHC')}</Text>
           </View>
 
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Assigned Village</Text>
-            <Text style={styles.infoValue}>{user?.village_name || 'Rampur Kalan'}</Text>
+            <Text style={styles.infoLabel}>{tr('Assigned Village')}</Text>
+            <Text style={styles.infoValue}>{tr(user?.village_name || 'Rampur Kalan')}</Text>
           </View>
           
           <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
-            <Text style={styles.infoLabel}>Coverage</Text>
-            <Text style={[styles.infoValue, { color: colors.primary, fontWeight: '700' }]}>
-              {user?.total_assigned_households || 34} Households (5 Clusters)
-            </Text>
+            <Text style={styles.infoLabel}>{tr('Coverage')}</Text>
+            <Text style={[styles.infoValue, { color: colors.primary, fontWeight: '600' }]}>
+              {tr(user?.total_assigned_households || 34)}{' '}{tr('Households (5 Clusters)')}</Text>
           </View>
         </View>
 
         {/* 3. Preferences & Database Sync */}
         <View style={styles.groupCard}>
-          <Text style={styles.groupHeader}>Preferences & Field Sync</Text>
+          <Text style={styles.groupHeader}>{tr('Preferences & Field Sync')}</Text>
 
           {/* Language Switch */}
           <View style={styles.settingItem}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.settingTitle}>{t('profile.interfaceLang') || 'App Language'}</Text>
-              <Text style={styles.settingDesc}>
-                Current: {i18n.language === 'hi' ? 'हिन्दी (Hindi)' : 'English'}
+              <Text style={styles.settingTitle}>{tr(t('profile.interfaceLang') || 'App Language')}</Text>
+              <Text style={styles.settingDesc}>{tr('Current:')}{' '}{tr(i18n.language === 'hi' ? 'हिन्दी (Hindi)' : 'English')}
               </Text>
             </View>
             <TouchableOpacity onPress={handleLanguageToggle} style={styles.pillButton}>
               <Text style={styles.pillButtonText}>
-                {i18n.language === 'hi' ? 'Switch to EN' : 'हिन्दी चुनें'}
+                {tr(i18n.language === 'hi' ? 'Switch to EN' : 'हिन्दी चुनें')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -137,8 +136,8 @@ export const ProfileScreen = ({ navigation }) => {
           {/* Voice Feedback Toggle */}
           <View style={styles.settingItem}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.settingTitle}>Voice Assistant Audio</Text>
-              <Text style={styles.settingDesc}>Read out answers aloud during visits</Text>
+              <Text style={styles.settingTitle}>{tr('Voice Assistant Audio')}</Text>
+              <Text style={styles.settingDesc}>{tr('Read out answers aloud during visits')}</Text>
             </View>
             <Switch
               value={voiceFeedbackEnabled}
@@ -151,14 +150,14 @@ export const ProfileScreen = ({ navigation }) => {
           {/* Offline Sync State */}
           <View style={[styles.settingItem, { borderBottomWidth: 0 }]}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.settingTitle}>{t('profile.offlineSync') || 'Offline Database'}</Text>
+              <Text style={styles.settingTitle}>{tr(t('profile.offlineSync') || 'Offline Database')}</Text>
               {offlineQueue.length === 0 ? (
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
                   <Ionicons name="checkmark-circle-outline" size={13} color={colors.teal} style={{ marginRight: 4 }} />
-                  <Text style={styles.settingDesc}>All records synchronized</Text>
+                  <Text style={styles.settingDesc}>{tr('All records synchronized')}</Text>
                 </View>
               ) : (
-                <Text style={styles.settingDesc}>{`${offlineQueue.length} records pending`}</Text>
+                <Text style={styles.settingDesc}>{`${tr(offlineQueue.length)} ${tr('records pending')}`}</Text>
               )}
             </View>
             <TouchableOpacity
@@ -167,7 +166,7 @@ export const ProfileScreen = ({ navigation }) => {
               style={[styles.pillButton, { backgroundColor: colors.tealLight }]}
             >
               <Text style={[styles.pillButtonText, { color: colors.tealDark }]}>
-                {syncing ? 'Syncing...' : 'Sync Now'}
+                {tr(syncing ? 'Syncing...' : 'Sync Now')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -179,8 +178,8 @@ export const ProfileScreen = ({ navigation }) => {
             <Ionicons name="call" size={16} color={colors.primary} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.helplineTitle}>ANM / Supervisor Helpline</Text>
-            <Text style={styles.helplineText}>1800-180-1104 (Toll-Free Government Helpline)</Text>
+            <Text style={styles.helplineTitle}>{tr('ANM / Supervisor Helpline')}</Text>
+            <Text style={styles.helplineText}>{tr('1800-180-1104 (Toll-Free Government Helpline)')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={16} color={colors.secondaryText} />
         </TouchableOpacity>
@@ -188,9 +187,7 @@ export const ProfileScreen = ({ navigation }) => {
         {/* 5. Demo Account Label */}
         <View style={styles.demoAccountPill}>
           <Ionicons name="shield-checkmark-outline" size={14} color={colors.secondaryText} />
-          <Text style={styles.demoAccountText}>
-            Logged in as ASHA Demo: asha.demo@sahayika.test
-          </Text>
+          <Text style={styles.demoAccountText}>{tr('Logged in as ASHA Demo: asha.demo@sahayika.test')}</Text>
         </View>
 
         {/* 6. Logout Button */}
@@ -198,10 +195,10 @@ export const ProfileScreen = ({ navigation }) => {
           style={styles.logoutButton}
           onPress={() => setShowLogoutModal(true)}
           activeOpacity={0.85}
-          accessibilityLabel="Log Out"
+          accessibilityLabel={tr('Log Out')}
         >
           <Ionicons name="log-out-outline" size={18} color={colors.danger} style={{ marginRight: 6 }} />
-          <Text style={styles.logoutButtonText}>{t('profile.logout') || 'Log Out of SAHAYIKA'}</Text>
+          <Text style={styles.logoutButtonText}>{tr(t('profile.logout') || 'Log Out of SAHAYIKA')}</Text>
         </TouchableOpacity>
 
         {/* Bottom padding to guarantee complete clearance above floating navigation bar */}
@@ -220,10 +217,8 @@ export const ProfileScreen = ({ navigation }) => {
             <View style={styles.modalIconPod}>
               <Ionicons name="log-out" size={28} color={colors.danger} />
             </View>
-            <Text style={styles.modalTitle}>Confirm Logout</Text>
-            <Text style={styles.modalMessage}>
-              Are you sure you want to log out from SAHAYIKA? You will need to sign in again to access field records.
-            </Text>
+            <Text style={styles.modalTitle}>{tr('Confirm Logout')}</Text>
+            <Text style={styles.modalMessage}>{tr('Are you sure you want to log out from SAHAYIKA? You will need to sign in again to access field records.')}</Text>
 
             <View style={styles.modalBtnRow}>
               <TouchableOpacity
@@ -231,7 +226,7 @@ export const ProfileScreen = ({ navigation }) => {
                 onPress={() => setShowLogoutModal(false)}
                 activeOpacity={0.8}
               >
-                <Text style={styles.modalCancelText}>Cancel</Text>
+                <Text style={styles.modalCancelText}>{tr('Cancel')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -239,7 +234,7 @@ export const ProfileScreen = ({ navigation }) => {
                 onPress={handleConfirmLogout}
                 activeOpacity={0.85}
               >
-                <Text style={styles.modalConfirmText}>Log Out</Text>
+                <Text style={styles.modalConfirmText}>{tr('Log Out')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -252,7 +247,7 @@ export const ProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   container: {
     paddingHorizontal: spacing.screenPadding,
@@ -284,7 +279,7 @@ const styles = StyleSheet.create({
   avatarInitial: {
     fontSize: 20,
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   workerInfo: {
     flex: 1
@@ -296,7 +291,7 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   activeBadge: {
@@ -311,12 +306,12 @@ const styles = StyleSheet.create({
     width: 5,
     height: 5,
     borderRadius: 2.5,
-    backgroundColor: colors.teal,
+    backgroundColor: colors.ink,
     marginRight: 4
   },
   activeText: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.tealDark
   },
   userRole: {
@@ -340,10 +335,9 @@ const styles = StyleSheet.create({
   },
   groupHeader: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText,
     marginBottom: spacing.sm,
-    letterSpacing: 0.2
   },
   infoRow: {
     flexDirection: 'row',
@@ -390,7 +384,7 @@ const styles = StyleSheet.create({
   },
   pillButtonText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primary
   },
   helplineBox: {
@@ -408,14 +402,14 @@ const styles = StyleSheet.create({
   helplineIconWrap: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: 22,
     backgroundColor: colors.primaryLight,
     alignItems: 'center',
     justifyContent: 'center'
   },
   helplineTitle: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   helplineText: {
@@ -440,14 +434,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#FFF2F2',
     borderWidth: 1,
-    borderColor: '#F8D7D7',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     borderRadius: radius.pill,
     paddingVertical: 12,
     marginTop: spacing.sm
   },
   logoutButtonText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.danger
   },
   modalOverlay: {
@@ -477,7 +471,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText,
     marginBottom: 6
   },
@@ -516,7 +510,7 @@ const styles = StyleSheet.create({
   },
   modalConfirmText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textWhite
   }
 });

@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,21 +21,21 @@ export const TaskCard = ({ task, onComplete, onReschedule, onPress }) => {
       <View style={styles.topRow}>
         <View style={styles.topLeft}>
           <Text style={[styles.householdName, isCompleted && styles.completedText]}>
-            {task.household_name} {task.beneficiary_name ? `• ${task.beneficiary_name}` : ''}
+            {tr(task.household_name)} {tr(task.beneficiary_name ? `• ${tr(task.beneficiary_name)}` : '')}
           </Text>
-          <Text style={styles.taskType}>{task.task_type}</Text>
+          <Text style={styles.taskType}>{tr(task.task_type)}</Text>
         </View>
         <PriorityBadge priority={task.priority} />
       </View>
 
       <Text style={[styles.description, isCompleted && styles.completedText]} numberOfLines={2}>
-        {task.description}
+        {tr(task.description)}
       </Text>
 
       <View style={styles.middleRow}>
         <View style={styles.dateRow}>
           <Ionicons name="calendar-outline" size={13} color={colors.textSecondary} />
-          <Text style={styles.dateText}>Due: {formatDate(task.due_date)}</Text>
+          <Text style={styles.dateText}>{tr('Due:')}{' '}{tr(formatDate(task.due_date))}</Text>
         </View>
         <StatusBadge status={task.status} size="small" />
       </View>
@@ -42,7 +43,7 @@ export const TaskCard = ({ task, onComplete, onReschedule, onPress }) => {
       {task.completion_notes && (
         <View style={styles.completionBox}>
           <Ionicons name="checkmark-circle-outline" size={13} color={colors.success} style={{ marginRight: 4 }} />
-          <Text style={styles.completionText}>{task.completion_notes}</Text>
+          <Text style={styles.completionText}>{tr(task.completion_notes)}</Text>
         </View>
       )}
 
@@ -54,7 +55,7 @@ export const TaskCard = ({ task, onComplete, onReschedule, onPress }) => {
               style={styles.rescheduleBtn}
             >
               <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
-              <Text style={styles.rescheduleText}>Reschedule</Text>
+              <Text style={styles.rescheduleText}>{tr('Reschedule')}</Text>
             </TouchableOpacity>
           )}
 
@@ -64,7 +65,7 @@ export const TaskCard = ({ task, onComplete, onReschedule, onPress }) => {
               style={styles.doneBtn}
             >
               <Ionicons name="checkmark-circle" size={15} color={colors.textWhite} />
-              <Text style={styles.doneText}>Mark Done</Text>
+              <Text style={styles.doneText}>{tr('Mark Done')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -172,7 +173,7 @@ const styles = StyleSheet.create({
   doneBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: radius.pill

@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors, radius, typography } from '../../theme';
@@ -21,7 +22,7 @@ export const PriorityBadge = ({ priority }) => {
 
   return (
     <View style={[styles.badge, { backgroundColor: style.bg, borderColor: style.border }]}>
-      <Text style={[styles.text, { color: style.text }]}>{priority || 'Routine'}</Text>
+      <Text style={[styles.text, { color: style.text }]}>{tr(priority || 'Routine')}</Text>
     </View>
   );
 };
@@ -36,7 +37,7 @@ const styles = StyleSheet.create({
   },
   text: {
     ...typography.caption,
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 10
   }
 });

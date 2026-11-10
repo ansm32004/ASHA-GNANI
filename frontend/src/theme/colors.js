@@ -1,58 +1,58 @@
 export const colors = {
-  // Brand Primary & Accents
-  primary: '#2478D0',
-  deepBlue: '#195FA9',
-  primaryDark: '#195FA9',
-  primaryLight: '#EAF3FD',
-  primaryMuted: '#D8E9FA',
+  // Brand
+  ink: '#0B1220',
+  primary: '#2563EB',
+  deepBlue: '#1D4ED8',
+  primaryDark: '#1D4ED8',
+  primaryLight: '#EAF1FF',
+  primaryMuted: '#D7E4FF',
 
-  // Secondary Teal
-  teal: '#0D9488',
-  tealDark: '#0F766E',
-  tealLight: '#F0FDFA',
+  // Secondary teal
+  teal: '#0F8F85',
+  tealDark: '#0B6F67',
+  tealLight: '#E8F7F5',
 
-  // Neutrals (Flat Spatial Depth: Calm Canvas & Clean Grouping)
-  background: '#F8FAFC',
+  // Canvas and surfaces
+  background: '#F3F6FC',
   surface: '#FFFFFF',
-  surfaceSecondary: '#F1F5F9',
-  border: '#E2E8F0',
-  borderStrong: '#CBD5E1',
+  surfaceSecondary: '#F1F4FA',
+  border: 'rgba(11, 18, 32, 0.06)',
+  borderStrong: 'rgba(11, 18, 32, 0.12)',
 
-  // Typography Neutrals (WCAG AA & AAA Compliant)
-  primaryText: '#0F172A',
-  textPrimary: '#0F172A',
-  secondaryText: '#475569',
-  textSecondary: '#475569',
-  textMuted: '#64748B',
+  // Text
+  primaryText: '#0B1220',
+  textPrimary: '#0B1220',
+  secondaryText: '#515C75',
+  textSecondary: '#515C75',
+  textMuted: '#69748C',
   textWhite: '#FFFFFF',
-  iconMuted: '#64748B',
+  iconMuted: '#69748C',
 
-  // Distinctive Healthcare Category Accents (Curated & Calm)
-  coral: '#E11D48',
-  coralLight: '#FFF1F2',
-  yellow: '#D97706',
-  yellowLight: '#FEF3C7',
-  lavender: '#7C3AED',
-  lavenderLight: '#F5F3FF',
-  mint: '#059669',
-  mintLight: '#ECFDF5',
+  // Category accents
+  coral: '#E5484D',
+  coralLight: '#FDECEC',
+  yellow: '#C77700',
+  yellowLight: '#FFF4E0',
+  lavender: '#6E56CF',
+  lavenderLight: '#F1EEFC',
+  mint: '#18895B',
+  mintLight: '#E7F6EF',
 
   // Semantic
-  success: '#059669',
-  successLight: '#ECFDF5',
-  warning: '#B45309',
-  warningLight: '#FEF3C7',
-  danger: '#DC2626',
-  dangerLight: '#FEE2E2',
-  info: '#2478D0',
-  infoLight: '#EAF3FD',
+  success: '#18895B',
+  successLight: '#E7F6EF',
+  warning: '#B46A00',
+  warningLight: '#FFF4E0',
+  danger: '#D92D20',
+  dangerLight: '#FDECEC',
+  info: '#2563EB',
+  infoLight: '#EAF1FF',
 
-  // Priority specific (Clear Healthcare Triage)
-  priorityUrgent: '#DC2626',
-  priorityHigh: '#D97706',
-  priorityMedium: '#2478D0',
-  priorityLow: '#64748B',
+  // Priority
+  priorityUrgent: '#D92D20',
+  priorityHigh: '#C77700',
+  priorityMedium: '#2563EB',
+  priorityLow: '#69748C',
 
-  // Subtle Shadow Color (Flat spatial depth)
-  shadowColor: '#0F172A'
+  shadowColor: '#1E3A6D'
 };

@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Linking, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -44,7 +45,7 @@ export const HouseholdDetailScreen = ({ route, navigation }) => {
   const handleCall = () => {
     if (household.contact_number) {
       Linking.openURL(`tel:${household.contact_number}`).catch(() => {
-        Alert.alert('Call Simulation', `Dialing primary contact: +91 ${household.contact_number}`);
+        Alert.alert(tr('Call Simulation'), `${tr('Dialing primary contact: +91')} ${household.contact_number}`);
       });
     }
   };
@@ -60,7 +61,7 @@ export const HouseholdDetailScreen = ({ route, navigation }) => {
     <SafeAreaView style={styles.safeArea}>
       <MinimalHeader
         title={household.primary_contact_name}
-        subtitle={`${household.household_id} • ${household.village}`}
+        subtitle={`${tr(household.household_id)} • ${tr(household.village)}`}
         showBack
         onBack={() => navigation.goBack()}
       />
@@ -79,13 +80,13 @@ export const HouseholdDetailScreen = ({ route, navigation }) => {
             />
             <View style={styles.heroInfo}>
               <View style={styles.nameRow}>
-                <Text style={styles.heroName}>{household.primary_contact_name}</Text>
+                <Text style={styles.heroName}>{tr(household.primary_contact_name)}</Text>
                 <StatusIndicator status={household.priority} isPriority />
               </View>
               <Text style={styles.heroMeta}>
-                {household.village} • {household.sub_area || 'Ward 3'}
+                {tr(household.village)} • {tr(household.sub_area || 'Ward 3')}
               </Text>
-              <Text style={styles.heroPhone}>+91 {household.contact_number}</Text>
+              <Text style={styles.heroPhone}>+91 {tr(household.contact_number)}</Text>
             </View>
           </View>
 
@@ -98,12 +99,12 @@ export const HouseholdDetailScreen = ({ route, navigation }) => {
               style={styles.actionRecord}
             >
               <Ionicons name="mic" size={15} color={colors.textWhite} />
-              <Text style={styles.actionRecordText}>Record Visit</Text>
+              <Text style={styles.actionRecordText}>{tr('Record Visit')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity onPress={handleCall} style={styles.actionCall}>
               <Ionicons name="call" size={15} color={colors.primary} />
-              <Text style={styles.actionCallText}>Call</Text>
+              <Text style={styles.actionCallText}>{tr('Call')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -113,7 +114,7 @@ export const HouseholdDetailScreen = ({ route, navigation }) => {
               style={styles.actionTask}
             >
               <Ionicons name="add" size={16} color={colors.textPrimary} />
-              <Text style={styles.actionTaskText}>Follow-up</Text>
+              <Text style={styles.actionTaskText}>{tr('Follow-up')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -130,7 +131,7 @@ export const HouseholdDetailScreen = ({ route, navigation }) => {
                   style={[styles.tabPill, isActive && styles.tabPillActive]}
                 >
                   <Text style={[styles.tabPillText, isActive && styles.tabPillTextActive]}>
-                    {tab.label}
+                    {tr(tab.label)}
                   </Text>
                 </TouchableOpacity>
               );
@@ -142,52 +143,52 @@ export const HouseholdDetailScreen = ({ route, navigation }) => {
         {activeTab === 'overview' && (
           <View style={styles.overviewSection}>
             <View style={styles.detailsGroup}>
-              <Text style={styles.groupHeader}>Household Details</Text>
+              <Text style={styles.groupHeader}>{tr('Household Details')}</Text>
               
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Primary Contact</Text>
-                <Text style={styles.infoValue}>{household.primary_contact_name}</Text>
+                <Text style={styles.infoLabel}>{tr('Primary Contact')}</Text>
+                <Text style={styles.infoValue}>{tr(household.primary_contact_name)}</Text>
               </View>
 
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Mobile Number</Text>
-                <Text style={styles.infoValue}>+91 {household.contact_number}</Text>
+                <Text style={styles.infoLabel}>{tr('Mobile Number')}</Text>
+                <Text style={styles.infoValue}>+91 {tr(household.contact_number)}</Text>
               </View>
 
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Location</Text>
-                <Text style={styles.infoValue}>{household.village} ({household.sub_area || 'Main Area'})</Text>
+                <Text style={styles.infoLabel}>{tr('Location')}</Text>
+                <Text style={styles.infoValue}>{tr(household.village)} ({tr(household.sub_area || 'Main Area')})</Text>
               </View>
 
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Street / Address</Text>
-                <Text style={styles.infoValue}>{household.address || 'Near village centre'}</Text>
+                <Text style={styles.infoLabel}>{tr('Street / Address')}</Text>
+                <Text style={styles.infoValue}>{tr(household.address || 'Near village centre')}</Text>
               </View>
 
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Language</Text>
-                <Text style={styles.infoValue}>Hindi (हिन्दी)</Text>
+                <Text style={styles.infoLabel}>{tr('Language')}</Text>
+                <Text style={styles.infoValue}>{tr('Hindi (हिन्दी)')}</Text>
               </View>
 
               {household.last_visit_date && (
                 <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Last Field Visit</Text>
-                  <Text style={styles.infoValue}>{formatDate(household.last_visit_date)}</Text>
+                  <Text style={styles.infoLabel}>{tr('Last Field Visit')}</Text>
+                  <Text style={styles.infoValue}>{tr(formatDate(household.last_visit_date))}</Text>
                 </View>
               )}
 
               {household.next_follow_up && (
                 <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Next Follow-up Due</Text>
-                  <Text style={[styles.infoValue, { color: colors.primary, fontWeight: '700' }]}>{formatDate(household.next_follow_up)}</Text>
+                  <Text style={styles.infoLabel}>{tr('Next Follow-up Due')}</Text>
+                  <Text style={[styles.infoValue, { color: colors.primary, fontWeight: '600' }]}>{tr(formatDate(household.next_follow_up))}</Text>
                 </View>
               )}
 
               <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
-                <Text style={styles.infoLabel}>Data Consent</Text>
+                <Text style={styles.infoLabel}>{tr('Data Consent')}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <Ionicons name="checkmark-circle-outline" size={13} color={colors.teal} style={{ marginRight: 4 }} />
-                  <Text style={[styles.infoValue, { color: colors.teal, fontWeight: '700' }]}>Verified Consent</Text>
+                  <Text style={[styles.infoValue, { color: colors.teal, fontWeight: '600' }]}>{tr('Verified Consent')}</Text>
                 </View>
               </View>
             </View>
@@ -201,7 +202,7 @@ export const HouseholdDetailScreen = ({ route, navigation }) => {
                 readTime="Active"
                 actionText="View eligibility guidelines"
                 illustrationType="maternal"
-                onPressAction={() => Alert.alert('JSY Scheme', 'Active entitlement under NRHM. Cash assistance of ₹1,400 + ₹600 ASHA incentive.')}
+                onPressAction={() => Alert.alert(tr('JSY Scheme'), tr('Active entitlement under NRHM. Cash assistance of ₹1,400 + ₹600 ASHA incentive.'))}
               />
             </View>
           </View>
@@ -214,8 +215,8 @@ export const HouseholdDetailScreen = ({ route, navigation }) => {
               <MinimalListRow
                 key={m.id || idx}
                 category={m.category}
-                title={`${m.name} (${m.relation})`}
-                subtitle={`${m.age} yrs • ${m.gender} • ${m.category}`}
+                title={`${tr(m.name)} (${tr(m.relation)})`}
+                subtitle={`${tr(m.age)} ${tr('yrs •')} ${tr(m.gender)} • ${tr(m.category)}`}
                 meta={m.is_high_risk ? `High Risk: ${m.high_risk_reason || 'Requires monitoring'}` : (m.next_due_vaccine ? `Next vaccine: ${m.next_due_vaccine}` : null)}
                 priority={m.is_high_risk ? 'Urgent' : null}
                 showDivider={idx < (household.members || []).length - 1}
@@ -228,15 +229,15 @@ export const HouseholdDetailScreen = ({ route, navigation }) => {
         {activeTab === 'visits' && (
           <View style={styles.listContainer}>
             {visits.length === 0 ? (
-              <Text style={styles.emptyText}>No field visits logged for this household yet.</Text>
+              <Text style={styles.emptyText}>{tr('No field visits logged for this household yet.')}</Text>
             ) : (
               visits.map((v, idx) => (
                 <MinimalListRow
                   key={v.id || idx}
                   category={v.activity_category}
                   title={v.activity_description}
-                  subtitle={`Outcome: ${v.visit_outcome}${v.follow_up_date ? ` • Follow-up: ${formatDate(v.follow_up_date)}` : ''}`}
-                  meta={`Date: ${formatDate(v.visit_date)} • ${v.activity_category}`}
+                  subtitle={`${tr('Outcome:')} ${tr(v.visit_outcome)}${tr(v.follow_up_date ? ` • Follow-up: ${formatDate(v.follow_up_date)}` : '')}`}
+                  meta={`${tr('Date:')} ${tr(formatDate(v.visit_date))} • ${tr(v.activity_category)}`}
                   onPress={() => navigation.navigate('VisitDetail', { visitId: v.id, visit: v })}
                   showDivider={idx < visits.length - 1}
                 />
@@ -249,7 +250,7 @@ export const HouseholdDetailScreen = ({ route, navigation }) => {
         {activeTab === 'tasks' && (
           <View style={styles.listContainer}>
             {tasks.length === 0 ? (
-              <Text style={styles.emptyText}>No pending tasks for this family.</Text>
+              <Text style={styles.emptyText}>{tr('No pending tasks for this family.')}</Text>
             ) : (
               tasks.map((t, idx) => (
                 <MinimalListRow
@@ -257,7 +258,7 @@ export const HouseholdDetailScreen = ({ route, navigation }) => {
                   category={t.task_type}
                   title={t.task_type}
                   subtitle={t.description}
-                  meta={`Due: ${formatDate(t.due_date)}`}
+                  meta={`${tr('Due:')} ${tr(formatDate(t.due_date))}`}
                   status={t.status}
                   priority={t.priority}
                   onPress={() => navigation.navigate('TaskDetail', { taskId: t.id, task: t })}
@@ -277,7 +278,7 @@ export const HouseholdDetailScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   scrollContent: {
     paddingBottom: 20
@@ -313,7 +314,7 @@ const styles = StyleSheet.create({
   heroName: {
     ...typography.heading2,
     color: colors.textPrimary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   heroMeta: {
     ...typography.caption,
@@ -336,13 +337,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     paddingVertical: 9,
     borderRadius: radius.pill
   },
   actionRecordText: {
     ...typography.caption,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textWhite,
     marginLeft: 5
   },
@@ -357,7 +358,7 @@ const styles = StyleSheet.create({
   },
   actionCallText: {
     ...typography.caption,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primary,
     marginLeft: 4
   },
@@ -402,14 +403,14 @@ const styles = StyleSheet.create({
   },
   tabPillTextActive: {
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   overviewSection: {
     paddingHorizontal: spacing.screenPadding
   },
   detailsGroup: {
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: 24,
     padding: spacing.base,
     borderWidth: 1,
     borderColor: colors.border
@@ -417,7 +418,7 @@ const styles = StyleSheet.create({
   groupHeader: {
     ...typography.heading3,
     color: colors.textPrimary,
-    fontWeight: '700',
+    fontWeight: '600',
     marginBottom: spacing.xs
   },
   infoRow: {
@@ -438,7 +439,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: 24,
     marginHorizontal: spacing.screenPadding,
     overflow: 'hidden',
     borderWidth: 1,

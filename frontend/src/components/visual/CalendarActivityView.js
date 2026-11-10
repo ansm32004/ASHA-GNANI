@@ -1,3 +1,5 @@
+import i18n from '../../localisation';
+import { tr } from '../../localisation/tr';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   View,
@@ -375,9 +377,9 @@ export const CalendarActivityView = ({
               setMonthPickerVisible(true);
             }}
             activeOpacity={0.7}
-            accessibilityLabel="Click to change month"
+            accessibilityLabel={tr('Click to change month')}
           >
-            <Text style={styles.monthText}>{displayMonthLabel}</Text>
+            <Text style={styles.monthText}>{tr(displayMonthLabel)}</Text>
             <Ionicons
               name="chevron-down"
               size={12}
@@ -399,7 +401,7 @@ export const CalendarActivityView = ({
                 activeOpacity={0.8}
               >
                 <Text style={[styles.viewPillText, isSelected && styles.viewPillTextActive]}>
-                  {mode}
+                  {tr(mode)}
                 </Text>
               </TouchableOpacity>
             );
@@ -413,20 +415,20 @@ export const CalendarActivityView = ({
           <View style={styles.dayFocusCard}>
             <View style={styles.dayFocusHeader}>
               <Text style={styles.dayFocusTitle}>
-                {`${parseDateString(activeDateStr).toLocaleDateString('en-US', {
+                {`${tr(parseDateString(activeDateStr).toLocaleDateString(i18n.language === 'hi' ? 'hi-IN' : 'en-US', {
                   weekday: 'short'
-                })}, ${formatDate(activeDateStr)}`}
+                }))}, ${tr(formatDate(activeDateStr))}`}
               </Text>
               <View style={[styles.taskCountBadge, activeDayTasksCount > 0 ? styles.taskCountBadgeActive : null]}>
                 <Text style={[styles.taskCountText, activeDayTasksCount > 0 ? styles.taskCountTextActive : null]}>
-                  {activeDayTasksCount === 0
+                  {tr(activeDayTasksCount === 0
                     ? 'No tasks'
-                    : `${activeDayTasksCount} task${activeDayTasksCount > 1 ? 's' : ''}`}
+                    : `${tr(activeDayTasksCount)} ${tr('task')}${tr(activeDayTasksCount > 1 ? 's' : '')}`)}
                 </Text>
               </View>
             </View>
             <Text style={styles.dayFocusSub}>
-              {isSelectedDateToday ? '• Today\'s scheduled follow-ups & visits' : '• Field follow-ups for this date'}
+              {tr(isSelectedDateToday ? '• Today\'s scheduled follow-ups & visits' : '• Field follow-ups for this date')}
             </Text>
           </View>
 
@@ -457,10 +459,10 @@ export const CalendarActivityView = ({
                       isSelected && styles.dayTextActive
                     ]}
                   >
-                    {item.isToday ? 'Today' : item.dayName}
+                    {tr(item.isToday ? 'Today' : item.dayName)}
                   </Text>
                   <Text style={[styles.dayNumber, isSelected && styles.dayTextActive]}>
-                    {item.dayNumber}
+                    {tr(item.dayNumber)}
                   </Text>
                   <View style={styles.dotsRow}>
                     {item.activities.length > 0 ? (
@@ -509,7 +511,7 @@ export const CalendarActivityView = ({
                   {/* Month header tag if first of month */}
                   {item.isFirstOfMonth ? (
                     <Text style={[styles.firstOfMonthTag, isSelected && styles.firstOfMonthTagActive]}>
-                      {item.monthName}
+                      {tr(item.monthName)}
                     </Text>
                   ) : null}
 
@@ -520,10 +522,10 @@ export const CalendarActivityView = ({
                       isSelected && styles.dayTextActive
                     ]}
                   >
-                    {item.isToday ? 'Today' : item.dayName}
+                    {tr(item.isToday ? 'Today' : item.dayName)}
                   </Text>
                   <Text style={[styles.dayNumber, isSelected && styles.dayTextActive]}>
-                    {item.dayNumber}
+                    {tr(item.dayNumber)}
                   </Text>
 
                   {/* Activity indicator dots */}
@@ -556,7 +558,7 @@ export const CalendarActivityView = ({
           <View style={styles.weekdaysRow}>
             {WEEKDAY_LETTERS.map((letter, idx) => (
               <Text key={idx} style={styles.weekdayLetterText}>
-                {letter}
+                {tr(letter)}
               </Text>
             ))}
           </View>
@@ -588,7 +590,7 @@ export const CalendarActivityView = ({
                       isSelected && styles.monthCellTextActive
                     ]}
                   >
-                    {item.dayNumber}
+                    {tr(item.dayNumber)}
                   </Text>
 
                   {/* Task indicator dot */}
@@ -596,7 +598,7 @@ export const CalendarActivityView = ({
                     <View
                       style={[
                         styles.monthCellDot,
-                        isSelected ? { backgroundColor: colors.surface } : { backgroundColor: colors.primary }
+                        isSelected ? { backgroundColor: colors.surface } : { backgroundColor: colors.ink }
                       ]}
                     />
                   ) : (
@@ -628,22 +630,22 @@ export const CalendarActivityView = ({
           >
             {/* Modal Header with Year Switcher */}
             <View style={styles.pickerHeader}>
-              <Text style={styles.pickerTitle}>Select Month</Text>
+              <Text style={styles.pickerTitle}>{tr('Select Month')}</Text>
               <View style={styles.pickerYearRow}>
                 <TouchableOpacity
                   onPress={() => setPickerYear((y) => y - 1)}
                   style={styles.pickerYearArrowBtn}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  accessibilityLabel="Previous Year"
+                  accessibilityLabel={tr('Previous Year')}
                 >
                   <Ionicons name="chevron-back" size={16} color={colors.primaryText} />
                 </TouchableOpacity>
-                <Text style={styles.pickerYearText}>{pickerYear}</Text>
+                <Text style={styles.pickerYearText}>{tr(pickerYear)}</Text>
                 <TouchableOpacity
                   onPress={() => setPickerYear((y) => y + 1)}
                   style={styles.pickerYearArrowBtn}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  accessibilityLabel="Next Year"
+                  accessibilityLabel={tr('Next Year')}
                 >
                   <Ionicons name="chevron-forward" size={16} color={colors.primaryText} />
                 </TouchableOpacity>
@@ -673,7 +675,7 @@ export const CalendarActivityView = ({
                         isSelected && styles.monthGridItemTextActive
                       ]}
                     >
-                      {mShort}
+                      {tr(mShort)}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -692,7 +694,7 @@ export const CalendarActivityView = ({
                 activeOpacity={0.8}
               >
                 <Ionicons name="calendar-outline" size={13} color={colors.primary} />
-                <Text style={styles.pickerCurrentText}>Current Month</Text>
+                <Text style={styles.pickerCurrentText}>{tr('Current Month')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -700,7 +702,7 @@ export const CalendarActivityView = ({
                 style={styles.pickerCloseBtn}
                 activeOpacity={0.7}
               >
-                <Text style={styles.pickerCloseText}>Close</Text>
+                <Text style={styles.pickerCloseText}>{tr('Close')}</Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
@@ -713,7 +715,7 @@ export const CalendarActivityView = ({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: colors.border,
     marginHorizontal: spacing.screenPadding,
@@ -744,7 +746,7 @@ const styles = StyleSheet.create({
   },
   monthText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   viewModeRow: {
@@ -769,7 +771,7 @@ const styles = StyleSheet.create({
   },
   viewPillTextActive: {
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   daysScroll: {
     flexDirection: 'row',
@@ -781,14 +783,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     paddingHorizontal: 6,
-    borderRadius: 14,
+    borderRadius: 18,
     width: ITEM_WIDTH,
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: 'transparent'
   },
   dayCardActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     borderColor: colors.primaryDark,
     ...shadows.subtle
   },
@@ -798,10 +800,9 @@ const styles = StyleSheet.create({
   },
   firstOfMonthTag: {
     fontSize: 8.5,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primary,
     marginBottom: 1,
-    textTransform: 'uppercase'
   },
   firstOfMonthTagActive: {
     color: colors.surface
@@ -814,17 +815,17 @@ const styles = StyleSheet.create({
   },
   dayNameToday: {
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   dayNumber: {
     fontSize: 14.5,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText,
     marginBottom: 4
   },
   dayTextActive: {
     color: colors.textWhite,
-    fontWeight: '800'
+    fontWeight: '600'
   },
   dotsRow: {
     flexDirection: 'row',
@@ -848,7 +849,7 @@ const styles = StyleSheet.create({
   },
   dayFocusCard: {
     backgroundColor: colors.surfaceSecondary,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 10,
     marginBottom: 4
   },
@@ -860,7 +861,7 @@ const styles = StyleSheet.create({
   },
   dayFocusTitle: {
     fontSize: 13.5,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   dayFocusSub: {
@@ -883,7 +884,7 @@ const styles = StyleSheet.create({
   },
   taskCountTextActive: {
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
 
   /* Month View Matrix Styles */
@@ -901,7 +902,7 @@ const styles = StyleSheet.create({
     width: 36,
     textAlign: 'center',
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.secondaryText
   },
   monthDaysGrid: {
@@ -914,11 +915,11 @@ const styles = StyleSheet.create({
     height: 38,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 10,
+    borderRadius: 14,
     marginVertical: 2
   },
   monthGridCellActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     ...shadows.subtle
   },
   monthGridCellToday: {
@@ -936,7 +937,7 @@ const styles = StyleSheet.create({
   },
   monthCellTextActive: {
     color: colors.textWhite,
-    fontWeight: '800'
+    fontWeight: '600'
   },
   monthCellDot: {
     width: 4,
@@ -979,7 +980,7 @@ const styles = StyleSheet.create({
   },
   pickerTitle: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   pickerYearRow: {
@@ -996,7 +997,7 @@ const styles = StyleSheet.create({
   },
   pickerYearText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText,
     minWidth: 42,
     textAlign: 'center'
@@ -1013,13 +1014,13 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 12,
+    borderRadius: 16,
     backgroundColor: colors.surfaceSecondary,
     borderWidth: 1,
     borderColor: 'transparent'
   },
   monthGridItemActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     borderColor: colors.primaryDark,
     ...shadows.subtle
   },
@@ -1030,7 +1031,7 @@ const styles = StyleSheet.create({
   },
   monthGridItemTextActive: {
     color: colors.textWhite,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   pickerFooter: {
     flexDirection: 'row',
@@ -1051,7 +1052,7 @@ const styles = StyleSheet.create({
   },
   pickerCurrentText: {
     fontSize: 11.5,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primary
   },
   pickerCloseBtn: {

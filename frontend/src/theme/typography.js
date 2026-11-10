@@ -9,22 +9,22 @@ const fontFamily = Platform.select({
 export const typography = {
   displayLarge: {
     fontFamily,
-    fontSize: 28,
-    fontWeight: '700',
-    lineHeight: 34,
-    letterSpacing: -0.4
+    fontSize: 30,
+    fontWeight: '600',
+    lineHeight: 38,
+    letterSpacing: -0.6
   },
   heading1: {
     fontFamily,
-    fontSize: 22,
-    fontWeight: '700',
-    lineHeight: 28,
-    letterSpacing: -0.3
+    fontSize: 24,
+    fontWeight: '600',
+    lineHeight: 32,
+    letterSpacing: -0.4
   },
   heading2: {
     fontFamily,
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '600',
     lineHeight: 24,
     letterSpacing: -0.2
   },

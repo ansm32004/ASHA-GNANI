@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,19 +14,19 @@ export const SectionHeader = ({
   return (
     <View style={[styles.container, style]}>
       <View style={styles.titleColumn}>
-        <Text style={styles.title}>{title}</Text>
-        {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+        <Text style={styles.title}>{tr(title)}</Text>
+        {subtitle && <Text style={styles.subtitle}>{tr(subtitle)}</Text>}
       </View>
       {onAction && (
         <TouchableOpacity
           onPress={onAction}
           activeOpacity={0.75}
           style={styles.actionBtn}
-          accessibilityLabel={actionText}
+          accessibilityLabel={tr(actionText)}
         >
           <View style={styles.actionRow}>
-            <Text style={styles.actionText}>{actionText}</Text>
-            <Ionicons name="chevron-forward" size={13} color={colors.primary} style={{ marginLeft: 2 }} />
+            <Text style={styles.actionText}>{tr(actionText)}</Text>
+            <Ionicons name="chevron-forward" size={13} color={colors.textMuted} style={{ marginLeft: 2 }} />
           </View>
         </TouchableOpacity>
       )}
@@ -47,14 +48,14 @@ const styles = StyleSheet.create({
     marginRight: 8
   },
   title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#0F172A',
-    letterSpacing: -0.2
+    fontSize: 19,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    letterSpacing: -0.3
   },
   subtitle: {
-    fontSize: 12,
-    color: '#64748B',
+    fontSize: 13,
+    color: colors.textMuted,
     marginTop: 2
   },
   actionBtn: {
@@ -68,8 +69,8 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: 13,
-    color: colors.primary,
-    fontWeight: '700'
+    color: colors.textSecondary,
+    fontWeight: '500'
   }
 });
 

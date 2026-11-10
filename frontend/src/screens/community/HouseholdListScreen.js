@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -74,13 +75,13 @@ export const HouseholdListScreen = ({ navigation }) => {
     <SafeAreaView style={styles.safeArea}>
       <MinimalHeader
         title="Community Directory"
-        subtitle={`${filteredList.length} families assigned`}
+        subtitle={`${tr(filteredList.length)} ${tr('families assigned')}`}
         showBack={false}
         rightAction={
           <TouchableOpacity
             onPress={() => navigation.navigate('AddHousehold')}
             style={styles.addBtn}
-            accessibilityLabel="Add new household"
+            accessibilityLabel={tr('Add new household')}
           >
             <Ionicons name="add" size={20} color={colors.textWhite} />
           </TouchableOpacity>
@@ -91,7 +92,7 @@ export const HouseholdListScreen = ({ navigation }) => {
       <SearchBar
         value={search}
         onChangeText={setSearch}
-        placeholder="Search family head, child or ID..."
+        placeholder={tr('Search family head, child or ID...')}
         onClear={() => setSearch('')}
       />
 
@@ -112,7 +113,7 @@ export const HouseholdListScreen = ({ navigation }) => {
                 activeOpacity={0.8}
               >
                 <Text style={[styles.filterPillText, isSelected && styles.filterPillTextActive]}>
-                  {v}
+                  {tr(v)}
                 </Text>
               </TouchableOpacity>
             );
@@ -142,7 +143,7 @@ export const HouseholdListScreen = ({ navigation }) => {
                     isSelected && styles.priorityPillTextActive
                   ]}
                 >
-                  {p}
+                  {tr(p)}
                 </Text>
               </TouchableOpacity>
             );
@@ -161,8 +162,8 @@ export const HouseholdListScreen = ({ navigation }) => {
               <MinimalListRow
                 category={getHouseholdCategory(item)}
                 title={item.primary_contact_name}
-                subtitle={`${item.household_id} • ${item.village} (${item.sub_area || 'Ward 3'})`}
-                meta={`${(item.members || []).length} members • Last visit: ${item.last_visit_date ? formatDate(item.last_visit_date) : 'None'}`}
+                subtitle={`${tr(item.household_id)} • ${tr(item.village)} (${tr(item.sub_area || 'Ward 3')})`}
+                meta={`${tr((item.members || []).length)} ${tr('members • Last visit:')} ${tr(item.last_visit_date ? formatDate(item.last_visit_date) : 'None')}`}
                 priority={item.priority}
                 onPress={() => navigation.navigate('HouseholdDetail', { householdId: item.id })}
                 showDivider={false}
@@ -193,13 +194,13 @@ export const HouseholdListScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   addBtn: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.primary,
+    borderRadius: 22,
+    backgroundColor: colors.ink,
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -229,7 +230,7 @@ const styles = StyleSheet.create({
   },
   filterPillTextActive: {
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   priorityRow: {
     marginVertical: 4
@@ -257,7 +258,7 @@ const styles = StyleSheet.create({
   },
   priorityPillTextActive: {
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   listContent: {
     paddingHorizontal: spacing.screenPadding,
@@ -266,7 +267,7 @@ const styles = StyleSheet.create({
   },
   rowCard: {
     backgroundColor: colors.surface,
-    borderRadius: 16,
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: colors.border,
     marginVertical: 4,

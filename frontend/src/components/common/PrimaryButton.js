@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, View } from 'react-native';
 import { colors, typography, radius, shadows, spacing } from '../../theme';
@@ -29,7 +30,7 @@ export const PrimaryButton = ({
         styles.button,
         {
           minHeight: getMinHeight(),
-          backgroundColor: disabled ? colors.surfaceSecondary : colors.primary
+          backgroundColor: disabled ? colors.surfaceSecondary : colors.ink
         },
         !disabled && shadows.soft,
         style
@@ -47,7 +48,7 @@ export const PrimaryButton = ({
               textStyle
             ]}
           >
-            {title}
+            {tr(title)}
           </Text>
         </View>
       )}
@@ -73,7 +74,7 @@ const styles = StyleSheet.create({
   },
   text: {
     ...typography.button,
-    fontWeight: '700',
+    fontWeight: '600',
     textAlign: 'center'
   }
 });

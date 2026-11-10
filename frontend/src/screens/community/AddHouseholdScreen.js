@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -47,7 +48,7 @@ export const AddHouseholdScreen = ({ navigation }) => {
         setIsRecording(false);
         if (!audioUri) {
           setIsProcessingVoice(false);
-          Alert.alert('Recording Failed', 'No valid audio was captured. Please speak again.');
+          Alert.alert(tr('Recording Failed'), tr('No valid audio was captured. Please speak again.'));
           return;
         }
 
@@ -55,14 +56,14 @@ export const AddHouseholdScreen = ({ navigation }) => {
         await audioService.cleanupAudioFile(audioUri);
         if (transRes?.error) {
           setIsProcessingVoice(false);
-          Alert.alert('Speech Recognition Notice', transRes.error);
+          Alert.alert(tr('Speech Recognition Notice'), tr(transRes.error));
           return;
         }
         const transcript = transRes?.transcript || transRes?.data?.transcript || '';
 
         if (!transcript.trim()) {
           setIsProcessingVoice(false);
-          Alert.alert('No speech detected', 'Please try speaking again clearly.');
+          Alert.alert(tr('No speech detected'), tr('Please try speaking again clearly.'));
           return;
         }
 
@@ -92,8 +93,8 @@ export const AddHouseholdScreen = ({ navigation }) => {
         }
 
         Alert.alert(
-          'Details Auto-Filled',
-          `Voice AI extracted details from: "${transcript.substring(0, 70)}..."\nPlease review the form before saving.`
+          tr('Details Auto-Filled'),
+          `${tr('Voice AI extracted details from: "')}${transcript.substring(0, 70)}..."\nPlease review the form before saving.`
         );
       } else {
         try {
@@ -103,10 +104,10 @@ export const AddHouseholdScreen = ({ navigation }) => {
           }
         } catch (permErr) {
           Alert.alert(
-            'Microphone Permission Required',
-            permErr.permanentlyDenied
+            tr('Microphone Permission Required'),
+            tr(permErr.permanentlyDenied
               ? 'Microphone permission has been permanently denied. Please enable it in Settings.'
-              : 'Please allow microphone access to record voice notes.'
+              : 'Please allow microphone access to record voice notes.')
           );
         }
       }
@@ -114,13 +115,13 @@ export const AddHouseholdScreen = ({ navigation }) => {
       console.warn('Voice auto-fill error:', err);
       setIsRecording(false);
       setIsProcessingVoice(false);
-      Alert.alert('Voice Fill Notice', 'Could not complete auto-fill. You can enter details manually.');
+      Alert.alert(tr('Voice Fill Notice'), tr('Could not complete auto-fill. You can enter details manually.'));
     }
   };
 
   const handleAddMember = () => {
     if (!memberName.trim() || !memberAge.trim()) {
-      Alert.alert('Required', 'Please enter member name and age.');
+      Alert.alert(tr('Required'), tr('Please enter member name and age.'));
       return;
     }
     const newMember = {
@@ -163,13 +164,13 @@ export const AddHouseholdScreen = ({ navigation }) => {
       await householdApi.createHousehold(payload);
       setLoading(false);
       Alert.alert(
-        'Household Registered',
-        `${primaryName} has been successfully registered under ${village}.`,
-        [{ text: 'OK', onPress: () => navigation.goBack() }]
+        tr('Household Registered'),
+        `${primaryName} ${tr('has been successfully registered under')} ${village}.`,
+        [{ text: tr('OK'), onPress: () => navigation.goBack() }]
       );
     } catch (e) {
       setLoading(false);
-      Alert.alert('Error', 'Could not register household. Please try again.');
+      Alert.alert(tr('Error'), tr('Could not register household. Please try again.'));
     }
   };
 
@@ -195,20 +196,20 @@ export const AddHouseholdScreen = ({ navigation }) => {
             color={isRecording ? colors.danger : colors.primary}
           />
           <Text style={[styles.voiceFillText, isRecording && styles.voiceFillTextRecording]}>
-            {isProcessingVoice
+            {tr(isProcessingVoice
               ? "Transcribing & Extracting with AI..."
               : isRecording
               ? "Recording... (Tap to finish)"
-              : "Tap to dictate household details with Voice AI"}
+              : "Tap to dictate household details with Voice AI")}
           </Text>
         </TouchableOpacity>
 
         <View style={styles.formGroup}>
-          <Text style={styles.sectionHeader}>Primary Contact Information</Text>
+          <Text style={styles.sectionHeader}>{tr('Primary Contact Information')}</Text>
 
           <AppInput
             label="Primary Contact / Family Head Name *"
-            placeholder="e.g. Meena Devi"
+            placeholder={tr('e.g. Meena Devi')}
             value={primaryName}
             onChangeText={(v) => {
               setPrimaryName(v);
@@ -217,7 +218,7 @@ export const AddHouseholdScreen = ({ navigation }) => {
             error={error}
           />
 
-          <Text style={styles.label}>Assigned Village *</Text>
+          <Text style={styles.label}>{tr('Assigned Village *')}</Text>
           <View style={styles.villagePillRow}>
             {VILLAGES.map((v) => {
               const isSelected = village === v;
@@ -228,7 +229,7 @@ export const AddHouseholdScreen = ({ navigation }) => {
                   style={[styles.villagePill, isSelected && styles.villagePillActive]}
                 >
                   <Text style={[styles.villagePillText, isSelected && styles.villagePillTextActive]}>
-                    {v}
+                    {tr(v)}
                   </Text>
                 </TouchableOpacity>
               );
@@ -237,14 +238,14 @@ export const AddHouseholdScreen = ({ navigation }) => {
 
           <AppInput
             label="Ward / Lane / Area"
-            placeholder="e.g. Ward 3, Near Primary School"
+            placeholder={tr('e.g. Ward 3, Near Primary School')}
             value={subArea}
             onChangeText={setSubArea}
           />
 
           <AppInput
             label="Mobile Number *"
-            placeholder="10-digit number"
+            placeholder={tr('10-digit number')}
             value={contactNumber}
             onChangeText={setContactNumber}
             keyboardType="phone-pad"
@@ -252,7 +253,7 @@ export const AddHouseholdScreen = ({ navigation }) => {
 
           <AppInput
             label="House / Street Address"
-            placeholder="e.g. House 14, Gali No. 2"
+            placeholder={tr('e.g. House 14, Gali No. 2')}
             value={address}
             onChangeText={setAddress}
           />
@@ -266,9 +267,7 @@ export const AddHouseholdScreen = ({ navigation }) => {
               size={18}
               color={colors.primary}
             />
-            <Text style={styles.consentText}>
-              Household consent obtained for periodic community health visits.
-            </Text>
+            <Text style={styles.consentText}>{tr('Household consent obtained for periodic community health visits.')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -276,32 +275,30 @@ export const AddHouseholdScreen = ({ navigation }) => {
         <View style={[styles.formGroup, { marginTop: spacing.md }]}>
           <View style={styles.memberHeaderRow}>
             <View>
-              <Text style={styles.sectionHeader}>Family Members</Text>
-              <Text style={styles.sectionSub}>{members.length} added</Text>
+              <Text style={styles.sectionHeader}>{tr('Family Members')}</Text>
+              <Text style={styles.sectionSub}>{tr(members.length)}{' '}{tr('added')}</Text>
             </View>
             <TouchableOpacity
               onPress={() => setShowMemberModal(true)}
               style={styles.addMemberBtn}
             >
               <Ionicons name="person-add" size={14} color={colors.primary} />
-              <Text style={styles.addMemberText}>+ Add Member</Text>
+              <Text style={styles.addMemberText}>{tr('+ Add Member')}</Text>
             </TouchableOpacity>
           </View>
 
           {members.length === 0 ? (
-            <Text style={styles.noMembersText}>
-              No family members added yet. Tap '+ Add Member' above.
-            </Text>
+            <Text style={styles.noMembersText}>{tr('No family members added yet. Tap \'+ Add Member\' above.')}</Text>
           ) : (
             members.map((m, idx) => (
               <View key={m.id || idx} style={styles.memberRow}>
                 <VectorCategoryIcon category={m.category} size={24} style={{ marginRight: 8 }} />
                 <View style={styles.memberInfo}>
                   <Text style={styles.memberName}>
-                    {m.name} ({m.relation})
+                    {tr(m.name)} ({tr(m.relation)})
                   </Text>
                   <Text style={styles.memberMeta}>
-                    {m.age} yrs • {m.gender} • {m.category}
+                    {tr(m.age)}{' '}{tr('yrs •')}{' '}{tr(m.gender)} • {tr(m.category)}
                   </Text>
                 </View>
                 <TouchableOpacity
@@ -317,10 +314,10 @@ export const AddHouseholdScreen = ({ navigation }) => {
           {/* Member Subform inline modal */}
           {showMemberModal && (
             <View style={styles.memberSubForm}>
-              <Text style={styles.subFormTitle}>New Family Member</Text>
+              <Text style={styles.subFormTitle}>{tr('New Family Member')}</Text>
               <AppInput
                 label="Member Name"
-                placeholder="e.g. Aarav"
+                placeholder={tr('e.g. Aarav')}
                 value={memberName}
                 onChangeText={setMemberName}
               />
@@ -337,14 +334,14 @@ export const AddHouseholdScreen = ({ navigation }) => {
                 <View style={{ flex: 1 }}>
                   <AppInput
                     label="Relation"
-                    placeholder="Wife / Son"
+                    placeholder={tr('Wife / Son')}
                     value={memberRelation}
                     onChangeText={setMemberRelation}
                   />
                 </View>
               </View>
 
-              <Text style={styles.label}>Category</Text>
+              <Text style={styles.label}>{tr('Category')}</Text>
               <View style={styles.categoryRow}>
                 {[
                   'Pregnant Woman',
@@ -362,7 +359,7 @@ export const AddHouseholdScreen = ({ navigation }) => {
                     <Text
                       style={[styles.catPillText, memberCategory === cat && styles.catPillTextActive]}
                     >
-                      {cat}
+                      {tr(cat)}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -404,7 +401,7 @@ export const AddHouseholdScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   container: {
     paddingHorizontal: spacing.screenPadding,
@@ -413,17 +410,15 @@ const styles = StyleSheet.create({
   },
   formGroup: {
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: 24,
     padding: spacing.base,
     borderWidth: 1,
     borderColor: colors.border
   },
   sectionHeader: {
     ...typography.caption,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
     marginBottom: spacing.xs
   },
   sectionSub: {
@@ -432,12 +427,10 @@ const styles = StyleSheet.create({
   },
   label: {
     ...typography.caption,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textSecondary,
     marginTop: spacing.sm,
     marginBottom: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5
   },
   villagePillRow: {
     flexDirection: 'row',
@@ -465,7 +458,7 @@ const styles = StyleSheet.create({
   },
   villagePillTextActive: {
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   consentRow: {
     flexDirection: 'row',
@@ -473,7 +466,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     padding: 8,
     backgroundColor: colors.surfaceSecondary,
-    borderRadius: 12
+    borderRadius: 16
   },
   consentText: {
     ...typography.caption,
@@ -499,7 +492,7 @@ const styles = StyleSheet.create({
   addMemberText: {
     ...typography.caption,
     color: colors.primary,
-    fontWeight: '700',
+    fontWeight: '600',
     marginLeft: 4,
     fontSize: 11
   },
@@ -521,7 +514,7 @@ const styles = StyleSheet.create({
   },
   memberName: {
     ...typography.bodyMedium,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textPrimary
   },
   memberMeta: {
@@ -535,7 +528,7 @@ const styles = StyleSheet.create({
   memberSubForm: {
     backgroundColor: colors.surfaceSecondary,
     padding: spacing.md,
-    borderRadius: 16,
+    borderRadius: 22,
     marginTop: spacing.sm
   },
   subFormTitle: {
@@ -572,7 +565,7 @@ const styles = StyleSheet.create({
   },
   catPillTextActive: {
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   subFormBtnRow: {
     flexDirection: 'row',

@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -53,14 +54,14 @@ export const MinimalHeader = ({
         <TouchableOpacity
           onPress={onBack}
           style={styles.backButton}
-          accessibilityLabel="Back"
+          accessibilityLabel={tr('Back')}
           activeOpacity={0.7}
         >
           <Ionicons name="arrow-back" size={22} color={colors.textPrimary} />
         </TouchableOpacity>
         <View style={styles.subTitleCol}>
-          <Text style={styles.pageTitle} numberOfLines={1}>{title}</Text>
-          {subtitle ? <Text style={styles.pageSubtitle} numberOfLines={1}>{subtitle}</Text> : null}
+          <Text style={styles.pageTitle} numberOfLines={1}>{tr(title)}</Text>
+          {subtitle ? <Text style={styles.pageSubtitle} numberOfLines={1}>{tr(subtitle)}</Text> : null}
         </View>
         {rightAction ? (
           <View style={styles.rightActionWrap}>{rightAction}</View>
@@ -90,10 +91,10 @@ export const MinimalHeader = ({
         <View style={styles.greetingTextCol}>
           <View style={styles.roleTag}>
             <View style={styles.roleDot} />
-            <Text style={styles.roleTagText}>ASHA • Rampur Kalan</Text>
+            <Text style={styles.roleTagText}>{tr('ASHA • Rampur Kalan')}</Text>
           </View>
-          <Text style={styles.greetingTitle}>Namaste, {workerName}</Text>
-          <Text style={styles.greetingSubtitle}>{subtitle}</Text>
+          <Text style={styles.greetingTitle}>{tr('Namaste,')}{' '}{tr(workerName)}</Text>
+          <Text style={styles.greetingSubtitle}>{tr(subtitle)}</Text>
         </View>
       </TouchableOpacity>
 
@@ -104,10 +105,10 @@ export const MinimalHeader = ({
             onPress={onPressLanguage}
             activeOpacity={0.75}
             style={styles.languagePill}
-            accessibilityLabel="Language Selector"
+            accessibilityLabel={tr('Language Selector')}
           >
             <Text style={styles.languageText}>
-              {currentLanguage === 'hi' ? 'हिन्दी' : 'EN'}
+              {tr(currentLanguage === 'hi' ? 'हिन्दी' : 'EN')}
             </Text>
           </TouchableOpacity>
         )}
@@ -116,7 +117,7 @@ export const MinimalHeader = ({
           onPress={handleNotificationPress}
           activeOpacity={0.75}
           style={styles.notificationBtn}
-          accessibilityLabel="Notifications"
+          accessibilityLabel={tr('Notifications')}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
           <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
@@ -137,7 +138,7 @@ export const MinimalHeader = ({
           </Svg>
           {unreadCount > 0 && (
             <View style={styles.notificationBadge}>
-              <Text style={styles.notificationBadgeText}>{unreadCount}</Text>
+              <Text style={styles.notificationBadgeText}>{tr(unreadCount)}</Text>
             </View>
           )}
         </TouchableOpacity>
@@ -154,7 +155,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.screenHorizontal,
     paddingTop: spacing.screenTopPadding,
     paddingBottom: spacing.sm,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   profileSection: {
     flexDirection: 'row',
@@ -171,12 +172,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
     borderWidth: 1.5,
-    borderColor: '#BFDBFE'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   avatarInitial: {
     ...typography.heading2,
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   greetingTextCol: {
     flex: 1
@@ -201,7 +202,7 @@ const styles = StyleSheet.create({
   greetingTitle: {
     ...typography.heading2,
     color: colors.textPrimary,
-    fontWeight: '700',
+    fontWeight: '600',
     lineHeight: 24
   },
   greetingSubtitle: {
@@ -226,7 +227,7 @@ const styles = StyleSheet.create({
   },
   languageText: {
     ...typography.caption,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primary
   },
   notificationBtn: {
@@ -254,7 +255,7 @@ const styles = StyleSheet.create({
   },
   notificationBadgeText: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#FFFFFF'
   },
   subScreenHeader: {
@@ -282,7 +283,7 @@ const styles = StyleSheet.create({
   pageTitle: {
     ...typography.heading2,
     color: colors.textPrimary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   pageSubtitle: {
     ...typography.caption,

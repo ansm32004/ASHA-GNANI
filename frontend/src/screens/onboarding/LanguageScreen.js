@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -37,16 +38,16 @@ export const LanguageScreen = ({ navigation, route }) => {
         style={[styles.languageCard, isSelected && styles.selectedCard]}
       >
         <View style={styles.cardLeft}>
-          <Text style={[styles.nativeName, isSelected && styles.selectedText]}>{item.name}</Text>
+          <Text style={[styles.nativeName, isSelected && styles.selectedText]}>{tr(item.name)}</Text>
           <Text style={styles.englishName}>
-            {item.englishName} • {item.script}
+            {tr(item.englishName)} • {tr(item.script)}
           </Text>
         </View>
 
         <View style={styles.cardRight}>
           {!item.isReady && (
             <View style={styles.comingSoonBadge}>
-              <Text style={styles.comingSoonText}>Upcoming</Text>
+              <Text style={styles.comingSoonText}>{tr('Upcoming')}</Text>
             </View>
           )}
           <View style={[styles.radioCircle, isSelected && styles.selectedRadio]}>
@@ -91,7 +92,7 @@ export const LanguageScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   content: {
     flex: 1,
@@ -125,7 +126,7 @@ const styles = StyleSheet.create({
   },
   selectedText: {
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   englishName: {
     ...typography.caption,
@@ -164,7 +165,7 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: colors.primary
+    backgroundColor: colors.ink
   },
   bottomBar: {
     paddingVertical: spacing.md

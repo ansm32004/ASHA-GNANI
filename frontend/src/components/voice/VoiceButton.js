@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useEffect, useRef } from 'react';
 import { View, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -71,7 +72,7 @@ export const VoiceButton = ({
           }
         ]}
         accessibilityRole="button"
-        accessibilityLabel={isRecording ? "Stop voice recording" : "Start voice recording"}
+        accessibilityLabel={tr(isRecording ? "Stop voice recording" : "Start voice recording")}
       >
         <Ionicons
           name={isRecording ? "stop" : (isProcessing ? "hourglass" : "mic")}

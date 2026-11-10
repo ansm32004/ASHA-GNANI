@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,7 +19,7 @@ export const ProfileGreeting = ({
         activeOpacity={0.8}
         style={styles.profileRow}
         accessibilityRole="button"
-        accessibilityLabel="Open Profile"
+        accessibilityLabel={tr('Open Profile')}
       >
         <View style={styles.avatarContainer}>
           <AvatarImage
@@ -32,8 +33,8 @@ export const ProfileGreeting = ({
         </View>
 
         <View style={styles.textColumn}>
-          <Text style={styles.greetingText}>Hello, {workerName}</Text>
-          <Text style={styles.subtitleText}>{subtitle}</Text>
+          <Text style={styles.greetingText}>{tr('Hello,')}{' '}{tr(workerName)}</Text>
+          <Text style={styles.subtitleText}>{tr(subtitle)}</Text>
         </View>
       </TouchableOpacity>
 
@@ -42,7 +43,7 @@ export const ProfileGreeting = ({
         activeOpacity={0.75}
         style={styles.notifButton}
         accessibilityRole="button"
-        accessibilityLabel="Notifications"
+        accessibilityLabel={tr('Notifications')}
       >
         <Ionicons name="notifications-outline" size={20} color={colors.textPrimary} />
         {unreadNotificationsCount > 0 && (
@@ -61,7 +62,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.screenPadding,
     paddingTop: spacing.base,
     paddingBottom: spacing.sm,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   profileRow: {
     flexDirection: 'row',
@@ -85,7 +86,7 @@ const styles = StyleSheet.create({
   avatarText: {
     ...typography.heading2,
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   onlineBadge: {
     position: 'absolute',

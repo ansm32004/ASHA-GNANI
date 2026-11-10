@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
@@ -146,7 +147,7 @@ export const MyIncentivesScreen = ({ navigation }) => {
       >
         {/* ================= 1. FOUR SUMMARY CARDS (OVERVIEW) ================= */}
         <View style={styles.overviewHeaderRow}>
-          <Text style={styles.sectionTitle}>Earnings Overview</Text>
+          <Text style={styles.sectionTitle}>{tr('Earnings Overview')}</Text>
         </View>
 
         <View style={styles.overviewGrid}>
@@ -155,9 +156,9 @@ export const MyIncentivesScreen = ({ navigation }) => {
             <View style={styles.cardIconWrap}>
               <Ionicons name="trophy-outline" size={20} color={colors.primary} />
             </View>
-            <Text style={styles.cardValue}>₹{(overview.total_earned || 0).toLocaleString('en-IN')}</Text>
-            <Text style={styles.cardLabel}>Total Earned</Text>
-            <Text style={styles.cardHint}>Verified incentives</Text>
+            <Text style={styles.cardValue}>₹{tr((overview.total_earned || 0).toLocaleString('en-IN'))}</Text>
+            <Text style={styles.cardLabel}>{tr('Total Earned')}</Text>
+            <Text style={styles.cardHint}>{tr('Verified incentives')}</Text>
           </View>
 
           {/* Card 2: Pending Claims */}
@@ -165,9 +166,9 @@ export const MyIncentivesScreen = ({ navigation }) => {
             <View style={[styles.cardIconWrap, { backgroundColor: colors.warningLight }]}>
               <Ionicons name="time-outline" size={20} color="#D97706" />
             </View>
-            <Text style={[styles.cardValue, { color: '#B45309' }]}>₹{(overview.pending_claims || 0).toLocaleString('en-IN')}</Text>
-            <Text style={styles.cardLabel}>Pending Claims</Text>
-            <Text style={styles.cardHint}>Submitted, awaiting MO</Text>
+            <Text style={[styles.cardValue, { color: '#B45309' }]}>₹{tr((overview.pending_claims || 0).toLocaleString('en-IN'))}</Text>
+            <Text style={styles.cardLabel}>{tr('Pending Claims')}</Text>
+            <Text style={styles.cardHint}>{tr('Submitted, awaiting MO')}</Text>
           </View>
 
           {/* Card 3: Eligible to Claim */}
@@ -175,9 +176,9 @@ export const MyIncentivesScreen = ({ navigation }) => {
             <View style={[styles.cardIconWrap, { backgroundColor: colors.tealLight }]}>
               <Ionicons name="sparkles-outline" size={20} color={colors.tealDark} />
             </View>
-            <Text style={[styles.cardValue, { color: colors.tealDark }]}>₹{(overview.eligible_to_claim || 0).toLocaleString('en-IN')}</Text>
-            <Text style={styles.cardLabel}>Eligible to Claim</Text>
-            <Text style={styles.cardHint}>From recorded activities</Text>
+            <Text style={[styles.cardValue, { color: colors.tealDark }]}>₹{tr((overview.eligible_to_claim || 0).toLocaleString('en-IN'))}</Text>
+            <Text style={styles.cardLabel}>{tr('Eligible to Claim')}</Text>
+            <Text style={styles.cardHint}>{tr('From recorded activities')}</Text>
           </View>
 
           {/* Card 4: Paid */}
@@ -185,18 +186,16 @@ export const MyIncentivesScreen = ({ navigation }) => {
             <View style={[styles.cardIconWrap, { backgroundColor: colors.successLight }]}>
               <Ionicons name="checkmark-done-circle-outline" size={20} color={colors.success} />
             </View>
-            <Text style={[styles.cardValue, { color: colors.success }]}>₹{(overview.paid || 0).toLocaleString('en-IN')}</Text>
-            <Text style={styles.cardLabel}>Paid</Text>
-            <Text style={styles.cardHint}>Confirmed disbursed</Text>
+            <Text style={[styles.cardValue, { color: colors.success }]}>₹{tr((overview.paid || 0).toLocaleString('en-IN'))}</Text>
+            <Text style={styles.cardLabel}>{tr('Paid')}</Text>
+            <Text style={styles.cardHint}>{tr('Confirmed disbursed')}</Text>
           </View>
         </View>
 
         {/* Official Governance Notice Banner */}
         <View style={styles.disclaimerBanner}>
           <Ionicons name="information-circle-outline" size={16} color={colors.secondaryText} style={{ marginTop: 1 }} />
-          <Text style={styles.disclaimerText}>
-            Sahayika is an incentive tracking and claim preparation system. Official payments require Medical Officer register verification and PFMS treasury disbursement.
-          </Text>
+          <Text style={styles.disclaimerText}>{tr('Sahayika is an incentive tracking and claim preparation system. Official payments require Medical Officer register verification and PFMS treasury disbursement.')}</Text>
         </View>
 
         {/* ================= 2. CLAIM MONEY FLOW CTA ================= */}
@@ -205,15 +204,15 @@ export const MyIncentivesScreen = ({ navigation }) => {
             style={styles.createClaimBtn}
             onPress={() => navigation.navigate('CreateClaim')}
             activeOpacity={0.88}
-            accessibilityLabel="Create New Claim"
+            accessibilityLabel={tr('Create New Claim')}
           >
             <View style={styles.createClaimBtnContent}>
               <View style={styles.plusCircle}>
                 <Ionicons name="add" size={20} color="#FFFFFF" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.createClaimTitle}>+ Create New Claim</Text>
-                <Text style={styles.createClaimSub}>Compile completed healthcare activities for incentive approval</Text>
+                <Text style={styles.createClaimTitle}>{tr('+ Create New Claim')}</Text>
+                <Text style={styles.createClaimSub}>{tr('Compile completed healthcare activities for incentive approval')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color="#FFFFFF" />
             </View>
@@ -222,8 +221,8 @@ export const MyIncentivesScreen = ({ navigation }) => {
 
         {/* ================= 3. CLAIM HISTORY SECTION ================= */}
         <View style={styles.historyHeaderRow}>
-          <Text style={styles.sectionTitle}>Claim Records History</Text>
-          <Text style={styles.historyCountText}>{filteredClaims.length} records</Text>
+          <Text style={styles.sectionTitle}>{tr('Claim Records History')}</Text>
+          <Text style={styles.historyCountText}>{tr(filteredClaims.length)}{' '}{tr('records')}</Text>
         </View>
 
         {/* Horizontal Status Filter Tabs */}
@@ -238,7 +237,7 @@ export const MyIncentivesScreen = ({ navigation }) => {
                 activeOpacity={0.75}
               >
                 <Text style={[styles.statusTabText, isSelected && styles.statusTabTextActive]}>
-                  {tab}
+                  {tr(tab)}
                 </Text>
               </TouchableOpacity>
             );
@@ -252,11 +251,11 @@ export const MyIncentivesScreen = ({ navigation }) => {
           ) : filteredClaims.length === 0 ? (
             <View style={styles.emptyCard}>
               <Ionicons name="folder-open-outline" size={36} color={colors.textMuted} />
-              <Text style={styles.emptyTitle}>No Claims in "{activeTab}"</Text>
+              <Text style={styles.emptyTitle}>{tr('No Claims in "')}{tr(activeTab)}"</Text>
               <Text style={styles.emptySubtitle}>
-                {activeTab === 'All'
+                {tr(activeTab === 'All'
                   ? 'You have not submitted any incentive claims yet. Tap "+ Create New Claim" above.'
-                  : `No claim records currently match the status "${activeTab}".`}
+                  : `${tr('No claim records currently match the status "')}${tr(activeTab)}".`)}
               </Text>
             </View>
           ) : (
@@ -272,18 +271,18 @@ export const MyIncentivesScreen = ({ navigation }) => {
                   style={styles.claimCard}
                   onPress={() => handleOpenClaimDetail(claim)}
                   activeOpacity={0.85}
-                  accessibilityLabel={`Claim for ${claim.month} ${claim.year}`}
+                  accessibilityLabel={`${tr('Claim for')} ${claim.month} ${claim.year}`}
                 >
                   <View style={styles.claimCardTop}>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.claimMonthYear}>
-                        {claim.month} {claim.year}
+                        {tr(claim.month)} {tr(claim.year)}
                       </Text>
-                      <Text style={styles.claimIdText}>{claim.id}</Text>
+                      <Text style={styles.claimIdText}>{tr(claim.id)}</Text>
                     </View>
                     <View style={[styles.statusPill, { backgroundColor: badge.bg }]}>
                       <Ionicons name={badge.icon} size={13} color={badge.text} style={{ marginRight: 4 }} />
-                      <Text style={[styles.statusPillText, { color: badge.text }]}>{badge.label}</Text>
+                      <Text style={[styles.statusPillText, { color: badge.text }]}>{tr(badge.label)}</Text>
                     </View>
                   </View>
 
@@ -292,17 +291,16 @@ export const MyIncentivesScreen = ({ navigation }) => {
                   <View style={styles.claimCardBottom}>
                     <View>
                       <Text style={styles.claimActivitiesCount}>
-                        {claim.activities_count || (claim.activities ? claim.activities.length : 0)} activities included
-                      </Text>
+                        {tr(claim.activities_count || (claim.activities ? claim.activities.length : 0))}{' '}{tr('activities included')}</Text>
                       <Text style={styles.claimSubmittedDate}>
-                        {claim.submitted_at ? `Submitted: ${formatDate(claim.submitted_at)}` : 'Draft record'}
+                        {tr(claim.submitted_at ? `${tr('Submitted:')} ${tr(formatDate(claim.submitted_at))}` : 'Draft record')}
                       </Text>
                     </View>
                     <View style={{ alignItems: 'flex-end' }}>
                       <Text style={[styles.claimAmount, claim.amount_pending_verification && styles.pendingAmtText]}>
-                        {amountStr}
+                        {tr(amountStr)}
                       </Text>
-                      <Text style={styles.viewDetailText}>View Details →</Text>
+                      <Text style={styles.viewDetailText}>{tr('View Details →')}</Text>
                     </View>
                   </View>
 
@@ -310,8 +308,7 @@ export const MyIncentivesScreen = ({ navigation }) => {
                   {badge.label === 'Rejected' && claim.rejection_reason ? (
                     <View style={styles.rejectionBanner}>
                       <Ionicons name="alert-circle" size={14} color={colors.danger} />
-                      <Text style={styles.rejectionBannerText} numberOfLines={2}>
-                        Reason: {claim.rejection_reason}
+                      <Text style={styles.rejectionBannerText} numberOfLines={2}>{tr('Reason:')}{' '}{tr(claim.rejection_reason)}
                       </Text>
                     </View>
                   ) : null}
@@ -324,8 +321,8 @@ export const MyIncentivesScreen = ({ navigation }) => {
         {/* ================= 4. INCENTIVE GUIDELINES ("KNOW YOUR INCENTIVES") ================= */}
         <View style={styles.guidelinesHeader}>
           <View>
-            <Text style={styles.sectionTitle}>Know Your Incentives</Text>
-            <Text style={styles.sectionSubtitle}>Official NHM payment categories & eligibility norms</Text>
+            <Text style={styles.sectionTitle}>{tr('Know Your Incentives')}</Text>
+            <Text style={styles.sectionSubtitle}>{tr('Official NHM payment categories & eligibility norms')}</Text>
           </View>
         </View>
 
@@ -337,16 +334,16 @@ export const MyIncentivesScreen = ({ navigation }) => {
                 <View style={styles.guidelineTopRow}>
                   <View style={[styles.categoryPill, isStateNotice && styles.stateCategoryPill]}>
                     <Text style={[styles.categoryPillText, isStateNotice && styles.stateCategoryPillText]}>
-                      {item.category_label || item.category}
+                      {tr(item.category_label || item.category)}
                     </Text>
                   </View>
                   <Text style={[styles.guidelineAmount, isStateNotice && styles.stateGuidelineAmount]}>
-                    {item.amount_display}
+                    {tr(item.amount_display)}
                   </Text>
                 </View>
 
-                <Text style={styles.guidelineTitle}>{item.title}</Text>
-                <Text style={styles.guidelineConditions}>{item.eligibility_conditions}</Text>
+                <Text style={styles.guidelineTitle}>{tr(item.title)}</Text>
+                <Text style={styles.guidelineConditions}>{tr(item.eligibility_conditions)}</Text>
 
                 {item.notes ? (
                   <View style={styles.guidelineNoteBox}>
@@ -356,7 +353,7 @@ export const MyIncentivesScreen = ({ navigation }) => {
                       color={isStateNotice ? '#B45309' : colors.secondaryText}
                     />
                     <Text style={[styles.guidelineNoteText, isStateNotice && styles.stateNoteText]}>
-                      {item.notes}
+                      {tr(item.notes)}
                     </Text>
                   </View>
                 ) : null}
@@ -383,14 +380,13 @@ export const MyIncentivesScreen = ({ navigation }) => {
                 <View style={styles.modalHeaderRow}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.modalTitle}>
-                      {selectedClaim.month} {selectedClaim.year} Claim
-                    </Text>
-                    <Text style={styles.modalClaimId}>{selectedClaim.id}</Text>
+                      {tr(selectedClaim.month)} {tr(selectedClaim.year)}{' '}{tr('Claim')}</Text>
+                    <Text style={styles.modalClaimId}>{tr(selectedClaim.id)}</Text>
                   </View>
                   <TouchableOpacity
                     onPress={() => setDetailModalVisible(false)}
                     style={styles.modalCloseBtn}
-                    accessibilityLabel="Close"
+                    accessibilityLabel={tr('Close')}
                   >
                     <Ionicons name="close" size={18} color={colors.textSecondary} />
                   </TouchableOpacity>
@@ -399,11 +395,11 @@ export const MyIncentivesScreen = ({ navigation }) => {
                 {/* Status & Amount Summary Pod */}
                 <View style={styles.modalSummaryPod}>
                   <View>
-                    <Text style={styles.modalAmountLabel}>Claimed Amount</Text>
+                    <Text style={styles.modalAmountLabel}>{tr('Claimed Amount')}</Text>
                     <Text style={styles.modalAmountValue}>
-                      {selectedClaim.amount_pending_verification
+                      {tr(selectedClaim.amount_pending_verification
                         ? 'Pending Verification'
-                        : `₹${(selectedClaim.total_estimated_amount || 0).toLocaleString('en-IN')}`}
+                        : `₹${tr((selectedClaim.total_estimated_amount || 0).toLocaleString('en-IN'))}`)}
                     </Text>
                   </View>
                   {(() => {
@@ -411,7 +407,7 @@ export const MyIncentivesScreen = ({ navigation }) => {
                     return (
                       <View style={[styles.statusPill, { backgroundColor: b.bg, paddingHorizontal: 10, paddingVertical: 5 }]}>
                         <Ionicons name={b.icon} size={14} color={b.text} style={{ marginRight: 4 }} />
-                        <Text style={[styles.statusPillText, { color: b.text, fontSize: 12 }]}>{b.label}</Text>
+                        <Text style={[styles.statusPillText, { color: b.text, fontSize: 12 }]}>{tr(b.label)}</Text>
                       </View>
                     );
                   })()}
@@ -422,56 +418,56 @@ export const MyIncentivesScreen = ({ navigation }) => {
                   <View style={styles.rejectionDetailBox}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                       <Ionicons name="close-circle" size={18} color={colors.danger} />
-                      <Text style={styles.rejectionTitle}>Official Rejection Reason</Text>
+                      <Text style={styles.rejectionTitle}>{tr('Official Rejection Reason')}</Text>
                     </View>
-                    <Text style={styles.rejectionDetailText}>{selectedClaim.rejection_reason}</Text>
+                    <Text style={styles.rejectionDetailText}>{tr(selectedClaim.rejection_reason)}</Text>
                   </View>
                 ) : null}
 
                 {/* Supervisor Remarks / Verification Notes */}
                 {selectedClaim.supervisor_notes ? (
                   <View style={styles.remarksBox}>
-                    <Text style={styles.remarksTitle}>Supervisor / ANM Remarks</Text>
-                    <Text style={styles.remarksText}>{selectedClaim.supervisor_notes}</Text>
+                    <Text style={styles.remarksTitle}>{tr('Supervisor / ANM Remarks')}</Text>
+                    <Text style={styles.remarksText}>{tr(selectedClaim.supervisor_notes)}</Text>
                   </View>
                 ) : null}
 
                 {/* Verification Timestamps */}
                 <View style={styles.metaBox}>
                   <View style={styles.metaRow}>
-                    <Text style={styles.metaKey}>Submission Date:</Text>
-                    <Text style={styles.metaVal}>{selectedClaim.submitted_at ? formatDate(selectedClaim.submitted_at) : 'Not submitted yet'}</Text>
+                    <Text style={styles.metaKey}>{tr('Submission Date:')}</Text>
+                    <Text style={styles.metaVal}>{tr(selectedClaim.submitted_at ? formatDate(selectedClaim.submitted_at) : 'Not submitted yet')}</Text>
                   </View>
                   <View style={styles.metaRow}>
-                    <Text style={styles.metaKey}>Payment Status:</Text>
-                    <Text style={styles.metaVal}>{selectedClaim.payment_status || 'Under Verification'}</Text>
+                    <Text style={styles.metaKey}>{tr('Payment Status:')}</Text>
+                    <Text style={styles.metaVal}>{tr(selectedClaim.payment_status || 'Under Verification')}</Text>
                   </View>
                   {selectedClaim.verified_at ? (
                     <View style={styles.metaRow}>
-                      <Text style={styles.metaKey}>Verified Date:</Text>
-                      <Text style={styles.metaVal}>{formatDate(selectedClaim.verified_at)}</Text>
+                      <Text style={styles.metaKey}>{tr('Verified Date:')}</Text>
+                      <Text style={styles.metaVal}>{tr(formatDate(selectedClaim.verified_at))}</Text>
                     </View>
                   ) : null}
                 </View>
 
                 {/* Itemized Activities List */}
-                <Text style={styles.activitiesHeaderTitle}>Itemized Healthcare Activities</Text>
+                <Text style={styles.activitiesHeaderTitle}>{tr('Itemized Healthcare Activities')}</Text>
                 {selectedClaim.activities && selectedClaim.activities.length > 0 ? (
                   selectedClaim.activities.map((act, i) => (
                     <View key={act.id || i} style={styles.activityItemRow}>
                       <View style={{ flex: 1 }}>
-                        <Text style={styles.activityDesc}>{act.description}</Text>
+                        <Text style={styles.activityDesc}>{tr(act.description)}</Text>
                         <Text style={styles.activityMeta}>
-                          {act.category} • Beneficiary: {act.beneficiary_name || 'Community Member'} • {formatDate(act.activity_date)}
+                          {tr(act.category)}{' '}{tr('• Beneficiary:')}{' '}{tr(act.beneficiary_name || 'Community Member')} • {tr(formatDate(act.activity_date))}
                         </Text>
                       </View>
                       <Text style={styles.activityAmt}>
-                        {act.amount_pending_verification ? 'Pending' : `₹${act.estimated_amount}`}
+                        {tr(act.amount_pending_verification ? 'Pending' : `₹${tr(act.estimated_amount)}`)}
                       </Text>
                     </View>
                   ))
                 ) : (
-                  <Text style={styles.noActivitiesText}>No itemized activity breakdown attached to this record.</Text>
+                  <Text style={styles.noActivitiesText}>{tr('No itemized activity breakdown attached to this record.')}</Text>
                 )}
 
                 {/* Action Button for Drafts */}
@@ -497,7 +493,7 @@ export const MyIncentivesScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   container: {
     padding: spacing.screenPadding,
@@ -511,7 +507,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16.5,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   sectionSubtitle: {
@@ -532,11 +528,11 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.primary
+    backgroundColor: colors.ink
   },
   liveBadgeText: {
     fontSize: 10.5,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryDark
   },
   overviewGrid: {
@@ -548,7 +544,7 @@ const styles = StyleSheet.create({
   overviewCard: {
     width: '48.5%',
     backgroundColor: colors.surface,
-    borderRadius: 16,
+    borderRadius: 22,
     padding: 12,
     borderWidth: 1,
     borderColor: colors.border,
@@ -565,13 +561,13 @@ const styles = StyleSheet.create({
   },
   cardValue: {
     fontSize: 19,
-    fontWeight: '800',
+    fontWeight: '600',
     color: colors.primaryText,
     marginBottom: 2
   },
   cardLabel: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   cardHint: {
@@ -586,7 +582,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceSecondary,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 10,
     marginTop: 12,
     marginBottom: 16
@@ -601,8 +597,8 @@ const styles = StyleSheet.create({
     marginBottom: 22
   },
   createClaimBtn: {
-    backgroundColor: colors.primary,
-    borderRadius: 18,
+    backgroundColor: colors.ink,
+    borderRadius: 22,
     padding: 16,
     ...shadows.subtle
   },
@@ -614,14 +610,14 @@ const styles = StyleSheet.create({
   plusCircle: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 22,
     backgroundColor: 'rgba(255, 255, 255, 0.25)',
     alignItems: 'center',
     justifyContent: 'center'
   },
   createClaimTitle: {
     fontSize: 15.5,
-    fontWeight: '800',
+    fontWeight: '600',
     color: colors.textWhite
   },
   createClaimSub: {
@@ -638,13 +634,13 @@ const styles = StyleSheet.create({
   },
   guidelineCard: {
     backgroundColor: colors.surface,
-    borderRadius: 14,
+    borderRadius: 18,
     padding: 12,
     borderWidth: 1,
     borderColor: colors.border
   },
   stateGuidelineCard: {
-    borderColor: '#FDE68A',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     backgroundColor: '#FEFDF8'
   },
   guidelineTopRow: {
@@ -661,7 +657,7 @@ const styles = StyleSheet.create({
   },
   categoryPillText: {
     fontSize: 10.5,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryDark
   },
   stateCategoryPill: {
@@ -672,7 +668,7 @@ const styles = StyleSheet.create({
   },
   guidelineAmount: {
     fontSize: 13.5,
-    fontWeight: '800',
+    fontWeight: '600',
     color: colors.primaryDark
   },
   stateGuidelineAmount: {
@@ -680,7 +676,7 @@ const styles = StyleSheet.create({
   },
   guidelineTitle: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText,
     marginBottom: 4
   },
@@ -732,7 +728,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border
   },
   statusTabActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     borderColor: colors.primaryDark
   },
   statusTabText: {
@@ -742,7 +738,7 @@ const styles = StyleSheet.create({
   },
   statusTabTextActive: {
     color: colors.textWhite,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   claimsList: {
     gap: 10,
@@ -750,7 +746,7 @@ const styles = StyleSheet.create({
   },
   claimCard: {
     backgroundColor: colors.surface,
-    borderRadius: 16,
+    borderRadius: 22,
     padding: 14,
     borderWidth: 1,
     borderColor: colors.border,
@@ -763,7 +759,7 @@ const styles = StyleSheet.create({
   },
   claimMonthYear: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   claimIdText: {
@@ -780,7 +776,7 @@ const styles = StyleSheet.create({
   },
   statusPillText: {
     fontSize: 11,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   claimDivider: {
     height: 1,
@@ -804,7 +800,7 @@ const styles = StyleSheet.create({
   },
   claimAmount: {
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '600',
     color: colors.primaryDark
   },
   pendingAmtText: {
@@ -835,7 +831,7 @@ const styles = StyleSheet.create({
   },
   emptyCard: {
     backgroundColor: colors.surface,
-    borderRadius: 16,
+    borderRadius: 22,
     padding: 24,
     alignItems: 'center',
     borderWidth: 1,
@@ -843,7 +839,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText,
     marginTop: 8
   },
@@ -892,7 +888,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   modalClaimId: {
@@ -905,7 +901,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: colors.primaryLight,
-    borderRadius: 14,
+    borderRadius: 18,
     padding: 12,
     marginBottom: 12,
     borderWidth: 1,
@@ -918,21 +914,21 @@ const styles = StyleSheet.create({
   },
   modalAmountValue: {
     fontSize: 20,
-    fontWeight: '800',
+    fontWeight: '600',
     color: colors.primaryDark,
     marginTop: 2
   },
   rejectionDetailBox: {
     backgroundColor: colors.dangerLight,
     borderWidth: 1,
-    borderColor: '#FECACA',
-    borderRadius: 12,
+    borderColor: 'rgba(11, 18, 32, 0.06)',
+    borderRadius: 16,
     padding: 12,
     marginBottom: 12
   },
   rejectionTitle: {
     fontSize: 12.5,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.danger
   },
   rejectionDetailText: {
@@ -942,7 +938,7 @@ const styles = StyleSheet.create({
   },
   remarksBox: {
     backgroundColor: colors.surfaceSecondary,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 12,
     marginBottom: 12,
     borderWidth: 1,
@@ -950,7 +946,7 @@ const styles = StyleSheet.create({
   },
   remarksTitle: {
     fontSize: 11.5,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText,
     marginBottom: 3
   },
@@ -961,7 +957,7 @@ const styles = StyleSheet.create({
   },
   metaBox: {
     backgroundColor: colors.surface,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.border,
     padding: 10,
@@ -983,7 +979,7 @@ const styles = StyleSheet.create({
   },
   activitiesHeaderTitle: {
     fontSize: 13.5,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText,
     marginBottom: 8
   },
@@ -992,7 +988,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: colors.surfaceSecondary,
-    borderRadius: 10,
+    borderRadius: 14,
     padding: 10,
     marginBottom: 6,
     borderWidth: 1,
@@ -1010,7 +1006,7 @@ const styles = StyleSheet.create({
   },
   activityAmt: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryDark,
     marginLeft: 8
   },

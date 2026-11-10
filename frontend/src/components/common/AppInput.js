@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
 import { colors, spacing, radius, typography } from '../../theme';
@@ -19,7 +20,7 @@ export const AppInput = ({
 }) => {
   return (
     <View style={[styles.container, style]}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label && <Text style={styles.label}>{tr(label)}</Text>}
       <View
         style={[
           styles.inputWrapper,
@@ -31,7 +32,7 @@ export const AppInput = ({
         <TextInput
           value={value}
           onChangeText={onChangeText}
-          placeholder={placeholder}
+          placeholder={tr(placeholder)}
           placeholderTextColor={colors.textMuted}
           keyboardType={keyboardType}
           secureTextEntry={secureTextEntry}
@@ -46,8 +47,8 @@ export const AppInput = ({
         />
         {rightIcon && <View style={styles.iconWrapper}>{rightIcon}</View>}
       </View>
-      {error && <Text style={styles.errorText}>{error}</Text>}
-      {helperText && !error && <Text style={styles.helperText}>{helperText}</Text>}
+      {error && <Text style={styles.errorText}>{tr(error)}</Text>}
+      {helperText && !error && <Text style={styles.helperText}>{tr(helperText)}</Text>}
     </View>
   );
 };

@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,10 +17,10 @@ export const TealInfoCard = ({
       <View style={styles.contentRow}>
         <View style={styles.textColumn}>
           <View style={styles.badgePill}>
-            <Text style={styles.badgeText}>{badge}</Text>
+            <Text style={styles.badgeText}>{tr(badge)}</Text>
           </View>
-          <Text style={styles.titleText}>{title}</Text>
-          <Text style={styles.descText} numberOfLines={2}>{description}</Text>
+          <Text style={styles.titleText}>{tr(title)}</Text>
+          <Text style={styles.descText} numberOfLines={2}>{tr(description)}</Text>
 
           {onPressAction && (
             <TouchableOpacity
@@ -28,7 +29,7 @@ export const TealInfoCard = ({
               style={styles.actionBtn}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={styles.actionText}>{actionText}</Text>
+                <Text style={styles.actionText}>{tr(actionText)}</Text>
                 <Ionicons name="chevron-forward" size={12} color={colors.tealDark} style={{ marginLeft: 2 }} />
               </View>
             </TouchableOpacity>
@@ -51,7 +52,7 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.screenPadding,
     marginVertical: spacing.xs,
     borderWidth: 1,
-    borderColor: '#C7EBE4',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     ...shadows.soft
   },
   contentRow: {
@@ -74,9 +75,8 @@ const styles = StyleSheet.create({
   badgeText: {
     ...typography.caption,
     color: colors.tealDark,
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 10,
-    textTransform: 'uppercase'
   },
   titleText: {
     ...typography.heading3,
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
   actionText: {
     ...typography.caption,
     color: colors.tealDark,
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 12
   },
   iconContainer: {
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#C7EBE4'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   }
 });
 

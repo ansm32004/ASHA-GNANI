@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -55,11 +56,11 @@ export const VoiceControl = ({
       {isRecording ? (
         <View style={styles.timerRow}>
           <View style={styles.livePulse} />
-          <Text style={styles.timerText}>{formatTime(durationSeconds)}</Text>
-          <Text style={styles.listeningNotice}>Listening... (Tap to finish)</Text>
+          <Text style={styles.timerText}>{tr(formatTime(durationSeconds))}</Text>
+          <Text style={styles.listeningNotice}>{tr('Listening... (Tap to finish)')}</Text>
         </View>
       ) : (
-        <Text style={styles.instruction}>{instructionText}</Text>
+        <Text style={styles.instruction}>{tr(instructionText)}</Text>
       )}
     </View>
   );
@@ -95,7 +96,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
   },
   timerText: {
     ...typography.bodyMedium,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.danger,
     marginRight: 8
   },

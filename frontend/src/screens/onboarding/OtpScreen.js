@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -60,15 +61,14 @@ export const OtpScreen = ({ navigation, route }) => {
             <Ionicons name="shield-checkmark" size={32} color={colors.primary} />
           </View>
 
-          <Text style={styles.title}>{t('auth.otpTitle') || 'Enter Verification Code'}</Text>
+          <Text style={styles.title}>{tr(t('auth.otpTitle') || 'Enter Verification Code')}</Text>
           <Text style={styles.subtitle}>
-            +91 {phone} पर भेजा गया 6 अंकों का कोड दर्ज करें
-          </Text>
+            +91 {tr(phone)}{' '}{tr('पर भेजा गया 6 अंकों का कोड दर्ज करें')}</Text>
 
           <View style={styles.demoBanner}>
             <Ionicons name="information-circle" size={18} color={colors.primary} />
             <Text style={styles.demoBannerText}>
-              {t('auth.demoOtpHint') || 'Demo mode: Any 6 digits or default "123456" will verify.'}
+              {tr(t('auth.demoOtpHint') || 'Demo mode: Any 6 digits or default "123456" will verify.')}
             </Text>
           </View>
 
@@ -103,7 +103,7 @@ export const OtpScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   keyboardView: {
     flex: 1
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
   demoBannerText: {
     ...typography.caption,
     color: colors.primary,
-    fontWeight: '700',
+    fontWeight: '600',
     marginLeft: spacing.sm,
     flex: 1,
     lineHeight: 16
@@ -169,7 +169,6 @@ const styles = StyleSheet.create({
   },
   otpInput: {
     textAlign: 'center',
-    letterSpacing: 4,
     fontSize: 20
   },
   verifyButton: {

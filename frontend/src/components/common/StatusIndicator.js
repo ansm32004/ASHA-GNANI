@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors, typography, radius } from '../../theme';
@@ -29,7 +30,7 @@ export const StatusIndicator = ({ status = 'Normal', isPriority = false }) => {
   return (
     <View style={[styles.badge, { backgroundColor: current.bg }]}>
       <Text style={[styles.badgeText, { color: current.text }]}>
-        {status}
+        {tr(status)}
       </Text>
     </View>
   );
@@ -45,7 +46,7 @@ const styles = StyleSheet.create({
   badgeText: {
     ...typography.caption,
     fontSize: 10,
-    fontWeight: '700'
+    fontWeight: '600'
   }
 });
 

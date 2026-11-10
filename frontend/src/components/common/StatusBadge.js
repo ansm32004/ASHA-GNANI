@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors, radius, typography } from '../../theme';
@@ -25,7 +26,6 @@ export const StatusBadge = ({ status, size = 'medium' }) => {
         styles.badge,
         {
           backgroundColor: badgeTheme.bg,
-          borderColor: badgeTheme.border,
           paddingVertical: size === 'small' ? 2 : 4,
           paddingHorizontal: size === 'small' ? 8 : 10
         }
@@ -40,7 +40,7 @@ export const StatusBadge = ({ status, size = 'medium' }) => {
           }
         ]}
       >
-        {status}
+        {tr(status)}
       </Text>
     </View>
   );
@@ -49,7 +49,6 @@ export const StatusBadge = ({ status, size = 'medium' }) => {
 const styles = StyleSheet.create({
   badge: {
     borderRadius: radius.pill,
-    borderWidth: 1,
     alignSelf: 'flex-start'
   },
   text: {

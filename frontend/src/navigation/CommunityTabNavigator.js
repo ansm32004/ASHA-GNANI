@@ -1,3 +1,4 @@
+import { tr } from '../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -66,7 +67,7 @@ const CommunityFloatingTabBar = ({ state, descriptors, navigation }) => {
               key={route.key}
               accessibilityRole="button"
               accessibilityState={isFocused ? { selected: true } : {}}
-              accessibilityLabel={options.tabBarAccessibilityLabel || config.label}
+              accessibilityLabel={tr(options.tabBarAccessibilityLabel || config.label)}
               onPress={onPress}
               activeOpacity={0.7}
               style={[styles.tabItem, isFocused && styles.tabItemFocused]}
@@ -74,11 +75,13 @@ const CommunityFloatingTabBar = ({ state, descriptors, navigation }) => {
               <Ionicons
                 name={config.icon}
                 size={20}
-                color={isFocused ? colors.primary : colors.textSecondary}
+                color={isFocused ? colors.ink : colors.iconMuted}
               />
-              <Text style={[styles.tabLabel, isFocused && styles.tabLabelFocused]}>
-                {config.label}
-              </Text>
+              {isFocused ? (
+                <Text style={styles.tabLabelFocused} numberOfLines={1}>
+                  {tr(config.label)}
+                </Text>
+              ) : null}
             </TouchableOpacity>
           );
         })}
@@ -115,38 +118,35 @@ const styles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-around',
-    backgroundColor: colors.surface,
-    borderRadius: 28,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginHorizontal: spacing.screenPadding,
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    borderRadius: radius.pill,
+    height: 66,
+    paddingHorizontal: 8,
     width: '92%',
     maxWidth: 420,
-    borderWidth: 1,
-    borderColor: colors.border,
     ...shadows.floating
   },
   tabItem: {
-    flex: 1,
+    flexGrow: 1,
+    flexDirection: 'row',
+    height: 50,
+    minWidth: 46,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 4,
+    paddingHorizontal: 8,
     borderRadius: radius.pill
   },
   tabItemFocused: {
-    backgroundColor: colors.primaryLight
-  },
-  tabLabel: {
-    ...typography.caption,
-    fontSize: 10,
-    color: colors.textSecondary,
-    marginTop: 2,
-    fontWeight: '500'
+    backgroundColor: colors.surfaceSecondary,
+    paddingHorizontal: 14
   },
   tabLabelFocused: {
-    color: colors.primary,
-    fontWeight: '700'
+    ...typography.caption,
+    fontSize: 13,
+    color: colors.ink,
+    marginLeft: 7,
+    fontWeight: '600'
   }
 });
 

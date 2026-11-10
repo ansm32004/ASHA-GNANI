@@ -11,13 +11,13 @@ export const AppCard = ({
   const getCardStyle = () => {
     switch (variant) {
       case 'highlight':
-        return { borderColor: colors.primary, backgroundColor: colors.surface };
+        return { borderColor: colors.primaryMuted, backgroundColor: colors.primaryLight };
       case 'urgent':
-        return { borderColor: colors.danger, backgroundColor: colors.surface, borderLeftWidth: 4 };
+        return { borderColor: 'transparent', backgroundColor: colors.dangerLight };
       case 'teal':
-        return { borderColor: '#C7EBE4', backgroundColor: colors.tealLight };
+        return { borderColor: 'transparent', backgroundColor: colors.tealLight };
       default:
-        return { borderColor: colors.border, backgroundColor: colors.surface };
+        return { borderColor: 'transparent', backgroundColor: colors.surface };
     }
   };
 
@@ -32,8 +32,7 @@ export const AppCard = ({
         styles.card,
         {
           borderColor: custom.borderColor,
-          backgroundColor: custom.backgroundColor,
-          borderLeftWidth: custom.borderLeftWidth || 1
+          backgroundColor: custom.backgroundColor
         },
         style
       ]}
@@ -46,7 +45,7 @@ export const AppCard = ({
 const styles = StyleSheet.create({
   card: {
     borderRadius: radius.card,
-    padding: spacing.base,
+    padding: spacing.lg,
     marginVertical: spacing.xs,
     borderWidth: 1,
     ...shadows.card

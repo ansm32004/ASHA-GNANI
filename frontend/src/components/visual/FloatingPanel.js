@@ -18,8 +18,7 @@ export const FloatingPanel = ({
   const containerStyle = [
     styles.panel,
     { padding },
-    highlightColor && { borderLeftWidth: 4, borderLeftColor: highlightColor },
-    style
+        style
   ];
 
   if (onPress) {

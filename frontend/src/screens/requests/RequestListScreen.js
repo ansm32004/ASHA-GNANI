@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -52,7 +53,7 @@ export const RequestListScreen = ({ navigation }) => {
 
   const handleCall = (phone) => {
     Linking.openURL(`tel:${phone}`).catch(() => {
-      Alert.alert('Simulated Call', `Calling beneficiary at +91 ${phone}`);
+      Alert.alert(tr('Simulated Call'), `${tr('Calling beneficiary at +91')} ${phone}`);
     });
   };
 
@@ -73,12 +74,12 @@ export const RequestListScreen = ({ navigation }) => {
       setActionNotes('');
       await loadRequests();
       Alert.alert(
-        'Action Recorded',
-        `Request status updated to "${actionType === 'schedule' ? 'Scheduled' : actionType}". Synchronized with community member.`
+        tr('Action Recorded'),
+        `${tr('Request status updated to "')}${actionType === 'schedule' ? 'Scheduled' : actionType}${tr('". Synchronized with community member.')}`
       );
     } catch (e) {
       setIsProcessingAction(false);
-      Alert.alert('Error', 'Could not update request action.');
+      Alert.alert(tr('Error'), tr('Could not update request action.'));
     }
   };
 
@@ -93,7 +94,7 @@ export const RequestListScreen = ({ navigation }) => {
     <SafeAreaView style={styles.safeArea}>
       <MinimalHeader
         title={t('requests.title') || 'Community Requests'}
-        subtitle={`${filtered.length} requests in coverage area`}
+        subtitle={`${tr(filtered.length)} ${tr('requests in coverage area')}`}
         showBack
         onBack={() => navigation.goBack()}
       />
@@ -114,11 +115,11 @@ export const RequestListScreen = ({ navigation }) => {
                 style={[styles.filterPill, isSelected && styles.filterPillActive]}
               >
                 <Text style={[styles.filterText, isSelected && styles.filterTextActive]}>
-                  {tab}
+                  {tr(tab)}
                 </Text>
                 <View style={[styles.pillBadge, isSelected && styles.pillBadgeActive]}>
                   <Text style={[styles.pillBadgeText, isSelected && styles.pillBadgeTextActive]}>
-                    {count}
+                    {tr(count)}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -136,9 +137,9 @@ export const RequestListScreen = ({ navigation }) => {
           renderItem={({ item, index }) => (
             <MinimalListRow
               category={item.category}
-              title={`${item.household_name} • ${item.beneficiary_name || item.category}`}
+              title={`${tr(item.household_name)} • ${tr(item.beneficiary_name || item.category)}`}
               subtitle={item.description}
-              meta={`Received: ${item.time_received} • ${item.village || 'Rampur Kalan'}${item.preferred_date ? ` • Date: ${item.preferred_date}` : ''}`}
+              meta={`${tr('Received:')} ${tr(item.time_received)} • ${tr(item.village || 'Rampur Kalan')}${tr(item.preferred_date ? ` • Date: ${item.preferred_date}` : '')}`}
               priority={item.priority}
               status={item.status}
               showDivider={index < filtered.length - 1}
@@ -148,7 +149,7 @@ export const RequestListScreen = ({ navigation }) => {
                   <TouchableOpacity
                     onPress={() => handleCall(item.contact_number)}
                     style={styles.callBtn}
-                    accessibilityLabel="Call"
+                    accessibilityLabel={tr('Call')}
                   >
                     <Ionicons name="call" size={13} color={colors.primary} />
                   </TouchableOpacity>
@@ -157,7 +158,7 @@ export const RequestListScreen = ({ navigation }) => {
                     onPress={() => setSelectedRequest(item)}
                     style={styles.actionOpenBtn}
                   >
-                    <Text style={styles.actionOpenText}>Review</Text>
+                    <Text style={styles.actionOpenText}>{tr('Review')}</Text>
                     <Ionicons name="chevron-forward" size={12} color={colors.primary} />
                   </TouchableOpacity>
                 </View>
@@ -187,8 +188,8 @@ export const RequestListScreen = ({ navigation }) => {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <View>
-                <Text style={styles.modalTitle}>Request Details & Response</Text>
-                <Text style={styles.modalSubtitle}>ID: {selectedRequest?.id} • Synchronized with Family</Text>
+                <Text style={styles.modalTitle}>{tr('Request Details & Response')}</Text>
+                <Text style={styles.modalSubtitle}>{tr('ID:')}{' '}{tr(selectedRequest?.id)}{' '}{tr('• Synchronized with Family')}</Text>
               </View>
               <TouchableOpacity onPress={() => setSelectedRequest(null)}>
                 <Ionicons name="close" size={24} color={colors.textSecondary} />
@@ -200,12 +201,11 @@ export const RequestListScreen = ({ navigation }) => {
                 {/* Beneficiary Header */}
                 <View style={styles.detailHeaderCard}>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.detailHhName}>{selectedRequest.household_name}</Text>
-                    <Text style={styles.detailBenName}>
-                      Beneficiary: {selectedRequest.beneficiary_name || 'Family Member'}
+                    <Text style={styles.detailHhName}>{tr(selectedRequest.household_name)}</Text>
+                    <Text style={styles.detailBenName}>{tr('Beneficiary:')}{' '}{tr(selectedRequest.beneficiary_name || 'Family Member')}
                     </Text>
                     <Text style={styles.detailMeta}>
-                      {selectedRequest.village} • Contact: +91 {selectedRequest.contact_number}
+                      {tr(selectedRequest.village)}{' '}{tr('• Contact: +91')}{' '}{tr(selectedRequest.contact_number)}
                     </Text>
                   </View>
                   <TouchableOpacity
@@ -213,56 +213,55 @@ export const RequestListScreen = ({ navigation }) => {
                     onPress={() => handleCall(selectedRequest.contact_number)}
                   >
                     <Ionicons name="call" size={16} color="#FFFFFF" />
-                    <Text style={styles.detailCallText}>Call</Text>
+                    <Text style={styles.detailCallText}>{tr('Call')}</Text>
                   </TouchableOpacity>
                 </View>
 
                 {/* Request Content */}
                 <View style={styles.detailBody}>
-                  <Text style={styles.detailCategoryTag}>{selectedRequest.category}</Text>
-                  <Text style={styles.detailDescription}>{selectedRequest.description}</Text>
+                  <Text style={styles.detailCategoryTag}>{tr(selectedRequest.category)}</Text>
+                  <Text style={styles.detailDescription}>{tr(selectedRequest.description)}</Text>
                   {selectedRequest.preferred_date ? (
                     <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryLight, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, marginTop: 8, alignSelf: 'flex-start' }}>
                       <Ionicons name="calendar" size={13} color={colors.primary} style={{ marginRight: 6 }} />
-                      <Text style={{ fontSize: 12, fontWeight: '700', color: colors.primary }}>
-                        Preferred Call / Visit Date: {selectedRequest.preferred_date}
+                      <Text style={{ fontSize: 12, fontWeight: '600', color: colors.primary }}>{tr('Preferred Call / Visit Date:')}{' '}{tr(selectedRequest.preferred_date)}
                       </Text>
                     </View>
                   ) : null}
-                  <Text style={styles.detailTimeReceived}>Time Received: {selectedRequest.time_received}</Text>
+                  <Text style={styles.detailTimeReceived}>{tr('Time Received:')}{' '}{tr(selectedRequest.time_received)}</Text>
                 </View>
 
                 {/* Response History */}
-                <Text style={styles.historyHeading}>Update & Audit History:</Text>
+                <Text style={styles.historyHeading}>{tr('Update & Audit History:')}</Text>
                 {selectedRequest.response_history && selectedRequest.response_history.length > 0 ? (
                   selectedRequest.response_history.map((hist, idx) => (
                     <View key={idx} style={styles.historyRow}>
                       <View style={styles.historyDot} />
-                      <Text style={styles.historyText}>{hist}</Text>
+                      <Text style={styles.historyText}>{tr(hist)}</Text>
                     </View>
                   ))
                 ) : (
-                  <Text style={styles.noHistoryText}>No responses logged yet.</Text>
+                  <Text style={styles.noHistoryText}>{tr('No responses logged yet.')}</Text>
                 )}
 
                 {/* Action Controls Section */}
                 <View style={styles.actionControlsBox}>
-                  <Text style={styles.actionControlsHeading}>Take ASHA Action:</Text>
+                  <Text style={styles.actionControlsHeading}>{tr('Take ASHA Action:')}</Text>
 
                   {/* Schedule visit time selector if scheduling */}
                   <View style={styles.scheduleRow}>
-                    <Text style={styles.scheduleLabel}>Visit Schedule:</Text>
+                    <Text style={styles.scheduleLabel}>{tr('Visit Schedule:')}</Text>
                     <TextInput
                       style={styles.scheduleInput}
                       value={actionScheduleTime}
                       onChangeText={setActionScheduleTime}
-                      placeholder="e.g. Today, 11:30 AM"
+                      placeholder={tr('e.g. Today, 11:30 AM')}
                     />
                   </View>
 
                   <TextInput
                     style={styles.notesInput}
-                    placeholder="Optional notes for household..."
+                    placeholder={tr('Optional notes for household...')}
                     placeholderTextColor={colors.textMuted}
                     value={actionNotes}
                     onChangeText={setActionNotes}
@@ -276,7 +275,7 @@ export const RequestListScreen = ({ navigation }) => {
                       disabled={isProcessingAction}
                     >
                       <Ionicons name="checkbox-outline" size={16} color={colors.teal} />
-                      <Text style={[styles.btnActionText, { color: colors.teal }]}>Acknowledge</Text>
+                      <Text style={[styles.btnActionText, { color: colors.teal }]}>{tr('Acknowledge')}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -285,16 +284,16 @@ export const RequestListScreen = ({ navigation }) => {
                       disabled={isProcessingAction}
                     >
                       <Ionicons name="calendar-outline" size={16} color={colors.primary} />
-                      <Text style={[styles.btnActionText, { color: colors.primary }]}>Schedule Visit</Text>
+                      <Text style={[styles.btnActionText, { color: colors.primary }]}>{tr('Schedule Visit')}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={[styles.btnAction, { backgroundColor: '#ECFDF5', borderColor: '#10B981' }]}
+                      style={[styles.btnAction, { backgroundColor: '#ECFDF5', borderColor: 'rgba(11, 18, 32, 0.06)' }]}
                       onPress={() => handlePerformAction('resolve')}
                       disabled={isProcessingAction}
                     >
                       <Ionicons name="checkmark-done" size={16} color="#059669" />
-                      <Text style={[styles.btnActionText, { color: '#059669' }]}>Resolve</Text>
+                      <Text style={[styles.btnActionText, { color: '#059669' }]}>{tr('Resolve')}</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -305,7 +304,7 @@ export const RequestListScreen = ({ navigation }) => {
               style={styles.closeBtn}
               onPress={() => setSelectedRequest(null)}
             >
-              <Text style={styles.closeBtnText}>Close</Text>
+              <Text style={styles.closeBtnText}>{tr('Close')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -317,7 +316,7 @@ export const RequestListScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   filterRow: {
     marginVertical: spacing.xs
@@ -348,7 +347,7 @@ const styles = StyleSheet.create({
   },
   filterTextActive: {
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   pillBadge: {
     paddingHorizontal: 6,
@@ -362,7 +361,7 @@ const styles = StyleSheet.create({
   pillBadgeText: {
     ...typography.caption,
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textSecondary
   },
   pillBadgeTextActive: {
@@ -370,7 +369,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: 24,
     marginHorizontal: spacing.screenPadding,
     marginTop: spacing.sm,
     paddingBottom: 110,
@@ -394,7 +393,7 @@ const styles = StyleSheet.create({
   actionOpenBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F1F4FA',
     paddingHorizontal: 8,
     paddingVertical: 5,
     borderRadius: radius.pill,
@@ -403,7 +402,7 @@ const styles = StyleSheet.create({
   actionOpenText: {
     ...typography.caption,
     color: colors.primary,
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 11
   },
   modalOverlay: {
@@ -426,7 +425,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     ...typography.heading3,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   modalSubtitle: {
@@ -437,16 +436,16 @@ const styles = StyleSheet.create({
   detailHeaderCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F5F7FB',
     borderRadius: radius.md,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     marginBottom: 12
   },
   detailHhName: {
     ...typography.bodyMedium,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   detailBenName: {
@@ -464,7 +463,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: colors.teal,
+    backgroundColor: colors.ink,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: radius.pill
@@ -472,19 +471,19 @@ const styles = StyleSheet.create({
   detailCallText: {
     ...typography.caption,
     color: '#FFFFFF',
-    fontWeight: '700'
+    fontWeight: '600'
   },
   detailBody: {
     backgroundColor: '#FFFFFF',
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     padding: 12,
     marginBottom: 12
   },
   detailCategoryTag: {
     ...typography.caption,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primary,
     marginBottom: 4
   },
@@ -501,7 +500,7 @@ const styles = StyleSheet.create({
   historyHeading: {
     ...typography.label,
     color: colors.textSecondary,
-    fontWeight: '700',
+    fontWeight: '600',
     marginBottom: 6
   },
   historyRow: {
@@ -514,7 +513,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     marginTop: 6
   },
   historyText: {
@@ -529,17 +528,17 @@ const styles = StyleSheet.create({
     marginBottom: 8
   },
   actionControlsBox: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F5F7FB',
     borderRadius: radius.md,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     marginTop: 8,
     marginBottom: 14
   },
   actionControlsHeading: {
     ...typography.label,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText,
     marginBottom: 8
   },
@@ -559,7 +558,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: radius.sm,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     ...typography.caption,
@@ -569,7 +568,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: radius.sm,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     paddingHorizontal: 8,
     paddingVertical: 6,
     ...typography.caption,
@@ -592,11 +591,11 @@ const styles = StyleSheet.create({
   },
   btnActionText: {
     ...typography.caption,
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 11
   },
   closeBtn: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F1F4FA',
     paddingVertical: 12,
     borderRadius: radius.md,
     alignItems: 'center'

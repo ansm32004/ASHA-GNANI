@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { ScrollView, TouchableOpacity, Text, View, StyleSheet } from 'react-native';
 import { colors, spacing, typography, radius } from '../../theme';
@@ -45,7 +46,7 @@ export const CategoryScroller = ({
                   isSelected ? styles.pillTextActive : styles.pillTextInactive
                 ]}
               >
-                {cat.label}
+                {tr(cat.label)}
               </Text>
             </TouchableOpacity>
           );
@@ -74,10 +75,10 @@ const styles = StyleSheet.create({
   },
   pillInactive: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E2E8F0'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   pillActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     borderColor: colors.primary
   },
   iconWrap: {
@@ -88,12 +89,12 @@ const styles = StyleSheet.create({
     fontSize: 12
   },
   pillTextInactive: {
-    color: '#475569',
+    color: '#515C75',
     fontWeight: '600'
   },
   pillTextActive: {
     color: '#FFFFFF',
-    fontWeight: '700'
+    fontWeight: '600'
   }
 });
 

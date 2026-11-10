@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState } from 'react';
 import {
   View,
@@ -128,8 +129,8 @@ export const SignupScreen = ({ navigation }) => {
       >
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
           {/* Header Title */}
-          <Text style={styles.title}>Join SAHAYIKA</Text>
-          <Text style={styles.subtitle}>Select your role and enter your details to register</Text>
+          <Text style={styles.title}>{tr('Join SAHAYIKA')}</Text>
+          <Text style={styles.subtitle}>{tr('Select your role and enter your details to register')}</Text>
 
           {/* Role Selection Tabs */}
           <View style={styles.roleSelector}>
@@ -153,10 +154,8 @@ export const SignupScreen = ({ navigation }) => {
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 minimumFontScale={0.8}
-                style={[styles.roleTabText, isAsha && { color: colors.primary, fontWeight: '700' }]}
-              >
-                ASHA Worker
-              </Text>
+                style={[styles.roleTabText, isAsha && { color: colors.primary, fontWeight: '600' }]}
+              >{tr('ASHA Worker')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -179,10 +178,8 @@ export const SignupScreen = ({ navigation }) => {
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 minimumFontScale={0.8}
-                style={[styles.roleTabText, !isAsha && { color: colors.teal, fontWeight: '700' }]}
-              >
-                Community Member
-              </Text>
+                style={[styles.roleTabText, !isAsha && { color: colors.teal, fontWeight: '600' }]}
+              >{tr('Community Member')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -191,17 +188,17 @@ export const SignupScreen = ({ navigation }) => {
             <View style={styles.formCardHeader}>
               <View style={[styles.badgePill, { backgroundColor: activeLight }]}>
                 <Text style={[styles.badgeText, { color: activeColor }]}>
-                  {isAsha ? 'ASHA WORKER REGISTRATION' : 'COMMUNITY MEMBER REGISTRATION'}
+                  {tr(isAsha ? 'ASHA WORKER REGISTRATION' : 'COMMUNITY MEMBER REGISTRATION')}
                 </Text>
               </View>
             </View>
 
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+            {error ? <Text style={styles.errorText}>{tr(error)}</Text> : null}
 
             {/* Basic Info */}
             <AppInput
               label="Full Name *"
-              placeholder="e.g. Sunita Devi"
+              placeholder={tr('e.g. Sunita Devi')}
               value={name}
               onChangeText={(v) => {
                 setName(v);
@@ -211,7 +208,7 @@ export const SignupScreen = ({ navigation }) => {
 
             <AppInput
               label="Email Address *"
-              placeholder="e.g. name@example.com"
+              placeholder={tr('e.g. name@example.com')}
               value={email}
               onChangeText={(v) => {
                 setEmail(v);
@@ -223,7 +220,7 @@ export const SignupScreen = ({ navigation }) => {
 
             <AppInput
               label="10-Digit Mobile Number *"
-              placeholder="e.g. 9876543210"
+              placeholder={tr('e.g. 9876543210')}
               value={phone}
               onChangeText={(v) => {
                 setPhone(v);
@@ -238,7 +235,7 @@ export const SignupScreen = ({ navigation }) => {
               <View style={{ flex: 1, marginRight: 6 }}>
                 <AppInput
                   label="Date of Birth (DD-MM-YYYY)"
-                  placeholder="DD-MM-YYYY (e.g. 15-08-1995)"
+                  placeholder={tr('DD-MM-YYYY (e.g. 15-08-1995)')}
                   value={dob}
                   onChangeText={setDob}
                 />
@@ -246,7 +243,7 @@ export const SignupScreen = ({ navigation }) => {
               <View style={{ flex: 1, marginLeft: 6 }}>
                 <AppInput
                   label="Gender"
-                  placeholder="Female / Male"
+                  placeholder={tr('Female / Male')}
                   value={gender}
                   onChangeText={setGender}
                 />
@@ -258,13 +255,13 @@ export const SignupScreen = ({ navigation }) => {
               <>
                 <AppInput
                   label="ASHA Worker ID / Badge"
-                  placeholder="e.g. ASHA-UP-VNS-2026-001"
+                  placeholder={tr('e.g. ASHA-UP-VNS-2026-001')}
                   value={ashaId}
                   onChangeText={setAshaId}
                 />
                 <AppInput
                   label="Block / Sub-District"
-                  placeholder="e.g. Kashi Block"
+                  placeholder={tr('e.g. Kashi Block')}
                   value={block}
                   onChangeText={setBlock}
                 />
@@ -273,13 +270,13 @@ export const SignupScreen = ({ navigation }) => {
               <>
                 <AppInput
                   label="Household / Family Code"
-                  placeholder="e.g. HH-RK-042"
+                  placeholder={tr('e.g. HH-RK-042')}
                   value={householdCode}
                   onChangeText={setHouseholdCode}
                 />
                 <AppInput
                   label="Ward / Sub-Area"
-                  placeholder="e.g. Ward 3, Near Primary School"
+                  placeholder={tr('e.g. Ward 3, Near Primary School')}
                   value={subArea}
                   onChangeText={setSubArea}
                 />
@@ -289,7 +286,7 @@ export const SignupScreen = ({ navigation }) => {
             {/* Location Details */}
             <AppInput
               label="Village / Assigned Area *"
-              placeholder="e.g. Rampur Kalan"
+              placeholder={tr('e.g. Rampur Kalan')}
               value={villageName}
               onChangeText={(v) => {
                 setVillageName(v);
@@ -301,7 +298,7 @@ export const SignupScreen = ({ navigation }) => {
               <View style={{ flex: 1, marginRight: 6 }}>
                 <AppInput
                   label="District"
-                  placeholder="District"
+                  placeholder={tr('District')}
                   value={district}
                   onChangeText={setDistrict}
                 />
@@ -309,7 +306,7 @@ export const SignupScreen = ({ navigation }) => {
               <View style={{ flex: 1, marginLeft: 6 }}>
                 <AppInput
                   label="State"
-                  placeholder="State"
+                  placeholder={tr('State')}
                   value={state}
                   onChangeText={setState}
                 />
@@ -318,7 +315,7 @@ export const SignupScreen = ({ navigation }) => {
 
             <AppInput
               label="Street Address"
-              placeholder="House number, street or landmark"
+              placeholder={tr('House number, street or landmark')}
               value={address}
               onChangeText={setAddress}
             />
@@ -326,7 +323,7 @@ export const SignupScreen = ({ navigation }) => {
             {/* Password Credentials */}
             <AppInput
               label="Password (min 8 characters) *"
-              placeholder="Create strong password"
+              placeholder={tr('Create strong password')}
               value={password}
               onChangeText={(v) => {
                 setPassword(v);
@@ -337,7 +334,7 @@ export const SignupScreen = ({ navigation }) => {
 
             <AppInput
               label="Confirm Password *"
-              placeholder="Re-enter password"
+              placeholder={tr('Re-enter password')}
               value={confirmPassword}
               onChangeText={(v) => {
                 setConfirmPassword(v);
@@ -348,7 +345,7 @@ export const SignupScreen = ({ navigation }) => {
 
             {/* Submit Button */}
             <AppButton
-              title={`Register as ${isAsha ? 'ASHA Worker' : 'Community Member'}`}
+              title={`${tr('Register as')} ${tr(isAsha ? 'ASHA Worker' : 'Community Member')}`}
               onPress={handleSignup}
               loading={loading}
               size="large"
@@ -358,9 +355,9 @@ export const SignupScreen = ({ navigation }) => {
 
             {/* Already have an account prompt */}
             <View style={styles.signInPromptRow}>
-              <Text style={styles.signInPromptText}>Already have an account? </Text>
+              <Text style={styles.signInPromptText}>{tr('Already have an account?')}{' '}</Text>
               <TouchableOpacity onPress={() => navigation.navigate('Login')} activeOpacity={0.7}>
-                <Text style={[styles.signInLinkText, { color: activeColor }]}>Sign In</Text>
+                <Text style={[styles.signInLinkText, { color: activeColor }]}>{tr('Sign In')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -373,7 +370,7 @@ export const SignupScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   keyboardView: {
     flex: 1
@@ -385,7 +382,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText,
     textAlign: 'center',
     marginTop: spacing.xs
@@ -401,7 +398,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     width: '100%',
     backgroundColor: colors.surfaceSecondary,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 3,
     marginBottom: spacing.md,
     gap: 6
@@ -413,7 +410,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 9,
     paddingHorizontal: 6,
-    borderRadius: 10,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: 'transparent',
     overflow: 'hidden'
@@ -430,7 +427,7 @@ const styles = StyleSheet.create({
   },
   formCard: {
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: 24,
     padding: spacing.cardPadding,
     width: '100%',
     borderWidth: 1,
@@ -444,12 +441,11 @@ const styles = StyleSheet.create({
   badgePill: {
     paddingHorizontal: 12,
     paddingVertical: 4,
-    borderRadius: 12
+    borderRadius: 16
   },
   badgeText: {
     fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.5
+    fontWeight: '600',
   },
   rowInputs: {
     flexDirection: 'row'
@@ -471,7 +467,7 @@ const styles = StyleSheet.create({
   },
   signInLinkText: {
     fontSize: 13,
-    fontWeight: '700'
+    fontWeight: '600'
   }
 });
 

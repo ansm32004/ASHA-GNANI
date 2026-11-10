@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,8 +17,8 @@ export const EmptyState = ({
       <View style={styles.iconCircle}>
         <Ionicons name={icon} size={28} color={colors.primary} />
       </View>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.message}>{message}</Text>
+      <Text style={styles.title}>{tr(title)}</Text>
+      <Text style={styles.message}>{tr(message)}</Text>
       {actionTitle && onAction && (
         <PrimaryButton
           title={actionTitle}

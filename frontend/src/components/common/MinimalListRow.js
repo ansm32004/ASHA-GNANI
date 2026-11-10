@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
@@ -36,7 +37,7 @@ export const MinimalListRow = ({
             style={[styles.title, isCompleted && styles.completedTitle]}
             numberOfLines={1}
           >
-            {title}
+            {tr(title)}
           </Text>
           {priority ? (
             <View style={styles.priorityWrap}>
@@ -50,13 +51,13 @@ export const MinimalListRow = ({
             style={[styles.subtitle, isCompleted && styles.completedSubtitle]}
             numberOfLines={2}
           >
-            {subtitle}
+            {tr(subtitle)}
           </Text>
         ) : null}
 
         {meta ? (
           <View style={styles.metaRow}>
-            <Text style={styles.metaText} numberOfLines={1}>{meta}</Text>
+            <Text style={styles.metaText} numberOfLines={1}>{tr(meta)}</Text>
             {status ? (
               <View style={styles.statusWrap}>
                 <StatusIndicator status={status} />
@@ -77,7 +78,7 @@ export const MinimalListRow = ({
         <View style={styles.rightActionWrap}>{rightAction}</View>
       ) : onPress ? (
         <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" style={{ marginLeft: 6 }}>
-          <Path d="M9 18l6-6-6-6" stroke="#94A3B8" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+          <Path d="M9 18l6-6-6-6" stroke="#98A2B8" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
         </Svg>
       ) : null}
     </TouchableOpacity>
@@ -95,7 +96,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9'
+    borderBottomColor: '#F1F4FA'
   },
   iconWrap: {
     marginRight: 12,
@@ -103,8 +104,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F8FAFC'
+    borderRadius: 22,
+    backgroundColor: '#F5F7FB'
   },
   textCol: {
     flex: 1
@@ -117,8 +118,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#0F172A',
+    fontWeight: '600',
+    color: '#0B1220',
     flex: 1,
     marginRight: 8
   },
@@ -127,16 +128,16 @@ const styles = StyleSheet.create({
   },
   completedTitle: {
     textDecorationLine: 'line-through',
-    color: '#94A3B8'
+    color: '#98A2B8'
   },
   subtitle: {
     fontSize: 13,
-    color: '#475569',
+    color: '#515C75',
     lineHeight: 18,
     marginBottom: 4
   },
   completedSubtitle: {
-    color: '#94A3B8'
+    color: '#98A2B8'
   },
   metaRow: {
     flexDirection: 'row',
@@ -146,7 +147,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 11,
-    color: '#64748B',
+    color: '#69748C',
     fontWeight: '500',
     flex: 1,
     marginRight: 6

@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, Modal, Alert, ScrollView, Platform } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -79,7 +80,7 @@ export const TaskListScreen = ({ navigation }) => {
 
   const handleSaveReschedule = async () => {
     if (!newDueDate || !newDueDate.trim()) {
-      Alert.alert('Required', 'Please choose a new due date on the calendar.');
+      Alert.alert(tr('Required'), tr('Please choose a new due date on the calendar.'));
       return;
     }
     const targetPerson = selectedTask?.beneficiary_name || selectedTask?.household_name || 'beneficiary';
@@ -88,8 +89,8 @@ export const TaskListScreen = ({ navigation }) => {
     setRescheduleModalVisible(false);
     await loadData();
     Alert.alert(
-      'Visit Rescheduled',
-      `Visit for ${targetPerson} has been moved to ${newDueDate}. A notification has been sent to the family.`
+      tr('Visit Rescheduled'),
+      `${tr('Visit for')} ${targetPerson} ${tr('has been moved to')} ${newDueDate}${tr('. A notification has been sent to the family.')}`
     );
   };
 
@@ -205,12 +206,12 @@ export const TaskListScreen = ({ navigation }) => {
     <SafeAreaView style={styles.safeArea}>
       <MinimalHeader
         title={t('tasks.title') || 'Work Schedule'}
-        subtitle={`${combinedItems.length} items on schedule`}
+        subtitle={`${tr(combinedItems.length)} ${tr('items on schedule')}`}
         rightAction={
           <TouchableOpacity
             onPress={() => navigation.navigate('CreateTask')}
             style={styles.addBtn}
-            accessibilityLabel="Add Task"
+            accessibilityLabel={tr('Add Task')}
           >
             <Ionicons name="add" size={20} color={colors.textWhite} />
           </TouchableOpacity>
@@ -221,7 +222,7 @@ export const TaskListScreen = ({ navigation }) => {
       <SearchBar
         value={searchQuery}
         onChangeText={setSearchQuery}
-        placeholder="Search follow-ups, families..."
+        placeholder={tr('Search follow-ups, families...')}
         onClear={() => setSearchQuery('')}
       />
 
@@ -245,18 +246,17 @@ export const TaskListScreen = ({ navigation }) => {
         <View style={styles.activeDateBanner}>
           <View style={styles.activeDateLeft}>
             <Ionicons name="calendar" size={14} color={colors.primary} />
-            <Text style={styles.activeDateText} numberOfLines={1}>
-              Date: {formatDate(selectedDate)} ({combinedItems.length} item{combinedItems.length !== 1 ? 's' : ''})
+            <Text style={styles.activeDateText} numberOfLines={1}>{tr('Date:')}{' '}{tr(formatDate(selectedDate))} ({tr(combinedItems.length)}{' '}{tr('item')}{tr(combinedItems.length !== 1 ? 's' : '')})
             </Text>
           </View>
           <TouchableOpacity
             onPress={() => setSelectedDate(null)}
             style={styles.clearDateBtn}
             activeOpacity={0.7}
-            accessibilityLabel="Clear date filter"
+            accessibilityLabel={tr('Clear date filter')}
           >
             <Ionicons name="close-circle" size={14} color={colors.secondaryText} />
-            <Text style={styles.clearDateText}>Show All</Text>
+            <Text style={styles.clearDateText}>{tr('Show All')}</Text>
           </TouchableOpacity>
         </View>
       ) : null}
@@ -293,11 +293,11 @@ export const TaskListScreen = ({ navigation }) => {
                 activeOpacity={0.8}
               >
                 <Text style={[styles.filterText, isSelected && styles.filterTextActive]}>
-                  {f.label}
+                  {tr(f.label)}
                 </Text>
                 <View style={[styles.pillBadge, isSelected && styles.pillBadgeActive]}>
                   <Text style={[styles.pillBadgeText, isSelected && styles.pillBadgeTextActive]}>
-                    {count}
+                    {tr(count)}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -329,17 +329,17 @@ export const TaskListScreen = ({ navigation }) => {
                       {/* Title & Visit Badge Row */}
                       <View style={styles.titleRow}>
                         <Text style={styles.taskTitle} numberOfLines={1}>
-                          {item.household_name || 'Household'} • {item.beneficiary_name || 'Visit'}
+                          {tr(item.household_name || 'Household')} • {tr(item.beneficiary_name || 'Visit')}
                         </Text>
                         <View style={styles.visitPill}>
                           <Ionicons name="checkmark-done-circle" size={12} color={colors.tealDark} />
-                          <Text style={styles.visitPillText}>Field Visit</Text>
+                          <Text style={styles.visitPillText}>{tr('Field Visit')}</Text>
                         </View>
                       </View>
 
                       {/* AI Description / Summary */}
                       <Text style={styles.taskDesc} numberOfLines={2}>
-                        {item.activity_description}
+                        {tr(item.activity_description)}
                       </Text>
 
                       {/* ASHA Worker Spoken Voice Note Preview */}
@@ -347,7 +347,7 @@ export const TaskListScreen = ({ navigation }) => {
                         <View style={styles.listMicSnippet}>
                           <Ionicons name="mic" size={11} color="#0D47A1" />
                           <Text style={styles.listMicSnippetText} numberOfLines={1}>
-                            “{item.speech_transcript}”
+                            “{tr(item.speech_transcript)}”
                           </Text>
                         </View>
                       ) : null}
@@ -357,14 +357,13 @@ export const TaskListScreen = ({ navigation }) => {
                         <View style={styles.metaCol}>
                           <View style={styles.metaLine}>
                             <Ionicons name="calendar-outline" size={12} color={colors.tealDark} />
-                            <Text style={[styles.metaText, { color: colors.tealDark }]}>
-                              Visited: {formatDate(item.visit_date)}
+                            <Text style={[styles.metaText, { color: colors.tealDark }]}>{tr('Visited:')}{' '}{tr(formatDate(item.visit_date))}
                             </Text>
                           </View>
                         </View>
 
                         <View style={styles.viewRecordBtn}>
-                          <Text style={styles.viewRecordBtnText}>View Record</Text>
+                          <Text style={styles.viewRecordBtnText}>{tr('View Record')}</Text>
                           <Ionicons name="chevron-forward" size={12} color={colors.primary} />
                         </View>
                       </View>
@@ -381,7 +380,7 @@ export const TaskListScreen = ({ navigation }) => {
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => navigation.navigate('TaskDetail', { taskId: item.id, task: item })}
-                style={[styles.taskCard, { borderLeftColor: leftColor }]}
+                style={styles.taskCard}
               >
                 <View style={styles.taskCardTop}>
                   <View style={styles.iconCol}>
@@ -395,7 +394,7 @@ export const TaskListScreen = ({ navigation }) => {
                         style={[styles.taskTitle, isCompleted && styles.completedTitle]}
                         numberOfLines={1}
                       >
-                        {formatTaskTitle(item)}
+                        {tr(formatTaskTitle(item))}
                       </Text>
                       {item.priority ? (
                         <View style={styles.badgeWrap}>
@@ -409,7 +408,7 @@ export const TaskListScreen = ({ navigation }) => {
                       style={[styles.taskDesc, isCompleted && styles.completedDesc]}
                       numberOfLines={2}
                     >
-                      {item.description}
+                      {tr(item.description)}
                     </Text>
 
                     {/* Metadata & Actions Row */}
@@ -417,11 +416,11 @@ export const TaskListScreen = ({ navigation }) => {
                       <View style={styles.metaCol}>
                         <View style={styles.metaLine}>
                           <Ionicons name="calendar-outline" size={12} color={colors.textSecondary} />
-                          <Text style={styles.metaText}>Due: {formatDate(item.due_date)}</Text>
+                          <Text style={styles.metaText}>{tr('Due:')}{' '}{tr(formatDate(item.due_date))}</Text>
                         </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 1 }}>
                           <Ionicons name="location-outline" size={11.5} color={colors.textMuted} style={{ marginRight: 2 }} />
-                          <Text style={styles.villageText}>{item.village || 'Rampur Kalan'}</Text>
+                          <Text style={styles.villageText}>{tr(item.village || 'Rampur Kalan')}</Text>
                         </View>
                       </View>
 
@@ -434,10 +433,10 @@ export const TaskListScreen = ({ navigation }) => {
                               openRescheduleModal(item);
                             }}
                             style={styles.rescheduleIconBtn}
-                            accessibilityLabel="Reschedule"
+                            accessibilityLabel={tr('Reschedule')}
                           >
                             <Ionicons name="time-outline" size={15} color={colors.textSecondary} />
-                            <Text style={styles.rescheduleBtnText}>Delay</Text>
+                            <Text style={styles.rescheduleBtnText}>{tr('Delay')}</Text>
                           </TouchableOpacity>
                           <TouchableOpacity
                             onPress={(e) => {
@@ -445,16 +444,16 @@ export const TaskListScreen = ({ navigation }) => {
                               handleComplete(item.id);
                             }}
                             style={styles.doneIconBtn}
-                            accessibilityLabel="Mark Done"
+                            accessibilityLabel={tr('Mark Done')}
                           >
                             <Ionicons name="checkmark" size={15} color={colors.textWhite} />
-                            <Text style={styles.doneBtnText}>Done</Text>
+                            <Text style={styles.doneBtnText}>{tr('Done')}</Text>
                           </TouchableOpacity>
                         </View>
                       ) : (
                         <View style={styles.completedTag}>
                           <Ionicons name="checkmark-done" size={14} color={colors.success} />
-                          <Text style={styles.completedTagText}>Completed</Text>
+                          <Text style={styles.completedTagText}>{tr('Completed')}</Text>
                           <Ionicons name="chevron-forward" size={12} color={colors.success} style={{ marginLeft: 2 }} />
                         </View>
                       )}
@@ -496,16 +495,16 @@ export const TaskListScreen = ({ navigation }) => {
               {/* Header */}
               <View style={styles.modalHeaderRow}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.modalTitle}>Reschedule Follow-up</Text>
+                  <Text style={styles.modalTitle}>{tr('Reschedule Follow-up')}</Text>
                   <Text style={styles.modalSub}>
-                    {selectedTask?.household_name} • {selectedTask?.task_type}
+                    {tr(selectedTask?.household_name)} • {tr(selectedTask?.task_type)}
                   </Text>
                 </View>
                 <TouchableOpacity
                   onPress={() => setRescheduleModalVisible(false)}
                   style={styles.modalCloseBtn}
                   activeOpacity={0.7}
-                  accessibilityLabel="Close"
+                  accessibilityLabel={tr('Close')}
                 >
                   <Ionicons name="close" size={18} color={colors.textSecondary} />
                 </TouchableOpacity>
@@ -514,8 +513,7 @@ export const TaskListScreen = ({ navigation }) => {
               {/* Current Date Reference */}
               <View style={styles.originalDateBanner}>
                 <Ionicons name="time-outline" size={14} color={colors.warning} />
-                <Text style={styles.originalDateText}>
-                  Current Due Date: <Text style={styles.originalDateBold}>{formatDate(selectedTask?.due_date)}</Text>
+                <Text style={styles.originalDateText}>{tr('Current Due Date:')}{' '}<Text style={styles.originalDateBold}>{tr(formatDate(selectedTask?.due_date))}</Text>
                 </Text>
               </View>
 
@@ -530,7 +528,7 @@ export const TaskListScreen = ({ navigation }) => {
               />
 
               {/* Reason for Rescheduling with Quick Chips */}
-              <Text style={styles.reasonSectionTitle}>Reason for Rescheduling</Text>
+              <Text style={styles.reasonSectionTitle}>{tr('Reason for Rescheduling')}</Text>
               <View style={styles.reasonChipsWrap}>
                 {[
                   'Beneficiary traveling',
@@ -548,7 +546,7 @@ export const TaskListScreen = ({ navigation }) => {
                       activeOpacity={0.7}
                     >
                       <Text style={[styles.reasonChipText, isSelected && styles.reasonChipTextActive]}>
-                        {reason}
+                        {tr(reason)}
                       </Text>
                     </TouchableOpacity>
                   );
@@ -558,7 +556,7 @@ export const TaskListScreen = ({ navigation }) => {
               <AppInput
                 value={rescheduleNotes}
                 onChangeText={setRescheduleNotes}
-                placeholder="Or type a custom reason..."
+                placeholder={tr('Or type a custom reason...')}
               />
 
               {/* Action Buttons */}
@@ -588,13 +586,13 @@ export const TaskListScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   addBtn: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.primary,
+    borderRadius: 22,
+    backgroundColor: colors.ink,
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -619,7 +617,7 @@ const styles = StyleSheet.create({
   },
   activeDateText: {
     fontSize: 11.5,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryDark
   },
   clearDateBtn: {
@@ -633,7 +631,7 @@ const styles = StyleSheet.create({
   },
   clearDateText: {
     fontSize: 10.5,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.secondaryText
   },
   filterRow: {
@@ -665,7 +663,7 @@ const styles = StyleSheet.create({
   },
   filterTextActive: {
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   pillBadge: {
     paddingHorizontal: 6,
@@ -678,7 +676,7 @@ const styles = StyleSheet.create({
   },
   pillBadgeText: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textSecondary
   },
   pillBadgeTextActive: {
@@ -691,10 +689,9 @@ const styles = StyleSheet.create({
   },
   taskCard: {
     backgroundColor: colors.surface,
-    borderRadius: 16,
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: colors.border,
-    borderLeftWidth: 4,
     marginVertical: 4,
     padding: 12,
     ...shadows.subtle
@@ -718,7 +715,7 @@ const styles = StyleSheet.create({
   },
   taskTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText,
     flex: 1,
     marginRight: 8
@@ -792,13 +789,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: radius.pill,
-    backgroundColor: colors.teal,
+    backgroundColor: colors.ink,
     gap: 4,
     minHeight: 32
   },
   doneBtnText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textWhite
   },
   completedTag: {
@@ -812,11 +809,10 @@ const styles = StyleSheet.create({
   },
   completedTagText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.success
   },
   visitCard: {
-    borderLeftColor: colors.teal
   },
   visitPill: {
     flexDirection: 'row',
@@ -829,16 +825,16 @@ const styles = StyleSheet.create({
   },
   visitPillText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.tealDark
   },
   listMicSnippet: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EAF1FF',
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     borderRadius: radius.sm,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -863,7 +859,7 @@ const styles = StyleSheet.create({
   },
   transcriptIndicatorText: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryDark
   },
   viewRecordBtn: {
@@ -877,7 +873,7 @@ const styles = StyleSheet.create({
   },
   viewRecordBtnText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryDark
   },
   modalOverlay: {
@@ -922,7 +918,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     color: colors.primaryText,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   modalSub: {
     fontSize: 12,
@@ -935,7 +931,7 @@ const styles = StyleSheet.create({
     gap: 6,
     backgroundColor: colors.warningLight,
     borderWidth: 1,
-    borderColor: '#FCE6B5',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: radius.pill,
@@ -947,12 +943,12 @@ const styles = StyleSheet.create({
     color: colors.primaryText
   },
   originalDateBold: {
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryDark
   },
   reasonSectionTitle: {
     fontSize: 12.5,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryDark,
     marginTop: 8,
     marginBottom: 6
@@ -982,7 +978,7 @@ const styles = StyleSheet.create({
   },
   reasonChipTextActive: {
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   modalBtnRow: {
     flexDirection: 'row',

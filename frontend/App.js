@@ -1,20 +1,28 @@
 import firebaseApp from './src/services/firebase/firebaseConfig';
 import React, { useEffect } from 'react';
 import { StyleSheet, View, Platform, StatusBar, ActivityIndicator } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { useLanguageStore } from './src/store/languageStore';
 import { useAppStore } from './src/store/appStore';
 import { colors } from './src/theme';
+import { AppBackdrop } from './src/components/common/AppBackdrop';
 import { notificationService } from './src/services/notifications/notificationService';
 import './src/localisation'; // initialize i18n
 
 
+const navigationTheme = {
+  ...DefaultTheme,
+  colors: { ...DefaultTheme.colors, background: 'transparent' }
+};
+
 export default function App() {
   const [fontsLoaded, fontError] = useFonts(Ionicons.font);
+  const { i18n } = useTranslation();
   const { initializeLanguage } = useLanguageStore();
   const { loadOfflineQueue, initializeNetworkListener } = useAppStore();
 
@@ -49,11 +57,12 @@ export default function App() {
 
   return (
     <SafeAreaProvider style={styles.provider}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.surface} />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
       <View style={isWeb ? styles.webWrapper : styles.nativeWrapper}>
         <View style={isWeb ? styles.mobileFrame : styles.nativeWrapper}>
-          <NavigationContainer>
-            <RootNavigator />
+          <AppBackdrop />
+          <NavigationContainer theme={navigationTheme}>
+            <RootNavigator key={i18n.language} />
           </NavigationContainer>
         </View>
       </View>
@@ -74,7 +83,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     height: '100%',
-    backgroundColor: '#EEF1F5', // Soft neutral background for web framing
+    backgroundColor: '#E9EDF5', // Soft neutral background for web framing
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12
@@ -84,14 +93,12 @@ const styles = StyleSheet.create({
     maxWidth: 440,
     height: '100%',
     backgroundColor: colors.background,
-    borderRadius: 24,
+    borderRadius: 32,
     overflow: 'hidden',
-    shadowColor: 'rgba(34, 40, 49, 0.12)',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.16,
-    shadowRadius: 20,
-    elevation: 8,
-    borderWidth: 1,
-    borderColor: '#DFE3E8'
+    shadowColor: '#1E3A6D',
+    shadowOffset: { width: 0, height: 18 },
+    shadowOpacity: 0.14,
+    shadowRadius: 40,
+    elevation: 8
   }
 });

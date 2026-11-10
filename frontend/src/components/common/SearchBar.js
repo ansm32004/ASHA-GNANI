@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
@@ -14,15 +15,15 @@ export const SearchBar = ({
     <View style={[styles.container, style]}>
       <View style={styles.searchIcon}>
         <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-          <Circle cx="11" cy="11" r="7" stroke="#94A3B8" strokeWidth="2.2" />
-          <Path d="m20 20-3.5-3.5" stroke="#94A3B8" strokeWidth="2.2" strokeLinecap="round" />
+          <Circle cx="11" cy="11" r="7" stroke="#98A2B8" strokeWidth="2.2" />
+          <Path d="m20 20-3.5-3.5" stroke="#98A2B8" strokeWidth="2.2" strokeLinecap="round" />
         </Svg>
       </View>
       <TextInput
         value={value}
         onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor="#94A3B8"
+        placeholder={tr(placeholder)}
+        placeholderTextColor="#98A2B8"
         style={styles.input}
         returnKeyType="search"
       />
@@ -30,10 +31,10 @@ export const SearchBar = ({
         <TouchableOpacity
           onPress={onClear || (() => onChangeText(''))}
           style={styles.clearBtn}
-          accessibilityLabel="Clear search"
+          accessibilityLabel={tr('Clear search')}
         >
           <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-            <Circle cx="12" cy="12" r="9" fill="#94A3B8" />
+            <Circle cx="12" cy="12" r="9" fill="#98A2B8" />
             <Path d="M15 9l-6 6M9 9l6 6" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
           </Svg>
         </TouchableOpacity>
@@ -48,10 +49,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: radius.pill,
-    height: 50,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+    height: 52,
+    paddingHorizontal: 18,
     marginHorizontal: spacing.screenHorizontal,
     marginVertical: 8,
     ...shadows.soft

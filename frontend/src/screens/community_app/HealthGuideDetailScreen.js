@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -85,7 +86,7 @@ const GUIDE_DATA = {
     id: 'child',
     title: 'शिशु स्वास्थ्य (Child Healthcare)',
     subtitle: 'जन्म से 5 वर्ष तक शिशु की सही देखभाल व पोषण',
-    accentColor: '#2478D0',
+    accentColor: '#2563EB',
     icon: 'happy',
     audioText: 'जन्म के पहले घंटे में मां का पहला गाढ़ा पीला दूध यानी कोलोस्ट्रम जरूर पिलाएं। 6 महीने तक केवल मां का दूध दें, पानी भी नहीं। 6 महीने पूरे होने पर ऊपरी आहार शुरू करें। बच्चे का वजन हर महीने आंगनवाड़ी में तौलवाएं।',
     overview: 'शिशु के जीवन के पहले 1000 दिन (गर्भावस्था से 2 वर्ष तक) शारीरिक और मानसिक विकास के लिए सबसे महत्वपूर्ण होते हैं।',
@@ -227,11 +228,11 @@ export const HealthGuideDetailScreen = ({ route, navigation }) => {
       if (audioUrl) {
         await audioService.playAudio(audioUrl, null, guideAudioId);
       } else {
-        Alert.alert('सूचना', 'ऑडियो प्राप्त नहीं हो सका। कृपया पुनः प्रयास करें।');
+        Alert.alert(tr('सूचना'), tr('ऑडियो प्राप्त नहीं हो सका। कृपया पुनः प्रयास करें।'));
       }
     } catch (e) {
       console.warn('[HealthGuide] Audio playback error:', e);
-      Alert.alert('ऑडियो त्रुटि', 'ऑडियो चलाने में समस्या आई।');
+      Alert.alert(tr('ऑडियो त्रुटि'), tr('ऑडियो चलाने में समस्या आई।'));
     } finally {
       setIsLoadingAudio(false);
     }
@@ -257,7 +258,7 @@ export const HealthGuideDetailScreen = ({ route, navigation }) => {
 
   const handleSendRequest = async () => {
     if (!requestText.trim()) {
-      Alert.alert('त्रुटि', 'कृपया अनुरोध का विवरण लिखें।');
+      Alert.alert(tr('त्रुटि'), tr('कृपया अनुरोध का विवरण लिखें।'));
       return;
     }
     setIsSubmitting(true);
@@ -272,18 +273,18 @@ export const HealthGuideDetailScreen = ({ route, navigation }) => {
       setIsSubmitting(false);
       setShowRequestModal(false);
       Alert.alert(
-        'अनुरोध भेजा गया (Request Sent)',
-        'आपका संदेश आशा दीदी (सुनीता देवी) को भेज दिया गया है। वे जल्द ही आपसे संपर्क करेंगी।',
+        tr('अनुरोध भेजा गया (Request Sent)'),
+        tr('आपका संदेश आशा दीदी (सुनीता देवी) को भेज दिया गया है। वे जल्द ही आपसे संपर्क करेंगी।'),
         [
           {
-            text: 'ठीक है',
+            text: tr('ठीक है'),
             onPress: () => navigation.navigate('RemindersTab')
           }
         ]
       );
     } catch (err) {
       setIsSubmitting(false);
-      Alert.alert('त्रुटि', 'अनुरोध भेजने में समस्या आई। कृपया पुनः प्रयास करें।');
+      Alert.alert(tr('त्रुटि'), tr('अनुरोध भेजने में समस्या आई। कृपया पुनः प्रयास करें।'));
     }
   };
 
@@ -294,18 +295,18 @@ export const HealthGuideDetailScreen = ({ route, navigation }) => {
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
-          accessibilityLabel="Go back"
+          accessibilityLabel={tr('Go back')}
         >
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>{data.title.split(' ')[0]}</Text>
+        <Text style={styles.headerTitle} numberOfLines={1}>{tr(data.title.split(' ')[0])}</Text>
         <TouchableOpacity
           onPress={() => setShowRequestModal(true)}
           style={styles.headerAction}
-          accessibilityLabel="Ask ASHA"
+          accessibilityLabel={tr('Ask ASHA')}
         >
           <Ionicons name="chatbubble-ellipses" size={20} color={colors.primary} />
-          <Text style={styles.headerActionText}>आशा दीदी</Text>
+          <Text style={styles.headerActionText}>{tr('आशा दीदी')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -314,17 +315,17 @@ export const HealthGuideDetailScreen = ({ route, navigation }) => {
         showsVerticalScrollIndicator={false}
       >
         {/* Hero Card */}
-        <View style={[styles.heroCard, { borderLeftColor: data.accentColor }]}>
+        <View style={[styles.heroCard]}>
           <View style={styles.heroRow}>
             <View style={[styles.iconBox, { backgroundColor: data.accentColor + '18' }]}>
               <Ionicons name={data.icon} size={32} color={data.accentColor} />
             </View>
             <View style={styles.heroTextContainer}>
-              <Text style={styles.heroTitle}>{data.title}</Text>
-              <Text style={styles.heroSubtitle}>{data.subtitle}</Text>
+              <Text style={styles.heroTitle}>{tr(data.title)}</Text>
+              <Text style={styles.heroSubtitle}>{tr(data.subtitle)}</Text>
             </View>
           </View>
-          <Text style={styles.overviewText}>{data.overview}</Text>
+          <Text style={styles.overviewText}>{tr(data.overview)}</Text>
 
           {/* Interactive Audio Player with Pause / Resume */}
           <View
@@ -345,11 +346,11 @@ export const HealthGuideDetailScreen = ({ route, navigation }) => {
               activeOpacity={0.8}
               accessibilityRole="button"
               accessibilityLabel={
-                audioPlayback.isPlaying
+                tr(audioPlayback.isPlaying
                   ? 'Pause audio'
                   : audioPlayback.isPaused
                   ? 'Resume audio'
-                  : 'Listen to audio guidelines'
+                  : 'Listen to audio guidelines')
               }
             >
               {isLoadingAudio ? (
@@ -380,21 +381,21 @@ export const HealthGuideDetailScreen = ({ route, navigation }) => {
               activeOpacity={0.7}
             >
               <Text style={styles.audioLabel}>
-                {isLoadingAudio
+                {tr(isLoadingAudio
                   ? 'ऑडियो तैयार हो रहा है...'
                   : audioPlayback.isPlaying
                   ? 'ऑडियो बज रहा है (Pause के लिए टैप करें)'
                   : audioPlayback.isPaused
                   ? 'ऑडियो रुका हुआ है (Resume के लिए टैप करें)'
-                  : 'ऑडियो में सुनें (Listen in Hindi)'}
+                  : 'ऑडियो में सुनें (Listen in Hindi)')}
               </Text>
               <Text
                 style={styles.audioHint}
                 numberOfLines={audioPlayback.isPlaying || audioPlayback.isPaused ? 3 : 1}
               >
-                {audioPlayback.isPlaying || audioPlayback.isPaused
-                  ? `"${data.audioText}"`
-                  : 'टैप करके दिशानिर्देश आवाज में सुनें'}
+                {tr(audioPlayback.isPlaying || audioPlayback.isPaused
+                  ? `"${tr(data.audioText)}"`
+                  : 'टैप करके दिशानिर्देश आवाज में सुनें')}
               </Text>
             </TouchableOpacity>
 
@@ -405,10 +406,10 @@ export const HealthGuideDetailScreen = ({ route, navigation }) => {
                 onPress={handlePauseAudio}
                 activeOpacity={0.7}
                 accessibilityRole="button"
-                accessibilityLabel="Pause audio playback"
+                accessibilityLabel={tr('Pause audio playback')}
               >
                 <Ionicons name="pause" size={13} color="#92400E" />
-                <Text style={styles.controlPillPauseText}>Pause</Text>
+                <Text style={styles.controlPillPauseText}>{tr('Pause')}</Text>
               </TouchableOpacity>
             )}
 
@@ -419,10 +420,10 @@ export const HealthGuideDetailScreen = ({ route, navigation }) => {
                 onPress={handleResumeAudio}
                 activeOpacity={0.7}
                 accessibilityRole="button"
-                accessibilityLabel="Resume audio playback"
+                accessibilityLabel={tr('Resume audio playback')}
               >
                 <Ionicons name="play" size={13} color="#15803D" />
-                <Text style={styles.controlPillResumeText}>Resume</Text>
+                <Text style={styles.controlPillResumeText}>{tr('Resume')}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -432,36 +433,36 @@ export const HealthGuideDetailScreen = ({ route, navigation }) => {
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
             <Ionicons name="warning" size={20} color={colors.danger} />
-            <Text style={styles.dangerSectionTitle}>खतरे के लक्षण (Danger Signs — तुरंत अस्पताल जाएं)</Text>
+            <Text style={styles.dangerSectionTitle}>{tr('खतरे के लक्षण (Danger Signs — तुरंत अस्पताल जाएं)')}</Text>
           </View>
           <View style={styles.dangerBox}>
             {data.dangerSigns.map((sign, idx) => (
               <View key={idx} style={styles.dangerRow}>
                 <Ionicons name="alert-circle" size={16} color={colors.danger} style={{ marginTop: 2 }} />
-                <Text style={styles.dangerText}>{sign}</Text>
+                <Text style={styles.dangerText}>{tr(sign)}</Text>
               </View>
             ))}
             <TouchableOpacity
               style={styles.emergencyCallBtn}
-              onPress={() => Alert.alert('आपातकालीन कॉल', 'एम्बुलेंस के लिए 108 या आशा दीदी को कॉल करें।')}
+              onPress={() => Alert.alert(tr('आपातकालीन कॉल'), tr('एम्बुलेंस के लिए 108 या आशा दीदी को कॉल करें।'))}
             >
               <Ionicons name="call" size={16} color="#FFFFFF" />
-              <Text style={styles.emergencyCallText}>आपातकाल में 108 डायल करें</Text>
+              <Text style={styles.emergencyCallText}>{tr('आपातकाल में 108 डायल करें')}</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Section 2: Key Guidelines (मुख्य दिशानिर्देश) */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>मुख्य देखभाल एवं दिशानिर्देश (Care Guidelines)</Text>
+          <Text style={styles.sectionTitle}>{tr('मुख्य देखभाल एवं दिशानिर्देश (Care Guidelines)')}</Text>
           {data.guidelines.map((guide, idx) => (
             <View key={idx} style={styles.guidelineCard}>
               <View style={styles.stepBadge}>
-                <Text style={styles.stepBadgeText}>{idx + 1}</Text>
+                <Text style={styles.stepBadgeText}>{(tr(idx) + 1)}</Text>
               </View>
               <View style={styles.guidelineContent}>
-                <Text style={styles.guidelineTitle}>{guide.title}</Text>
-                <Text style={styles.guidelineDesc}>{guide.desc}</Text>
+                <Text style={styles.guidelineTitle}>{tr(guide.title)}</Text>
+                <Text style={styles.guidelineDesc}>{tr(guide.desc)}</Text>
               </View>
             </View>
           ))}
@@ -469,12 +470,12 @@ export const HealthGuideDetailScreen = ({ route, navigation }) => {
 
         {/* Section 3: Recommended Diet (अनुशंसित आहार) */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>पौष्टिक आहार सुझाव (Recommended Diet)</Text>
+          <Text style={styles.sectionTitle}>{tr('पौष्टिक आहार सुझाव (Recommended Diet)')}</Text>
           <View style={styles.dietCard}>
             {data.diet.map((item, idx) => (
               <View key={idx} style={styles.dietRow}>
                 <Ionicons name="checkmark-circle" size={18} color={colors.teal} />
-                <Text style={styles.dietText}>{item}</Text>
+                <Text style={styles.dietText}>{tr(item)}</Text>
               </View>
             ))}
           </View>
@@ -482,16 +483,16 @@ export const HealthGuideDetailScreen = ({ route, navigation }) => {
 
         {/* Section 4: Government Schemes (सरकारी योजनाएं एवं लाभ) */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>पात्र सरकारी योजनाएं (Government Schemes)</Text>
+          <Text style={styles.sectionTitle}>{tr('पात्र सरकारी योजनाएं (Government Schemes)')}</Text>
           {data.schemes.map((scheme, idx) => (
             <View key={idx} style={styles.schemeCard}>
               <View style={styles.schemeHeaderRow}>
-                <Text style={styles.schemeName}>{scheme.name}</Text>
+                <Text style={styles.schemeName}>{tr(scheme.name)}</Text>
                 <View style={styles.amountBadge}>
-                  <Text style={styles.amountText}>{scheme.amount}</Text>
+                  <Text style={styles.amountText}>{tr(scheme.amount)}</Text>
                 </View>
               </View>
-              <Text style={styles.schemeDesc}>{scheme.desc}</Text>
+              <Text style={styles.schemeDesc}>{tr(scheme.desc)}</Text>
             </View>
           ))}
         </View>
@@ -499,8 +500,8 @@ export const HealthGuideDetailScreen = ({ route, navigation }) => {
         {/* CTA Banner: Contact ASHA */}
         <View style={styles.ctaCard}>
           <View style={styles.ctaTextContainer}>
-            <Text style={styles.ctaTitle}>क्या आपको कोई संदेह या प्रश्न है?</Text>
-            <Text style={styles.ctaSubtitle}>अपनी आशा दीदी (सुनीता देवी) से घर आकर मिलने का अनुरोध करें।</Text>
+            <Text style={styles.ctaTitle}>{tr('क्या आपको कोई संदेह या प्रश्न है?')}</Text>
+            <Text style={styles.ctaSubtitle}>{tr('अपनी आशा दीदी (सुनीता देवी) से घर आकर मिलने का अनुरोध करें।')}</Text>
           </View>
           <TouchableOpacity
             style={styles.ctaButton}
@@ -508,7 +509,7 @@ export const HealthGuideDetailScreen = ({ route, navigation }) => {
             activeOpacity={0.8}
           >
             <Ionicons name="calendar-outline" size={18} color="#FFFFFF" />
-            <Text style={styles.ctaButtonText}>आशा दीदी से भेंट मांगें</Text>
+            <Text style={styles.ctaButtonText}>{tr('आशा दीदी से भेंट मांगें')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -523,24 +524,23 @@ export const HealthGuideDetailScreen = ({ route, navigation }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>आशा दीदी को संदेश भेजें</Text>
+              <Text style={styles.modalTitle}>{tr('आशा दीदी को संदेश भेजें')}</Text>
               <TouchableOpacity onPress={() => setShowRequestModal(false)}>
                 <Ionicons name="close" size={24} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.modalSubtitle}>
-              आशा कार्यकर्ता: <Text style={{ fontWeight: '600', color: colors.textPrimary }}>सुनीता देवी (Rampur SC-04)</Text>
+            <Text style={styles.modalSubtitle}>{tr('आशा कार्यकर्ता:')}{' '}<Text style={{ fontWeight: '600', color: colors.textPrimary }}>{tr('सुनीता देवी (Rampur SC-04)')}</Text>
             </Text>
 
-            <Text style={styles.modalLabel}>अनुरोध का विवरण (Message / Request):</Text>
+            <Text style={styles.modalLabel}>{tr('अनुरोध का विवरण (Message / Request):')}</Text>
             <TextInput
               style={styles.textInput}
               multiline
               numberOfLines={4}
               value={requestText}
               onChangeText={setRequestText}
-              placeholder="अपनी समस्या या भेंट का कारण लिखें..."
+              placeholder={tr('अपनी समस्या या भेंट का कारण लिखें...')}
               placeholderTextColor={colors.textMuted}
             />
 
@@ -549,7 +549,7 @@ export const HealthGuideDetailScreen = ({ route, navigation }) => {
                 style={styles.cancelBtn}
                 onPress={() => setShowRequestModal(false)}
               >
-                <Text style={styles.cancelBtnText}>रद्द करें</Text>
+                <Text style={styles.cancelBtnText}>{tr('रद्द करें')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.submitBtn, isSubmitting && { opacity: 0.7 }]}
@@ -561,7 +561,7 @@ export const HealthGuideDetailScreen = ({ route, navigation }) => {
                 ) : (
                   <>
                     <Ionicons name="send" size={16} color="#FFFFFF" />
-                    <Text style={styles.submitBtnText}>अनुरोध भेजें</Text>
+                    <Text style={styles.submitBtnText}>{tr('अनुरोध भेजें')}</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -576,7 +576,7 @@ export const HealthGuideDetailScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC'
+    backgroundColor: '#F5F7FB'
   },
   header: {
     flexDirection: 'row',
@@ -587,7 +587,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0'
+    borderBottomColor: '#E8ECF3'
   },
   backButton: {
     padding: 8
@@ -620,7 +620,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: radius.lg,
     padding: 16,
-    borderLeftWidth: 4,
     marginBottom: 16,
     ...shadows.card
   },
@@ -633,7 +632,7 @@ const styles = StyleSheet.create({
   iconBox: {
     width: 52,
     height: 52,
-    borderRadius: 14,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -643,7 +642,7 @@ const styles = StyleSheet.create({
   heroTitle: {
     ...typography.heading2,
     color: colors.textPrimary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   heroSubtitle: {
     ...typography.bodySmall,
@@ -659,12 +658,12 @@ const styles = StyleSheet.create({
   audioPlayer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F1F4FA',
     borderRadius: radius.md,
     padding: 10,
     gap: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   audioPlayerActive: {
     backgroundColor: '#EBF4FE',
@@ -672,7 +671,7 @@ const styles = StyleSheet.create({
   },
   audioPlayerPaused: {
     backgroundColor: '#FFFBEB',
-    borderColor: '#F59E0B'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   controlPillPause: {
     flexDirection: 'row',
@@ -680,15 +679,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEF3C7',
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 14,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#FCD34D',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     gap: 4
   },
   controlPillPauseText: {
     ...typography.caption,
     color: '#92400E',
-    fontWeight: '700'
+    fontWeight: '600'
   },
   controlPillResume: {
     flexDirection: 'row',
@@ -696,20 +695,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#DCFCE7',
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 14,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#86EFAC',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     gap: 4
   },
   controlPillResumeText: {
     ...typography.caption,
     color: '#15803D',
-    fontWeight: '700'
+    fontWeight: '600'
   },
   playButtonCircle: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 24,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
@@ -740,14 +739,14 @@ const styles = StyleSheet.create({
   dangerSectionTitle: {
     ...typography.heading3,
     color: colors.danger,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   dangerBox: {
     backgroundColor: '#FDF2F2',
     borderRadius: radius.md,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#F8B4B4'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   dangerRow: {
     flexDirection: 'row',
@@ -781,7 +780,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     ...typography.heading3,
     color: colors.textPrimary,
-    fontWeight: '700',
+    fontWeight: '600',
     marginBottom: 10
   },
   guidelineCard: {
@@ -791,14 +790,14 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     alignItems: 'flex-start',
     gap: 12
   },
   stepBadge: {
     width: 28,
     height: 28,
-    borderRadius: 14,
+    borderRadius: 18,
     backgroundColor: colors.primaryLight,
     alignItems: 'center',
     justifyContent: 'center'
@@ -806,7 +805,7 @@ const styles = StyleSheet.create({
   stepBadgeText: {
     ...typography.caption,
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   guidelineContent: {
     flex: 1
@@ -827,7 +826,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   dietRow: {
     flexDirection: 'row',
@@ -846,7 +845,7 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#E2E8F0'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   schemeHeaderRow: {
     flexDirection: 'row',
@@ -857,7 +856,7 @@ const styles = StyleSheet.create({
   schemeName: {
     ...typography.bodyMedium,
     color: colors.textPrimary,
-    fontWeight: '700',
+    fontWeight: '600',
     flex: 1
   },
   amountBadge: {
@@ -866,12 +865,12 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: radius.pill,
     borderWidth: 1,
-    borderColor: '#A7F3D0'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   amountText: {
     ...typography.caption,
     color: '#065F46',
-    fontWeight: '700'
+    fontWeight: '600'
   },
   schemeDesc: {
     ...typography.bodySmall,
@@ -883,7 +882,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     marginTop: 8,
     ...shadows.card
   },
@@ -893,7 +892,7 @@ const styles = StyleSheet.create({
   ctaTitle: {
     ...typography.heading3,
     color: colors.textPrimary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   ctaSubtitle: {
     ...typography.bodySmall,
@@ -905,7 +904,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     paddingVertical: 12,
     borderRadius: radius.md
   },
@@ -934,7 +933,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     ...typography.heading2,
     color: colors.textPrimary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   modalSubtitle: {
     ...typography.bodySmall,
@@ -947,10 +946,10 @@ const styles = StyleSheet.create({
     marginBottom: 6
   },
   textInput: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F5F7FB',
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     padding: 12,
     ...typography.bodyMedium,
     color: colors.textPrimary,
@@ -967,7 +966,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -981,7 +980,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     paddingVertical: 12,
     borderRadius: radius.md
   },

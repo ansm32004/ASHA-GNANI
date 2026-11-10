@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors, typography, spacing, radius, shadows } from '../../theme';
@@ -28,7 +29,7 @@ export const CompactMetric = ({
   const todayFormatted = React.useMemo(() => {
     const d = new Date();
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `Today, ${d.getDate()} ${months[d.getMonth()]}`;
+    return `${tr('Today')}, ${d.getDate()} ${tr(months[d.getMonth()])}`;
   }, []);
 
   return (
@@ -36,9 +37,9 @@ export const CompactMetric = ({
       <View style={styles.cardHeaderRow}>
         <View style={styles.headerLeft}>
           <View style={styles.livePulseDot} />
-          <Text style={styles.cardHeading}>Today's Activity</Text>
+          <Text style={styles.cardHeading}>{tr('Today\'s Activity')}</Text>
         </View>
-        <Text style={styles.dateBadge}>{todayFormatted}</Text>
+        <Text style={styles.dateBadge}>{tr(todayFormatted)}</Text>
       </View>
 
       <View style={styles.grid}>
@@ -55,8 +56,8 @@ export const CompactMetric = ({
                 {getMetricVector(idx)}
               </View>
               <View style={styles.metricTextWrapper}>
-                <Text style={[styles.metricValue, { color: itemColor }]}>{item.value}</Text>
-                <Text style={styles.metricLabel}>{item.label}</Text>
+                <Text style={[styles.metricValue, { color: itemColor }]}>{tr(item.value)}</Text>
+                <Text style={styles.metricLabel}>{tr(item.label)}</Text>
               </View>
             </TouchableOpacity>
           );
@@ -100,7 +101,7 @@ const styles = StyleSheet.create({
   },
   cardHeading: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textPrimary
   },
   dateBadge: {
@@ -136,13 +137,13 @@ const styles = StyleSheet.create({
   },
   metricValue: {
     fontSize: 22,
-    fontWeight: '800',
+    fontWeight: '600',
     lineHeight: 26
   },
   metricLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#475569',
+    color: '#515C75',
     marginTop: 1
   }
 });

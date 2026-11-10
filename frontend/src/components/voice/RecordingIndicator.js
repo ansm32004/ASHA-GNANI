@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors, spacing, typography, radius } from '../../theme';
@@ -17,9 +18,9 @@ export const RecordingIndicator = ({ durationSeconds = 0, isRecording = false })
           { backgroundColor: isRecording ? colors.critical : colors.borderStrong }
         ]}
       />
-      <Text style={styles.timeText}>{formatTime(durationSeconds)}</Text>
+      <Text style={styles.timeText}>{tr(formatTime(durationSeconds))}</Text>
       <Text style={styles.statusText}>
-        {isRecording ? "Recording Audio..." : "Ready to speak"}
+        {tr(isRecording ? "Recording Audio..." : "Ready to speak")}
       </Text>
     </View>
   );
@@ -47,7 +48,7 @@ const styles = StyleSheet.create({
   },
   timeText: {
     ...typography.bodyMedium,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textPrimary,
     marginRight: spacing.sm
   },

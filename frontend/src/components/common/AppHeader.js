@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,7 +26,7 @@ export const AppHeader = ({
           <TouchableOpacity
             onPress={onBack}
             style={styles.backButton}
-            accessibilityLabel="Back"
+            accessibilityLabel={tr('Back')}
             activeOpacity={0.7}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
@@ -33,8 +34,8 @@ export const AppHeader = ({
           </TouchableOpacity>
         )}
         <View style={styles.titleColumn}>
-          <Text style={styles.title} numberOfLines={1}>{title}</Text>
-          {subtitle && <Text style={styles.subtitle} numberOfLines={1}>{subtitle}</Text>}
+          <Text style={styles.title} numberOfLines={1}>{tr(title)}</Text>
+          {subtitle && <Text style={styles.subtitle} numberOfLines={1}>{tr(subtitle)}</Text>}
         </View>
       </View>
 
@@ -43,11 +44,11 @@ export const AppHeader = ({
           <TouchableOpacity
             onPress={toggleLanguage}
             style={styles.langPill}
-            accessibilityLabel="Toggle Language"
+            accessibilityLabel={tr('Toggle Language')}
             activeOpacity={0.8}
           >
             <Text style={styles.langText}>
-              {uiLanguage === 'hi' ? 'English' : 'हिन्दी'}
+              {tr(uiLanguage === 'hi' ? 'English' : 'हिन्दी')}
             </Text>
           </TouchableOpacity>
         )}
@@ -65,7 +66,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.screenPadding,
     paddingTop: spacing.base,
     paddingBottom: spacing.sm,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   leftRow: {
     flexDirection: 'row',
@@ -80,8 +81,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: spacing.sm,
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
     ...shadows.soft
   },
   titleColumn: {
@@ -102,12 +101,11 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   langPill: {
-    backgroundColor: colors.primaryLight,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: colors.surface,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: colors.primaryMuted,
+    ...shadows.soft,
     marginLeft: spacing.sm
   },
   langText: {

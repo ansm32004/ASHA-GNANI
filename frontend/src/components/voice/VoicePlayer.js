@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -89,7 +90,7 @@ export const VoicePlayer = ({
           isPaused && styles.playButtonPaused
         ]}
         accessibilityRole="button"
-        accessibilityLabel={isPlaying ? "Pause audio" : isPaused ? "Resume audio" : "Play audio"}
+        accessibilityLabel={tr(isPlaying ? "Pause audio" : isPaused ? "Resume audio" : "Play audio")}
       >
         <Ionicons
           name={isPlaying ? "pause" : isPaused ? "play" : "play"}
@@ -100,9 +101,9 @@ export const VoicePlayer = ({
 
       <View style={styles.infoColumn}>
         <View style={styles.titleRow}>
-          <Text style={styles.title} numberOfLines={1}>{title}</Text>
-          {isPlaying && <Text style={styles.statusBadgePlaying}>Playing</Text>}
-          {isPaused && <Text style={styles.statusBadgePaused}>Paused</Text>}
+          <Text style={styles.title} numberOfLines={1}>{tr(title)}</Text>
+          {isPlaying && <Text style={styles.statusBadgePlaying}>{tr('Playing')}</Text>}
+          {isPaused && <Text style={styles.statusBadgePaused}>{tr('Paused')}</Text>}
         </View>
         <View style={styles.track}>
           <View style={[styles.progress, { width: `${progressPct}%` }]} />
@@ -114,10 +115,10 @@ export const VoicePlayer = ({
         <TouchableOpacity
           style={styles.actionPillPause}
           onPress={handlePause}
-          accessibilityLabel="Pause audio"
+          accessibilityLabel={tr('Pause audio')}
         >
           <Ionicons name="pause" size={12} color="#92400E" />
-          <Text style={styles.actionPillPauseText}>Pause</Text>
+          <Text style={styles.actionPillPauseText}>{tr('Pause')}</Text>
         </TouchableOpacity>
       )}
 
@@ -126,17 +127,17 @@ export const VoicePlayer = ({
         <TouchableOpacity
           style={styles.actionPillResume}
           onPress={handleResume}
-          accessibilityLabel="Resume audio"
+          accessibilityLabel={tr('Resume audio')}
         >
           <Ionicons name="play" size={12} color="#15803D" />
-          <Text style={styles.actionPillResumeText}>Resume</Text>
+          <Text style={styles.actionPillResumeText}>{tr('Resume')}</Text>
         </TouchableOpacity>
       )}
 
       <Text style={styles.duration}>
-        {playback.durationMillis > 0
-          ? `${Math.floor(playback.positionMillis / 1000)}s`
-          : duration}
+        {tr(playback.durationMillis > 0
+          ? `${tr(Math.floor(playback.positionMillis / 1000))}s`
+          : duration)}
       </Text>
     </View>
   );
@@ -156,17 +157,17 @@ const styles = StyleSheet.create({
   },
   containerPlaying: {
     backgroundColor: '#E0F2FE',
-    borderColor: '#7DD3FC'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   containerPaused: {
     backgroundColor: '#FFFBEB',
-    borderColor: '#FCD34D'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   playButton: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.primary,
+    borderRadius: 22,
+    backgroundColor: colors.ink,
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -187,13 +188,13 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.caption,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryDeep,
     flexShrink: 1
   },
   statusBadgePlaying: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#0284C7',
     backgroundColor: '#BAE6FD',
     paddingHorizontal: 6,
@@ -202,7 +203,7 @@ const styles = StyleSheet.create({
   },
   statusBadgePaused: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#B45309',
     backgroundColor: '#FDE68A',
     paddingHorizontal: 6,
@@ -211,13 +212,13 @@ const styles = StyleSheet.create({
   },
   track: {
     height: 4,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#E8ECF3',
     borderRadius: 2,
     overflow: 'hidden'
   },
   progress: {
     height: '100%',
-    backgroundColor: colors.primary
+    backgroundColor: colors.ink
   },
   actionPillPause: {
     flexDirection: 'row',
@@ -225,14 +226,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEF3C7',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#FCD34D',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     gap: 4
   },
   actionPillPauseText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#92400E'
   },
   actionPillResume: {
@@ -241,14 +242,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#DCFCE7',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#86EFAC',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     gap: 4
   },
   actionPillResumeText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#15803D'
   },
   duration: {

@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
@@ -36,16 +37,16 @@ export const EditorialContentCard = ({
     <View style={styles.card}>
       <View style={styles.topRow}>
         <View style={styles.badgePill}>
-          <Text style={styles.badgeText}>{badge}</Text>
+          <Text style={styles.badgeText}>{tr(badge)}</Text>
         </View>
-        <Text style={styles.readTimeText}>{readTime}</Text>
+        <Text style={styles.readTimeText}>{tr(readTime)}</Text>
       </View>
 
       <View style={styles.contentRow}>
         <View style={styles.textColumn}>
-          <Text style={styles.titleText}>{title}</Text>
+          <Text style={styles.titleText}>{tr(title)}</Text>
           <Text style={styles.summaryText} numberOfLines={3}>
-            {summary}
+            {tr(summary)}
           </Text>
         </View>
 
@@ -60,7 +61,7 @@ export const EditorialContentCard = ({
         onPress={onPressAction}
         activeOpacity={0.8}
       >
-        <Text style={styles.actionLinkText}>{actionText}</Text>
+        <Text style={styles.actionLinkText}>{tr(actionText)}</Text>
         <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
           <Path
             d="M9 18L15 12L9 6"
@@ -78,7 +79,7 @@ export const EditorialContentCard = ({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: colors.border,
     marginHorizontal: spacing.screenPadding,
@@ -100,10 +101,8 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.tealDark,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5
   },
   readTimeText: {
     fontSize: 11,
@@ -121,7 +120,7 @@ const styles = StyleSheet.create({
   },
   titleText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText,
     lineHeight: 20,
     marginBottom: 4
@@ -135,7 +134,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#F7FAFC',
-    borderRadius: 14,
+    borderRadius: 18,
     padding: 4
   },
   actionLinkRow: {
@@ -147,7 +146,7 @@ const styles = StyleSheet.create({
   },
   actionLinkText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primary
   }
 });

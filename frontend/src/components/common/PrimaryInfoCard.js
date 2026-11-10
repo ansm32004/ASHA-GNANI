@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,13 +30,13 @@ export const PrimaryInfoCard = ({
             style={{ marginRight: 12 }}
           />
           <View style={styles.nameColumn}>
-            <Text style={styles.beneficiaryName}>{beneficiaryName}</Text>
-            <Text style={styles.purposeText}>{visitPurpose}</Text>
+            <Text style={styles.beneficiaryName}>{tr(beneficiaryName)}</Text>
+            <Text style={styles.purposeText}>{tr(visitPurpose)}</Text>
           </View>
         </View>
 
         <View style={styles.priorityPill}>
-          <Text style={styles.priorityText}>{priority}</Text>
+          <Text style={styles.priorityText}>{tr(priority)}</Text>
         </View>
       </View>
 
@@ -43,12 +44,12 @@ export const PrimaryInfoCard = ({
       <View style={styles.timeContainer}>
         <View style={styles.timeItem}>
           <Ionicons name="calendar-outline" size={15} color={colors.textWhite} style={styles.timeIcon} />
-          <Text style={styles.timeText}>{scheduledDate}</Text>
+          <Text style={styles.timeText}>{tr(scheduledDate)}</Text>
         </View>
         <View style={styles.timeDivider} />
         <View style={styles.timeItem}>
           <Ionicons name="time-outline" size={15} color={colors.textWhite} style={styles.timeIcon} />
-          <Text style={styles.timeText}>{scheduledTime}</Text>
+          <Text style={styles.timeText}>{tr(scheduledTime)}</Text>
         </View>
       </View>
 
@@ -59,7 +60,7 @@ export const PrimaryInfoCard = ({
           activeOpacity={0.85}
           style={styles.detailsButton}
         >
-          <Text style={styles.detailsButtonText}>Record Visit Now</Text>
+          <Text style={styles.detailsButtonText}>{tr('Record Visit Now')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -68,7 +69,7 @@ export const PrimaryInfoCard = ({
           style={styles.rescheduleButton}
         >
           <Ionicons name="time-outline" size={16} color={colors.textWhite} />
-          <Text style={styles.rescheduleButtonText}>Reschedule</Text>
+          <Text style={styles.rescheduleButtonText}>{tr('Reschedule')}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -77,7 +78,7 @@ export const PrimaryInfoCard = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     borderRadius: radius.largeCard,
     padding: spacing.lg,
     marginHorizontal: spacing.screenPadding,
@@ -125,7 +126,7 @@ const styles = StyleSheet.create({
   priorityText: {
     ...typography.caption,
     color: colors.textWhite,
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 11
   },
   timeContainer: {

@@ -1,7 +1,9 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import Svg, { Path, Rect, Circle, Line } from 'react-native-svg';
 import { colors, typography, radius, shadows, spacing } from '../../theme';
+import { GradientOrb } from '../common/GradientOrb';
 import { useTranslation } from 'react-i18next';
 
 export const FloatingTabBar = ({ state, descriptors, navigation }) => {
@@ -25,8 +27,8 @@ export const FloatingTabBar = ({ state, descriptors, navigation }) => {
   };
 
   const renderTabSvg = (routeName, isFocused) => {
-    const color = isFocused ? colors.primary : '#64748B';
-    const strokeWidth = isFocused ? 2.3 : 1.8;
+    const color = isFocused ? colors.ink : colors.iconMuted;
+    const strokeWidth = isFocused ? 2.1 : 1.8;
 
     switch (routeName) {
       case 'HomeTab':
@@ -38,7 +40,7 @@ export const FloatingTabBar = ({ state, descriptors, navigation }) => {
               strokeWidth={strokeWidth}
               strokeLinecap="round"
               strokeLinejoin="round"
-              fill={isFocused ? '#DBEAFE' : 'none'}
+              fill="none"
             />
           </Svg>
         );
@@ -58,7 +60,7 @@ export const FloatingTabBar = ({ state, descriptors, navigation }) => {
               r="4"
               stroke={color}
               strokeWidth={strokeWidth}
-              fill={isFocused ? '#DBEAFE' : 'none'}
+              fill="none"
             />
             <Path
               d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"
@@ -79,7 +81,7 @@ export const FloatingTabBar = ({ state, descriptors, navigation }) => {
               rx="3"
               stroke={color}
               strokeWidth={strokeWidth}
-              fill={isFocused ? '#DBEAFE' : 'none'}
+              fill="none"
             />
             <Line x1="16" y1="2" x2="16" y2="6" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
             <Line x1="8" y1="2" x2="8" y2="6" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
@@ -117,7 +119,7 @@ export const FloatingTabBar = ({ state, descriptors, navigation }) => {
               r="4"
               stroke={color}
               strokeWidth={strokeWidth}
-              fill={isFocused ? '#DBEAFE' : 'none'}
+              fill="none"
             />
           </Svg>
         );
@@ -150,33 +152,25 @@ export const FloatingTabBar = ({ state, descriptors, navigation }) => {
               key={route.key}
               accessibilityRole="button"
               accessibilityState={isFocused ? { selected: true } : {}}
-              accessibilityLabel={options.tabBarAccessibilityLabel || label}
+              accessibilityLabel={tr(options.tabBarAccessibilityLabel || label)}
               testID={options.tabBarTestID}
               onPress={onPress}
               activeOpacity={0.7}
-              style={styles.tabItem}
+              style={[styles.tabItem, isFocused && !isVoice && styles.tabItemFocused]}
             >
               {isVoice ? (
-                <View style={[styles.voiceIconPod, isFocused && styles.voiceIconPodFocused]}>
+                <GradientOrb size={46} style={isFocused && styles.voiceFocused}>
                   {renderTabSvg(route.name, isFocused)}
-                </View>
+                </GradientOrb>
               ) : (
-                <View style={styles.iconContainer}>
-                  {renderTabSvg(route.name, isFocused)}
-                  {isFocused && <View style={styles.activeDot} />}
-                </View>
+                <View style={styles.iconContainer}>{renderTabSvg(route.name, isFocused)}</View>
               )}
 
-              <Text
-                style={[
-                  styles.tabLabel,
-                  isFocused && styles.tabLabelFocused,
-                  isVoice && { color: colors.primary, fontWeight: '700' }
-                ]}
-                numberOfLines={1}
-              >
-                {label}
-              </Text>
+              {isFocused && !isVoice ? (
+                <Text style={styles.tabLabelFocused} numberOfLines={1}>
+                  {tr(label)}
+                </Text>
+              ) : null}
             </TouchableOpacity>
           );
         })}
@@ -189,75 +183,52 @@ const styles = StyleSheet.create({
   floatingContainer: {
     pointerEvents: 'box-none',
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 24 : 16,
+    bottom: Platform.OS === 'ios' ? 26 : 16,
     left: 0,
     right: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 16
+    paddingHorizontal: 18
   },
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    height: 64,
+    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    borderRadius: radius.pill,
+    height: 66,
     width: '100%',
     maxWidth: 420,
     paddingHorizontal: 8,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
     ...shadows.floating
   },
   tabItem: {
-    flex: 1,
-    minHeight: 48,
+    flexGrow: 1,
+    flexDirection: 'row',
+    height: 50,
+    minWidth: 46,
+    borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 4
+    paddingHorizontal: 8
+  },
+  tabItemFocused: {
+    backgroundColor: colors.surfaceSecondary,
+    paddingHorizontal: 14
   },
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: 26,
-    position: 'relative'
+    height: 26
   },
-  activeDot: {
-    position: 'absolute',
-    bottom: -3,
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.primary
-  },
-  voiceIconPod: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 3
-  },
-  voiceIconPodFocused: {
-    backgroundColor: '#1E60AA',
+  voiceFocused: {
     transform: [{ scale: 1.05 }]
   },
-  tabLabel: {
-    ...typography.caption,
-    fontSize: 10,
-    fontWeight: '500',
-    color: '#64748B',
-    marginTop: 3
-  },
   tabLabelFocused: {
-    color: colors.primary,
-    fontWeight: '700'
+    ...typography.caption,
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.ink,
+    marginLeft: 7
   }
 });
-

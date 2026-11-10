@@ -1,3 +1,5 @@
+import i18n from '../../localisation';
+import { tr } from '../../localisation/tr';
 import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -220,7 +222,7 @@ export const InlineDatePicker = ({
   // Formatted display string for selected date
   const selectedDisplayLabel = useMemo(() => {
     if (!selectedDateObj || isNaN(selectedDateObj.getTime())) return '';
-    return selectedDateObj.toLocaleDateString('en-US', {
+    return selectedDateObj.toLocaleDateString(i18n.language === 'hi' ? 'hi-IN' : 'en-US', {
       weekday: 'short',
       day: 'numeric',
       month: 'short',
@@ -236,8 +238,8 @@ export const InlineDatePicker = ({
 
     if (diffDays === 0) return 'Today';
     if (diffDays === 1) return '+1 day (Tomorrow)';
-    if (diffDays > 1) return `+${diffDays} days from today`;
-    return `${Math.abs(diffDays)} days ago`;
+    if (diffDays > 1) return `+${diffDays} ${tr('days from today')}`;
+    return `${Math.abs(diffDays)} ${tr('days ago')}`;
   }, [selectedDateObj, today]);
 
   return (
@@ -246,14 +248,14 @@ export const InlineDatePicker = ({
       {title ? (
         <View style={styles.headerTitleRow}>
           <Ionicons name="calendar" size={15} color={colors.primary} />
-          <Text style={styles.headerTitleText}>{title}</Text>
+          <Text style={styles.headerTitleText}>{tr(title)}</Text>
         </View>
       ) : null}
 
       {/* Quick Delay Shortcuts */}
       {showShortcuts ? (
         <View style={styles.shortcutsWrap}>
-          <Text style={styles.shortcutsTitle}>Quick Delay:</Text>
+          <Text style={styles.shortcutsTitle}>{tr('Quick Delay:')}</Text>
           <View style={styles.shortcutBtnsRow}>
             {[
               { label: '+1d (Tomorrow)', days: 1 },
@@ -270,10 +272,10 @@ export const InlineDatePicker = ({
                   onPress={() => handleShortcutPress(sc.days)}
                   style={[styles.shortcutChip, isMatch && styles.shortcutChipActive]}
                   activeOpacity={0.7}
-                  accessibilityLabel={sc.label}
+                  accessibilityLabel={tr(sc.label)}
                 >
                   <Text style={[styles.shortcutText, isMatch && styles.shortcutTextActive]}>
-                    {sc.label}
+                    {tr(sc.label)}
                   </Text>
                 </TouchableOpacity>
               );
@@ -289,7 +291,7 @@ export const InlineDatePicker = ({
           disabled={!canGoPrev}
           style={[styles.navArrowBtn, !canGoPrev && styles.navArrowBtnDisabled]}
           activeOpacity={0.7}
-          accessibilityLabel="Previous month"
+          accessibilityLabel={tr('Previous month')}
         >
           <Ionicons
             name="chevron-back"
@@ -300,7 +302,7 @@ export const InlineDatePicker = ({
 
         <View style={styles.monthTitleWrapper}>
           <Text style={styles.monthTitleText}>
-            {MONTH_NAMES[viewMonth]} {viewYear}
+            {tr(MONTH_NAMES[viewMonth])} {tr(viewYear)}
           </Text>
         </View>
 
@@ -308,7 +310,7 @@ export const InlineDatePicker = ({
           onPress={handleNextMonth}
           style={styles.navArrowBtn}
           activeOpacity={0.7}
-          accessibilityLabel="Next month"
+          accessibilityLabel={tr('Next month')}
         >
           <Ionicons name="chevron-forward" size={18} color={colors.primaryText} />
         </TouchableOpacity>
@@ -319,7 +321,7 @@ export const InlineDatePicker = ({
         {WEEKDAY_HEADERS.map((w, idx) => (
           <View key={idx} style={styles.weekdayCell}>
             <Text style={[styles.weekdayText, (idx === 5 || idx === 6) && styles.weekendText]}>
-              {w}
+              {tr(w)}
             </Text>
           </View>
         ))}
@@ -353,7 +355,7 @@ export const InlineDatePicker = ({
                   cell.isSelected && styles.dayNumberSelected
                 ]}
               >
-                {cell.day}
+                {tr(cell.day)}
               </Text>
 
               {/* Sub-label indicators */}
@@ -362,7 +364,7 @@ export const InlineDatePicker = ({
               ) : cell.isToday ? (
                 <View style={styles.todayIndicatorDot} />
               ) : cell.isOriginal ? (
-                <Text style={styles.origSubText}>Orig</Text>
+                <Text style={styles.origSubText}>{tr('Orig')}</Text>
               ) : null}
             </TouchableOpacity>
           );
@@ -374,13 +376,13 @@ export const InlineDatePicker = ({
         <View style={styles.summaryLeft}>
           <Ionicons name="checkmark-circle" size={18} color={colors.primary} />
           <View style={{ flex: 1 }}>
-            <Text style={styles.summaryLabel}>Chosen Due Date</Text>
-            <Text style={styles.summaryDateText}>{selectedDisplayLabel}</Text>
+            <Text style={styles.summaryLabel}>{tr('Chosen Due Date')}</Text>
+            <Text style={styles.summaryDateText}>{tr(selectedDisplayLabel)}</Text>
           </View>
         </View>
         <View style={styles.summaryBadge}>
-          <Text style={styles.summaryBadgeText}>{toDDMMYYYY(selectedDateObj)}</Text>
-          {deltaLabel ? <Text style={styles.summaryDeltaText}>{deltaLabel}</Text> : null}
+          <Text style={styles.summaryBadgeText}>{tr(toDDMMYYYY(selectedDateObj))}</Text>
+          {deltaLabel ? <Text style={styles.summaryDeltaText}>{tr(deltaLabel)}</Text> : null}
         </View>
       </View>
     </View>
@@ -390,7 +392,7 @@ export const InlineDatePicker = ({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.surfaceSecondary,
-    borderRadius: 16,
+    borderRadius: 22,
     padding: 12,
     borderWidth: 1,
     borderColor: colors.border,
@@ -404,14 +406,14 @@ const styles = StyleSheet.create({
   },
   headerTitleText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryDark
   },
   shortcutsWrap: {
     marginBottom: 10,
     backgroundColor: colors.surface,
     padding: 8,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.border
   },
@@ -445,7 +447,7 @@ const styles = StyleSheet.create({
   },
   shortcutTextActive: {
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   monthNavRow: {
     flexDirection: 'row',
@@ -454,7 +456,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     paddingHorizontal: 8,
     paddingVertical: 6,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.border,
     marginBottom: 8
@@ -462,7 +464,7 @@ const styles = StyleSheet.create({
   navArrowBtn: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.surfaceSecondary
@@ -476,7 +478,7 @@ const styles = StyleSheet.create({
   },
   monthTitleText: {
     fontSize: 13.5,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   weekdaysRow: {
@@ -501,7 +503,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     backgroundColor: colors.surface,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.border,
     padding: 4
@@ -511,12 +513,12 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 10,
+    borderRadius: 14,
     marginVertical: 1,
     position: 'relative'
   },
   dayCellSelected: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     ...shadows.subtle
   },
   dayCellToday: {
@@ -545,11 +547,11 @@ const styles = StyleSheet.create({
   },
   dayNumberToday: {
     color: colors.primaryDark,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   dayNumberSelected: {
     color: colors.textWhite,
-    fontWeight: '800'
+    fontWeight: '600'
   },
   selectedDot: {
     width: 4,
@@ -563,7 +565,7 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     position: 'absolute',
     bottom: 3
   },
@@ -571,7 +573,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 1,
     fontSize: 7.5,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.warning
   },
   selectedSummaryCard: {
@@ -581,7 +583,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primaryLight,
     borderWidth: 1,
     borderColor: colors.primaryMuted,
-    borderRadius: 12,
+    borderRadius: 16,
     paddingHorizontal: 10,
     paddingVertical: 7,
     marginTop: 8
@@ -599,7 +601,7 @@ const styles = StyleSheet.create({
   },
   summaryDateText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryDark
   },
   summaryBadge: {
@@ -607,7 +609,7 @@ const styles = StyleSheet.create({
   },
   summaryBadgeText: {
     fontSize: 11.5,
-    fontWeight: '800',
+    fontWeight: '600',
     color: colors.primaryDark,
     backgroundColor: colors.surface,
     paddingHorizontal: 6,

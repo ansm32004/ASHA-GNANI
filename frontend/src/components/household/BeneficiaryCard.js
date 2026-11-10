@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -31,35 +32,35 @@ export const BeneficiaryCard = ({ member }) => {
           style={{ marginRight: 10 }}
         />
         <View style={styles.infoLeft}>
-          <Text style={styles.name}>{member.name}</Text>
-          <Text style={styles.meta}>{member.relation} • {member.age} yrs • {member.gender}</Text>
+          <Text style={styles.name}>{tr(member.name)}</Text>
+          <Text style={styles.meta}>{tr(member.relation)} • {tr(member.age)}{' '}{tr('yrs •')}{' '}{tr(member.gender)}</Text>
         </View>
         <View style={[styles.categoryBadge, { backgroundColor: catStyle.bg, borderColor: catStyle.border }]}>
-          <Text style={[styles.categoryText, { color: catStyle.text }]}>{member.category}</Text>
+          <Text style={[styles.categoryText, { color: catStyle.text }]}>{tr(member.category)}</Text>
         </View>
       </View>
 
       {member.rch_id && (
-        <Text style={styles.rchText}>RCH ID: {member.rch_id}</Text>
+        <Text style={styles.rchText}>{tr('RCH ID:')}{' '}{tr(member.rch_id)}</Text>
       )}
 
       {member.is_high_risk && member.high_risk_reason && (
         <View style={styles.alertBox}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Ionicons name="alert-circle-outline" size={14} color={colors.danger} style={{ marginRight: 5 }} />
-            <Text style={styles.alertText}>High Risk: {member.high_risk_reason}</Text>
+            <Text style={styles.alertText}>{tr('High Risk:')}{' '}{tr(member.high_risk_reason)}</Text>
           </View>
         </View>
       )}
 
       {member.pregnancy_month && (
-        <Text style={styles.subDetail}>Pregnancy: Month {member.pregnancy_month} (EDD: {member.expected_delivery_date ? formatDate(member.expected_delivery_date) : 'N/A'})</Text>
+        <Text style={styles.subDetail}>{tr('Pregnancy: Month')}{' '}{tr(member.pregnancy_month)}{' '}{tr('(EDD:')}{' '}{tr(member.expected_delivery_date ? formatDate(member.expected_delivery_date) : 'N/A')})</Text>
       )}
 
       {member.next_due_vaccine && (
         <View style={styles.vaccineRow}>
-          <Text style={styles.vaccineLabel}>Next Due Vaccine:</Text>
-          <Text style={styles.vaccineVal}>{member.next_due_vaccine}</Text>
+          <Text style={styles.vaccineLabel}>{tr('Next Due Vaccine:')}</Text>
+          <Text style={styles.vaccineVal}>{tr(member.next_due_vaccine)}</Text>
         </View>
       )}
     </View>
@@ -78,7 +79,6 @@ const styles = StyleSheet.create({
   },
   highRiskCard: {
     borderColor: colors.danger,
-    borderLeftWidth: 4
   },
   headerRow: {
     flexDirection: 'row',
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.medium,
     marginTop: spacing.sm,
     borderWidth: 1,
-    borderColor: '#F7C5C5'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   alertText: {
     ...typography.caption,
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   },
   vaccineVal: {
     ...typography.caption,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primary,
     marginLeft: 4
   }

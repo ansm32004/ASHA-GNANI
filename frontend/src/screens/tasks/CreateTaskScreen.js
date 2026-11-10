@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -69,10 +70,10 @@ export const CreateTaskScreen = ({ route, navigation }) => {
         }
       } catch (err) {
         Alert.alert(
-          'Microphone Permission Required',
-          err.permanentlyDenied
+          tr('Microphone Permission Required'),
+          tr(err.permanentlyDenied
             ? 'Microphone permission has been permanently denied. Please enable it in Settings.'
-            : 'Please allow microphone access to dictate tasks.'
+            : 'Please allow microphone access to dictate tasks.')
         );
       }
     } else {
@@ -92,7 +93,7 @@ export const CreateTaskScreen = ({ route, navigation }) => {
             const tr = await aiApi.transcribe({ audio_base64: base64, audio_format: audioFormat, language: 'hi' });
             if (tr?.error) {
               setIsProcessingVoice(false);
-              Alert.alert('Speech Recognition Notice', tr.error);
+              Alert.alert(tr('Speech Recognition Notice'), tr(tr.error));
               return;
             }
             transcript = tr?.transcript;
@@ -101,8 +102,8 @@ export const CreateTaskScreen = ({ route, navigation }) => {
         if (!transcript || !transcript.trim()) {
           setIsProcessingVoice(false);
           Alert.alert(
-            'No Speech Detected',
-            'Could not detect speech in recording. Please try speaking again or fill details manually.'
+            tr('No Speech Detected'),
+            tr('Could not detect speech in recording. Please try speaking again or fill details manually.')
           );
           return;
         }
@@ -128,14 +129,14 @@ export const CreateTaskScreen = ({ route, navigation }) => {
       } catch (e) {
         setIsProcessingVoice(false);
         const msg = e.userFriendlyMessage || e.response?.data?.detail || e.message || 'Could not auto-fill from voice. Please enter details manually.';
-        Alert.alert('Notice', msg);
+        Alert.alert(tr('Notice'), tr(msg));
       }
     }
   };
 
   const handleCreate = async () => {
     if (!description.trim()) {
-      Alert.alert('Required', 'Please describe the task or reminder.');
+      Alert.alert(tr('Required'), tr('Please describe the task or reminder.'));
       return;
     }
 
@@ -152,12 +153,12 @@ export const CreateTaskScreen = ({ route, navigation }) => {
         created_from: 'Manual'
       });
       setLoading(false);
-      Alert.alert('Task Created', 'Follow-up reminder has been added to your schedule.', [
-        { text: 'OK', onPress: () => navigation.goBack() }
+      Alert.alert(tr('Task Created'), tr('Follow-up reminder has been added to your schedule.'), [
+        { text: tr('OK'), onPress: () => navigation.goBack() }
       ]);
     } catch (e) {
       setLoading(false);
-      Alert.alert('Error', 'Could not create task. Please try again.');
+      Alert.alert(tr('Error'), tr('Could not create task. Please try again.'));
     }
   };
 
@@ -183,17 +184,17 @@ export const CreateTaskScreen = ({ route, navigation }) => {
             color={isRecording ? colors.danger : colors.primary}
           />
           <Text style={[styles.voiceFillText, isRecording && styles.voiceFillTextRecording]}>
-            {isProcessingVoice
+            {tr(isProcessingVoice
               ? "Transcribing & Extracting with AI..."
               : isRecording
               ? "Recording... (Tap to finish)"
-              : "Tap to dictate follow-up task with Voice AI"}
+              : "Tap to dictate follow-up task with Voice AI")}
           </Text>
         </TouchableOpacity>
 
         <View style={styles.formGroup}>
-          <Text style={styles.sectionTitle}>Household *</Text>
-          <Text style={styles.sectionSubtitle}>Select family this follow-up belongs to</Text>
+          <Text style={styles.sectionTitle}>{tr('Household *')}</Text>
+          <Text style={styles.sectionSubtitle}>{tr('Select family this follow-up belongs to')}</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -219,10 +220,10 @@ export const CreateTaskScreen = ({ route, navigation }) => {
                   </View>
                   <View>
                     <Text style={[styles.hhName, isSelected && styles.hhNameActive]}>
-                      {h.primary_contact_name}
+                      {tr(h.primary_contact_name)}
                     </Text>
                     <Text style={[styles.hhVillage, isSelected && styles.hhVillageActive]}>
-                      {h.village}
+                      {tr(h.village)}
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -230,7 +231,7 @@ export const CreateTaskScreen = ({ route, navigation }) => {
             })}
           </ScrollView>
 
-          <Text style={styles.sectionTitle}>Task Category *</Text>
+          <Text style={styles.sectionTitle}>{tr('Task Category *')}</Text>
           <View style={styles.pillWrap}>
             {TASK_CATEGORIES.map((cat) => {
               const isSelected = taskType === cat.name;
@@ -242,7 +243,7 @@ export const CreateTaskScreen = ({ route, navigation }) => {
                 >
                   <VectorCategoryIcon category={cat.type} size={16} style={{ marginRight: 5 }} />
                   <Text style={[styles.catPillText, isSelected && styles.catPillTextActive]}>
-                    {cat.name}
+                    {tr(cat.name)}
                   </Text>
                 </TouchableOpacity>
               );
@@ -251,7 +252,7 @@ export const CreateTaskScreen = ({ route, navigation }) => {
 
           <AppInput
             label="Task Description *"
-            placeholder="e.g. Check IFA supplement intake & newborn temperature"
+            placeholder={tr('e.g. Check IFA supplement intake & newborn temperature')}
             value={description}
             onChangeText={setDescription}
             multiline
@@ -266,7 +267,7 @@ export const CreateTaskScreen = ({ route, navigation }) => {
             title="Follow-up Due Date *"
           />
 
-          <Text style={styles.sectionTitle}>Priority Level</Text>
+          <Text style={styles.sectionTitle}>{tr('Priority Level')}</Text>
           <View style={styles.priorityRow}>
             {PRIORITIES.map((p) => {
               const isSelected = priority === p.key;
@@ -289,7 +290,7 @@ export const CreateTaskScreen = ({ route, navigation }) => {
                       { color: isSelected ? p.color : colors.textSecondary }
                     ]}
                   >
-                    {p.key}
+                    {tr(p.key)}
                   </Text>
                 </TouchableOpacity>
               );
@@ -314,7 +315,7 @@ export const CreateTaskScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   container: {
     padding: spacing.screenPadding,
@@ -322,14 +323,14 @@ const styles = StyleSheet.create({
   },
   formGroup: {
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: 24,
     padding: spacing.base,
     borderWidth: 1,
     borderColor: colors.border
   },
   sectionTitle: {
     ...typography.bodyMedium,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textPrimary,
     marginTop: spacing.sm,
     marginBottom: 2
@@ -355,7 +356,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border
   },
   hhPillActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     borderColor: colors.primary
   },
   avatarCircle: {
@@ -372,7 +373,7 @@ const styles = StyleSheet.create({
   },
   hhName: {
     ...typography.caption,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textPrimary
   },
   hhNameActive: {
@@ -414,7 +415,7 @@ const styles = StyleSheet.create({
   },
   catPillTextActive: {
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   priorityRow: {
     flexDirection: 'row',

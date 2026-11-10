@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert, BackHandler } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -196,18 +197,16 @@ export const LoginScreen = ({ navigation }) => {
             <Ionicons name="medical" size={32} color={colors.primary} />
           </View>
 
-          <Text style={styles.title}>Welcome to SAHAYIKA</Text>
-          <Text style={styles.subtitle}>Select your application role or sign in below</Text>
+          <Text style={styles.title}>{tr('Welcome to SAHAYIKA')}</Text>
+          <Text style={styles.subtitle}>{tr('Select your application role or sign in below')}</Text>
 
           {/* Role Selection & Quick Access Section */}
           <View style={styles.roleCard}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Ionicons name="flash-outline" size={13} color={colors.deepBlue} style={{ marginRight: 4 }} />
-              <Text style={styles.roleSectionTitle}>Quick Role Access</Text>
+              <Text style={styles.roleSectionTitle}>{tr('Quick Role Access')}</Text>
             </View>
-            <Text style={styles.roleSectionDesc}>
-              Two independent experiences for ASHA Workers and Community Members.
-            </Text>
+            <Text style={styles.roleSectionDesc}>{tr('Two independent experiences for ASHA Workers and Community Members.')}</Text>
 
             {/* 1. Continue as ASHA Worker */}
             <TouchableOpacity
@@ -220,20 +219,20 @@ export const LoginScreen = ({ navigation }) => {
               </View>
               <View style={styles.roleTextCol}>
                 <View style={styles.roleHeaderRow}>
-                  <Text style={styles.roleTitle}>Continue as ASHA Worker</Text>
+                  <Text style={styles.roleTitle}>{tr('Continue as ASHA Worker')}</Text>
                   <View style={[styles.roleBadge, { backgroundColor: colors.primaryLight }]}>
-                    <Text style={[styles.roleBadgeText, { color: colors.primary }]}>Field App</Text>
+                    <Text style={[styles.roleBadgeText, { color: colors.primary }]}>{tr('Field App')}</Text>
                   </View>
                 </View>
-                <Text style={styles.roleSubtitle}>Professional field-work & household management app</Text>
-                <Text style={styles.credentialPill}>asha.demo@sahayika.test • Sunita Devi</Text>
+                <Text style={styles.roleSubtitle}>{tr('Professional field-work & household management app')}</Text>
+                <Text style={styles.credentialPill}>{tr('asha.demo@sahayika.test • Sunita Devi')}</Text>
               </View>
               <Ionicons name="arrow-forward" size={18} color={colors.primary} />
             </TouchableOpacity>
 
             {/* 2. Continue as Community Member */}
             <TouchableOpacity
-              style={[styles.roleOption, { borderColor: colors.teal, marginTop: 10 }]}
+              style={[styles.roleOption, { borderColor: colors.border, marginTop: 10 }]}
               onPress={handleDemoCommunityLogin}
               activeOpacity={0.85}
             >
@@ -242,15 +241,13 @@ export const LoginScreen = ({ navigation }) => {
               </View>
               <View style={styles.roleTextCol}>
                 <View style={styles.roleHeaderRow}>
-                  <Text style={styles.roleTitle}>Continue as Community Member</Text>
+                  <Text style={styles.roleTitle}>{tr('Continue as Community Member')}</Text>
                   <View style={[styles.roleBadge, { backgroundColor: colors.tealLight }]}>
-                    <Text style={[styles.roleBadgeText, { color: colors.teal }]}>Family App</Text>
+                    <Text style={[styles.roleBadgeText, { color: colors.teal }]}>{tr('Family App')}</Text>
                   </View>
                 </View>
-                <Text style={styles.roleSubtitle}>Voice-first health guide & ASHA connection for families</Text>
-                <Text style={[styles.credentialPill, { color: colors.teal }]}>
-                  community.demo@sahayika.test • Meena Devi
-                </Text>
+                <Text style={styles.roleSubtitle}>{tr('Voice-first health guide & ASHA connection for families')}</Text>
+                <Text style={[styles.credentialPill, { color: colors.teal }]}>{tr('community.demo@sahayika.test • Meena Devi')}</Text>
               </View>
               <Ionicons name="arrow-forward" size={18} color={colors.teal} />
             </TouchableOpacity>
@@ -259,16 +256,16 @@ export const LoginScreen = ({ navigation }) => {
           {/* Credentials Card (In-place Sign In or Sign Up Form) */}
           <View style={styles.formCard}>
             <Text style={styles.formCardTitle}>
-              {formMode === 'signin' ? 'Or Sign In with Credentials' : 'Create New Account'}
+              {tr(formMode === 'signin' ? 'Or Sign In with Credentials' : 'Create New Account')}
             </Text>
 
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+            {error ? <Text style={styles.errorText}>{tr(error)}</Text> : null}
 
             {formMode === 'signin' ? (
               <>
                 <AppInput
                   label="Email Address"
-                  placeholder="e.g. asha.demo@sahayika.test"
+                  placeholder={tr('e.g. asha.demo@sahayika.test')}
                   value={email}
                   onChangeText={(v) => {
                     setEmail(v);
@@ -280,7 +277,7 @@ export const LoginScreen = ({ navigation }) => {
 
                 <AppInput
                   label="Password"
-                  placeholder="Enter password"
+                  placeholder={tr('Enter password')}
                   value={password}
                   onChangeText={(v) => {
                     setPassword(v);
@@ -298,7 +295,7 @@ export const LoginScreen = ({ navigation }) => {
                 />
 
                 <View style={styles.signupPromptRow}>
-                  <Text style={styles.signupPromptText}>Don't have an account? </Text>
+                  <Text style={styles.signupPromptText}>{tr('Don\'t have an account?')}{' '}</Text>
                   <TouchableOpacity
                     onPress={() => {
                       setFormMode('signup');
@@ -306,7 +303,7 @@ export const LoginScreen = ({ navigation }) => {
                     }}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.signupLinkText}>Sign Up</Text>
+                    <Text style={styles.signupLinkText}>{tr('Sign Up')}</Text>
                   </TouchableOpacity>
                 </View>
               </>
@@ -319,7 +316,7 @@ export const LoginScreen = ({ navigation }) => {
                       styles.roleTab,
                       signupRole === 'ASHA' && [
                         styles.roleTabActive,
-                        { borderColor: colors.primary, backgroundColor: colors.primaryLight }
+                        { borderColor: colors.border, backgroundColor: colors.primaryLight }
                       ]
                     ]}
                     onPress={() => {
@@ -339,11 +336,9 @@ export const LoginScreen = ({ navigation }) => {
                       minimumFontScale={0.8}
                       style={[
                         styles.roleTabText,
-                        signupRole === 'ASHA' && { color: colors.primary, fontWeight: '700' }
+                        signupRole === 'ASHA' && { color: colors.primary, fontWeight: '600' }
                       ]}
-                    >
-                      ASHA Worker
-                    </Text>
+                    >{tr('ASHA Worker')}</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -351,7 +346,7 @@ export const LoginScreen = ({ navigation }) => {
                       styles.roleTab,
                       signupRole === 'COMMUNITY' && [
                         styles.roleTabActive,
-                        { borderColor: colors.teal, backgroundColor: colors.tealLight }
+                        { borderColor: colors.border, backgroundColor: colors.tealLight }
                       ]
                     ]}
                     onPress={() => {
@@ -371,11 +366,9 @@ export const LoginScreen = ({ navigation }) => {
                       minimumFontScale={0.8}
                       style={[
                         styles.roleTabText,
-                        signupRole === 'COMMUNITY' && { color: colors.teal, fontWeight: '700' }
+                        signupRole === 'COMMUNITY' && { color: colors.teal, fontWeight: '600' }
                       ]}
-                    >
-                      Community Member
-                    </Text>
+                    >{tr('Community Member')}</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -392,16 +385,16 @@ export const LoginScreen = ({ navigation }) => {
                         { color: signupRole === 'ASHA' ? colors.primary : colors.teal }
                       ]}
                     >
-                      {signupRole === 'ASHA'
+                      {tr(signupRole === 'ASHA'
                         ? 'ASHA WORKER REGISTRATION'
-                        : 'COMMUNITY MEMBER REGISTRATION'}
+                        : 'COMMUNITY MEMBER REGISTRATION')}
                     </Text>
                   </View>
                 </View>
 
                 <AppInput
                   label="Full Name *"
-                  placeholder="e.g. Sunita Devi"
+                  placeholder={tr('e.g. Sunita Devi')}
                   value={signupName}
                   onChangeText={(v) => {
                     setSignupName(v);
@@ -411,7 +404,7 @@ export const LoginScreen = ({ navigation }) => {
 
                 <AppInput
                   label="Email Address *"
-                  placeholder="e.g. name@example.com"
+                  placeholder={tr('e.g. name@example.com')}
                   value={signupEmail}
                   onChangeText={(v) => {
                     setSignupEmail(v);
@@ -423,7 +416,7 @@ export const LoginScreen = ({ navigation }) => {
 
                 <AppInput
                   label="10-Digit Mobile Number *"
-                  placeholder="e.g. 9876543210"
+                  placeholder={tr('e.g. 9876543210')}
                   value={signupPhone}
                   onChangeText={(v) => {
                     setSignupPhone(v);
@@ -437,7 +430,7 @@ export const LoginScreen = ({ navigation }) => {
                   <View style={{ flex: 1, marginRight: 6 }}>
                     <AppInput
                       label="Date of Birth (DD-MM-YYYY)"
-                      placeholder="DD-MM-YYYY (e.g. 15-08-1995)"
+                      placeholder={tr('DD-MM-YYYY (e.g. 15-08-1995)')}
                       value={signupDob}
                       onChangeText={setSignupDob}
                     />
@@ -445,7 +438,7 @@ export const LoginScreen = ({ navigation }) => {
                   <View style={{ flex: 1, marginLeft: 6 }}>
                     <AppInput
                       label="Gender"
-                      placeholder="Female / Male"
+                      placeholder={tr('Female / Male')}
                       value={signupGender}
                       onChangeText={setSignupGender}
                     />
@@ -456,13 +449,13 @@ export const LoginScreen = ({ navigation }) => {
                   <>
                     <AppInput
                       label="ASHA Worker ID / Badge"
-                      placeholder="e.g. ASHA-UP-VNS-2026-001"
+                      placeholder={tr('e.g. ASHA-UP-VNS-2026-001')}
                       value={signupAshaId}
                       onChangeText={setSignupAshaId}
                     />
                     <AppInput
                       label="Block / Sub-District"
-                      placeholder="e.g. Kashi Block"
+                      placeholder={tr('e.g. Kashi Block')}
                       value={signupBlock}
                       onChangeText={setSignupBlock}
                     />
@@ -471,13 +464,13 @@ export const LoginScreen = ({ navigation }) => {
                   <>
                     <AppInput
                       label="Household / Family Code"
-                      placeholder="e.g. HH-RK-042"
+                      placeholder={tr('e.g. HH-RK-042')}
                       value={signupHouseholdCode}
                       onChangeText={setSignupHouseholdCode}
                     />
                     <AppInput
                       label="Ward / Sub-Area"
-                      placeholder="e.g. Ward 3, Near Primary School"
+                      placeholder={tr('e.g. Ward 3, Near Primary School')}
                       value={signupSubArea}
                       onChangeText={setSignupSubArea}
                     />
@@ -486,7 +479,7 @@ export const LoginScreen = ({ navigation }) => {
 
                 <AppInput
                   label="Village / Assigned Area *"
-                  placeholder="e.g. Rampur Kalan"
+                  placeholder={tr('e.g. Rampur Kalan')}
                   value={signupVillageName}
                   onChangeText={(v) => {
                     setSignupVillageName(v);
@@ -498,7 +491,7 @@ export const LoginScreen = ({ navigation }) => {
                   <View style={{ flex: 1, marginRight: 6 }}>
                     <AppInput
                       label="District"
-                      placeholder="District"
+                      placeholder={tr('District')}
                       value={signupDistrict}
                       onChangeText={setSignupDistrict}
                     />
@@ -506,7 +499,7 @@ export const LoginScreen = ({ navigation }) => {
                   <View style={{ flex: 1, marginLeft: 6 }}>
                     <AppInput
                       label="State"
-                      placeholder="State"
+                      placeholder={tr('State')}
                       value={signupState}
                       onChangeText={setSignupState}
                     />
@@ -515,14 +508,14 @@ export const LoginScreen = ({ navigation }) => {
 
                 <AppInput
                   label="Street Address"
-                  placeholder="House number, street or landmark"
+                  placeholder={tr('House number, street or landmark')}
                   value={signupAddress}
                   onChangeText={setSignupAddress}
                 />
 
                 <AppInput
                   label="Password (min 8 characters) *"
-                  placeholder="Create strong password"
+                  placeholder={tr('Create strong password')}
                   value={signupPassword}
                   onChangeText={(v) => {
                     setSignupPassword(v);
@@ -533,7 +526,7 @@ export const LoginScreen = ({ navigation }) => {
 
                 <AppInput
                   label="Confirm Password *"
-                  placeholder="Re-enter password"
+                  placeholder={tr('Re-enter password')}
                   value={signupConfirmPassword}
                   onChangeText={(v) => {
                     setSignupConfirmPassword(v);
@@ -543,7 +536,7 @@ export const LoginScreen = ({ navigation }) => {
                 />
 
                 <AppButton
-                  title={`Register as ${signupRole === 'ASHA' ? 'ASHA Worker' : 'Community Member'}`}
+                  title={`${tr('Register as')} ${tr(signupRole === 'ASHA' ? 'ASHA Worker' : 'Community Member')}`}
                   onPress={handleSignup}
                   loading={loading}
                   size="large"
@@ -552,7 +545,7 @@ export const LoginScreen = ({ navigation }) => {
                 />
 
                 <View style={styles.signupPromptRow}>
-                  <Text style={styles.signupPromptText}>Already have an account? </Text>
+                  <Text style={styles.signupPromptText}>{tr('Already have an account?')}{' '}</Text>
                   <TouchableOpacity
                     onPress={() => {
                       setFormMode('signin');
@@ -565,18 +558,14 @@ export const LoginScreen = ({ navigation }) => {
                         styles.signupLinkText,
                         { color: signupRole === 'ASHA' ? colors.primary : colors.teal }
                       ]}
-                    >
-                      Sign In
-                    </Text>
+                    >{tr('Sign In')}</Text>
                   </TouchableOpacity>
                 </View>
               </>
             )}
           </View>
 
-          <Text style={styles.footerNote}>
-            SAHAYIKA Ecosystem • Shared Backend & Dedicated Experiences
-          </Text>
+          <Text style={styles.footerNote}>{tr('SAHAYIKA Ecosystem • Shared Backend & Dedicated Experiences')}</Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -586,7 +575,7 @@ export const LoginScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   keyboardView: {
     flex: 1
@@ -610,7 +599,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText,
     textAlign: 'center'
   },
@@ -633,7 +622,7 @@ const styles = StyleSheet.create({
   },
   roleSectionTitle: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.deepBlue
   },
   roleSectionDesc: {
@@ -646,10 +635,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surfaceSecondary,
-    borderRadius: 16,
+    borderRadius: 22,
     padding: 12,
     borderWidth: 1.5,
-    borderColor: colors.primary
+    borderColor: colors.border
   },
   roleIconPod: {
     width: 44,
@@ -670,7 +659,7 @@ const styles = StyleSheet.create({
   },
   roleTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   roleBadge: {
@@ -695,7 +684,7 @@ const styles = StyleSheet.create({
   },
   formCard: {
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: spacing.cardPadding,
     width: '100%',
@@ -705,7 +694,7 @@ const styles = StyleSheet.create({
   },
   formCardTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText,
     marginBottom: 8
   },
@@ -732,14 +721,14 @@ const styles = StyleSheet.create({
   },
   signupLinkText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primary
   },
   roleSelector: {
     flexDirection: 'row',
     width: '100%',
     backgroundColor: colors.surfaceSecondary,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 3,
     marginBottom: spacing.md,
     gap: 6
@@ -751,7 +740,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 9,
     paddingHorizontal: 6,
-    borderRadius: 10,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: 'transparent',
     overflow: 'hidden'
@@ -773,12 +762,11 @@ const styles = StyleSheet.create({
   badgePill: {
     paddingHorizontal: 12,
     paddingVertical: 4,
-    borderRadius: 12
+    borderRadius: 16
   },
   badgeText: {
     fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.5
+    fontWeight: '600',
   },
   rowInputs: {
     flexDirection: 'row'

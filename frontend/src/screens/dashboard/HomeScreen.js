@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, RefreshControl, Alert, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -183,7 +184,7 @@ export const HomeScreen = ({ navigation }) => {
         <SearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholder="Search households, beneficiaries or tasks..."
+          placeholder={tr('Search households, beneficiaries or tasks...')}
           onClear={() => setSearchQuery('')}
         />
 
@@ -239,17 +240,15 @@ export const HomeScreen = ({ navigation }) => {
                 <Ionicons name="checkmark-circle" size={28} color={colors.teal} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.allDoneTitle}>All Field Visits Completed!</Text>
-                <Text style={styles.allDoneSub}>
-                  Great work! You have completed all scheduled field visits. Tap to log an unscheduled visit.
-                </Text>
+                <Text style={styles.allDoneTitle}>{tr('All Field Visits Completed!')}</Text>
+                <Text style={styles.allDoneSub}>{tr('Great work! You have completed all scheduled field visits. Tap to log an unscheduled visit.')}</Text>
               </View>
               <TouchableOpacity
                 style={styles.allDoneRecordBtn}
                 onPress={() => navigation.navigate('RecordVisit')}
               >
                 <Ionicons name="mic" size={14} color="#FFFFFF" />
-                <Text style={styles.allDoneRecordText}>Record</Text>
+                <Text style={styles.allDoneRecordText}>{tr('Record')}</Text>
               </TouchableOpacity>
             </View>
           );
@@ -267,29 +266,27 @@ export const HomeScreen = ({ navigation }) => {
           style={styles.incentivesCard}
           onPress={() => navigation.navigate('MyIncentives')}
           activeOpacity={0.88}
-          accessibilityLabel="My Incentives & Earnings"
+          accessibilityLabel={tr('My Incentives & Earnings')}
         >
           <View style={styles.incentivesTopRow}>
             <View style={styles.incentivesIconWrap}>
               <Ionicons name="cash" size={24} color={colors.primary} />
             </View>
             <View style={styles.incentivesBadge}>
-              <Text style={styles.incentivesBadgeText}>NHM Guidelines</Text>
+              <Text style={styles.incentivesBadgeText}>{tr('NHM Guidelines')}</Text>
             </View>
           </View>
 
-          <Text style={styles.incentivesHeading}>Your hard work deserves recognition</Text>
-          <Text style={styles.incentivesText}>
-            Track your eligible incentives, check pending claims and keep your earnings organised.
-          </Text>
+          <Text style={styles.incentivesHeading}>{tr('Your hard work deserves recognition')}</Text>
+          <Text style={styles.incentivesText}>{tr('Track your eligible incentives, check pending claims and keep your earnings organised.')}</Text>
 
           <TouchableOpacity
             style={styles.incentivesCtaRow}
             onPress={() => navigation.navigate('MyIncentives')}
             activeOpacity={0.7}
-            accessibilityLabel="View My Earnings"
+            accessibilityLabel={tr('View My Earnings')}
           >
-            <Text style={styles.incentivesCtaText}>View My Earnings</Text>
+            <Text style={styles.incentivesCtaText}>{tr('View My Earnings')}</Text>
             <Ionicons name="arrow-forward" size={15} color={colors.primaryDark} style={{ marginLeft: 6 }} />
           </TouchableOpacity>
         </TouchableOpacity>
@@ -323,7 +320,7 @@ export const HomeScreen = ({ navigation }) => {
                 category={task.task_type}
                 title={displayTitle}
                 subtitle={task.description}
-                meta={`Due: ${formatDate(task.due_date)} • ${task.village || 'Rampur Kalan'}`}
+                meta={`${tr('Due:')} ${tr(formatDate(task.due_date))} • ${tr(task.village || 'Rampur Kalan')}`}
                 priority={task.priority}
                 status={task.status}
                 onPress={() => navigation.navigate('TasksTab')}
@@ -342,28 +339,28 @@ export const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F8FAFC'
+    backgroundColor: '#F5F7FB'
   },
   scrollContent: {
     paddingBottom: 20
   },
   followupList: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+    borderRadius: 24,
     marginHorizontal: spacing.screenHorizontal,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#E2E8F0'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   allDoneCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+    borderRadius: 24,
     marginHorizontal: spacing.screenHorizontal,
     padding: spacing.base,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     marginBottom: spacing.base
   },
   allDoneIconWrap: {
@@ -377,7 +374,7 @@ const styles = StyleSheet.create({
   },
   allDoneTitle: {
     ...typography.bodyMedium,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textPrimary
   },
   allDoneSub: {
@@ -388,7 +385,7 @@ const styles = StyleSheet.create({
   allDoneRecordBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: radius.pill,
@@ -398,11 +395,11 @@ const styles = StyleSheet.create({
   allDoneRecordText: {
     ...typography.caption,
     color: '#FFFFFF',
-    fontWeight: '700'
+    fontWeight: '600'
   },
   incentivesCard: {
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: 24,
     marginHorizontal: spacing.screenHorizontal,
     padding: spacing.base,
     borderWidth: 1,
@@ -439,7 +436,7 @@ const styles = StyleSheet.create({
   },
   incentivesHeading: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textPrimary,
     marginBottom: 4
   },
@@ -460,7 +457,7 @@ const styles = StyleSheet.create({
   },
   incentivesCtaText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryDark
   }
 });

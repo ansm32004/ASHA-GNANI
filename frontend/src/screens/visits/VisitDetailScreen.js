@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -62,7 +63,7 @@ export const VisitDetailScreen = ({ route, navigation }) => {
         />
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Fetching saved visit details...</Text>
+          <Text style={styles.loadingText}>{tr('Fetching saved visit details...')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -81,14 +82,14 @@ export const VisitDetailScreen = ({ route, navigation }) => {
           <View style={styles.errorIconWrap}>
             <Ionicons name="document-text-outline" size={48} color={colors.textMuted} />
           </View>
-          <Text style={styles.errorTitle}>{error || 'Visit Record Not Available'}</Text>
-          <Text style={styles.errorSub}>The requested visit could not be retrieved from local records or cloud storage.</Text>
+          <Text style={styles.errorTitle}>{tr(error || 'Visit Record Not Available')}</Text>
+          <Text style={styles.errorSub}>{tr('The requested visit could not be retrieved from local records or cloud storage.')}</Text>
           <TouchableOpacity
             style={styles.backBtn}
             onPress={() => navigation.goBack()}
             activeOpacity={0.8}
           >
-            <Text style={styles.backBtnText}>Return to Calendar</Text>
+            <Text style={styles.backBtnText}>{tr('Return to Calendar')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -104,7 +105,7 @@ export const VisitDetailScreen = ({ route, navigation }) => {
     <SafeAreaView style={styles.safeArea}>
       <MinimalHeader
         title="Field Visit Record"
-        subtitle={`Record ID: ${visit.id}`}
+        subtitle={`${tr('Record ID:')} ${tr(visit.id)}`}
         showBack
         onBack={() => navigation.goBack()}
       />
@@ -118,12 +119,12 @@ export const VisitDetailScreen = ({ route, navigation }) => {
             </View>
             <View style={styles.heroMetaCol}>
               <Text style={styles.householdName} numberOfLines={1}>
-                {visit.household_name || 'Household Visit'}
+                {tr(visit.household_name || 'Household Visit')}
               </Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
                 <Ionicons name="person-outline" size={13} color={colors.textSecondary} style={{ marginRight: 4 }} />
                 <Text style={styles.beneficiaryName} numberOfLines={1}>
-                  {visit.beneficiary_name || 'Primary Beneficiary'}
+                  {tr(visit.beneficiary_name || 'Primary Beneficiary')}
                 </Text>
               </View>
             </View>
@@ -133,7 +134,7 @@ export const VisitDetailScreen = ({ route, navigation }) => {
             {/* Status Badge */}
             <View style={styles.statusBadge}>
               <Ionicons name="checkmark-done" size={14} color={colors.success} />
-              <Text style={styles.statusBadgeText}>{visit.status || 'Confirmed'}</Text>
+              <Text style={styles.statusBadgeText}>{tr(visit.status || 'Confirmed')}</Text>
             </View>
 
             {/* Priority Badge */}
@@ -143,7 +144,7 @@ export const VisitDetailScreen = ({ route, navigation }) => {
 
             {/* Activity Category Pill */}
             <View style={styles.categoryPill}>
-              <Text style={styles.categoryPillText}>{visit.activity_category || 'Health Visit'}</Text>
+              <Text style={styles.categoryPillText}>{tr(visit.activity_category || 'Health Visit')}</Text>
             </View>
           </View>
 
@@ -151,14 +152,13 @@ export const VisitDetailScreen = ({ route, navigation }) => {
           <View style={styles.dateMetaRow}>
             <View style={styles.dateMetaItem}>
               <Ionicons name="calendar" size={14} color={colors.primary} />
-              <Text style={styles.dateMetaText}>
-                Date: <Text style={styles.boldText}>{formatDate(visit.visit_date)}</Text>
+              <Text style={styles.dateMetaText}>{tr('Date:')}{' '}<Text style={styles.boldText}>{tr(formatDate(visit.visit_date))}</Text>
               </Text>
             </View>
             {formattedCreatedAt ? (
               <View style={styles.dateMetaItem}>
                 <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
-                <Text style={styles.dateMetaText}>Logged: {formattedCreatedAt}</Text>
+                <Text style={styles.dateMetaText}>{tr('Logged:')}{' '}{tr(formattedCreatedAt)}</Text>
               </View>
             ) : null}
           </View>
@@ -169,13 +169,13 @@ export const VisitDetailScreen = ({ route, navigation }) => {
           <View style={styles.sectionHeaderRow}>
             <View style={styles.sectionBadgeAI}>
               <Ionicons name="sparkles" size={13} color={colors.primary} />
-              <Text style={styles.sectionBadgeAIText}>AI Structured Summary</Text>
+              <Text style={styles.sectionBadgeAIText}>{tr('AI Structured Summary')}</Text>
             </View>
           </View>
 
           <View style={styles.summaryBox}>
             <Text style={styles.summaryText}>
-              {visit.activity_description || 'Routine frontline field visit conducted.'}
+              {tr(visit.activity_description || 'Routine frontline field visit conducted.')}
             </Text>
           </View>
         </View>
@@ -184,10 +184,8 @@ export const VisitDetailScreen = ({ route, navigation }) => {
         <View style={styles.cardSection}>
           <View style={styles.sectionHeaderRow}>
             <View style={styles.sectionBadgeMic}>
-              <Ionicons name="mic" size={13} color="#1E60AA" />
-              <Text style={styles.sectionBadgeMicText}>
-                Recorded in Mic by ASHA Worker (Voice Note Text)
-              </Text>
+              <Ionicons name="mic" size={13} color="#1D4ED8" />
+              <Text style={styles.sectionBadgeMicText}>{tr('Recorded in Mic by ASHA Worker (Voice Note Text)')}</Text>
             </View>
           </View>
 
@@ -195,20 +193,16 @@ export const VisitDetailScreen = ({ route, navigation }) => {
             {visit.speech_transcript && visit.speech_transcript.trim().length > 0 ? (
               <>
                 <Text style={styles.transcriptQuoteIcon}>“</Text>
-                <Text style={styles.transcriptText}>{visit.speech_transcript.trim()}</Text>
+                <Text style={styles.transcriptText}>{tr(visit.speech_transcript.trim())}</Text>
                 <View style={styles.transcriptFooterRow}>
                   <Ionicons name="shield-checkmark-outline" size={12} color={colors.primary} />
-                  <Text style={styles.transcriptFooterText}>
-                    Verbatim text of what the ASHA worker spoke into the microphone
-                  </Text>
+                  <Text style={styles.transcriptFooterText}>{tr('Verbatim text of what the ASHA worker spoke into the microphone')}</Text>
                 </View>
               </>
             ) : (
               <View style={styles.emptyTranscriptRow}>
                 <Ionicons name="information-circle-outline" size={18} color={colors.textMuted} />
-                <Text style={styles.emptyTranscriptText}>
-                  No voice recording attached to this record (visit details were saved directly via manual form entry).
-                </Text>
+                <Text style={styles.emptyTranscriptText}>{tr('No voice recording attached to this record (visit details were saved directly via manual form entry).')}</Text>
               </View>
             )}
           </View>
@@ -216,11 +210,11 @@ export const VisitDetailScreen = ({ route, navigation }) => {
 
         {/* 4. Clinical Outcome & Observations */}
         <View style={styles.cardSection}>
-          <Text style={styles.sectionTitle}>Visit Observations & Outcome</Text>
+          <Text style={styles.sectionTitle}>{tr('Visit Observations & Outcome')}</Text>
 
           <View style={styles.infoGrid}>
             <View style={styles.infoCol}>
-              <Text style={styles.infoLabel}>Clinical Outcome</Text>
+              <Text style={styles.infoLabel}>{tr('Clinical Outcome')}</Text>
               <View style={styles.outcomePill}>
                 <Ionicons
                   name={
@@ -235,45 +229,45 @@ export const VisitDetailScreen = ({ route, navigation }) => {
                       : colors.success
                   }
                 />
-                <Text style={styles.outcomeText}>{visit.visit_outcome || 'Normal'}</Text>
+                <Text style={styles.outcomeText}>{tr(visit.visit_outcome || 'Normal')}</Text>
               </View>
             </View>
 
             <View style={styles.infoCol}>
-              <Text style={styles.infoLabel}>Priority Classification</Text>
-              <Text style={styles.infoValue}>{visit.priority || 'Routine'}</Text>
+              <Text style={styles.infoLabel}>{tr('Priority Classification')}</Text>
+              <Text style={styles.infoValue}>{tr(visit.priority || 'Routine')}</Text>
             </View>
           </View>
 
           {/* Notes */}
           <View style={styles.notesContainer}>
-            <Text style={styles.infoLabel}>Field Notes</Text>
+            <Text style={styles.infoLabel}>{tr('Field Notes')}</Text>
             <Text style={styles.notesText}>
-              {visit.notes && visit.notes.trim().length > 0
+              {tr(visit.notes && visit.notes.trim().length > 0
                 ? visit.notes.trim()
-                : 'No additional observations noted.'}
+                : 'No additional observations noted.')}
             </Text>
           </View>
         </View>
 
         {/* 5. Follow-Up & Actionable Tasks */}
         <View style={styles.cardSection}>
-          <Text style={styles.sectionTitle}>Follow-up Plan & Scheduled Tasks</Text>
+          <Text style={styles.sectionTitle}>{tr('Follow-up Plan & Scheduled Tasks')}</Text>
 
           <View style={styles.followupCard}>
             <View style={styles.followupRow}>
-              <Text style={styles.followupLabel}>Follow-up Required:</Text>
+              <Text style={styles.followupLabel}>{tr('Follow-up Required:')}</Text>
               <Text style={[styles.followupValue, { color: visit.follow_up_required ? colors.primary : colors.textSecondary }]}>
-                {visit.follow_up_required ? 'Yes, Scheduled' : 'No Follow-up Needed'}
+                {tr(visit.follow_up_required ? 'Yes, Scheduled' : 'No Follow-up Needed')}
               </Text>
             </View>
 
             {visit.follow_up_required && visit.follow_up_date ? (
               <View style={styles.followupRow}>
-                <Text style={styles.followupLabel}>Follow-up Due Date:</Text>
+                <Text style={styles.followupLabel}>{tr('Follow-up Due Date:')}</Text>
                 <View style={styles.followupDateBadge}>
                   <Ionicons name="calendar-outline" size={13} color={colors.primary} />
-                  <Text style={styles.followupDateText}>{formatDate(visit.follow_up_date)}</Text>
+                  <Text style={styles.followupDateText}>{tr(formatDate(visit.follow_up_date))}</Text>
                 </View>
               </View>
             ) : null}
@@ -286,7 +280,7 @@ export const VisitDetailScreen = ({ route, navigation }) => {
               >
                 <View style={styles.linkedTaskLeft}>
                   <Ionicons name="checkbox-outline" size={16} color={colors.primary} />
-                  <Text style={styles.linkedTaskText}>View Scheduled Follow-up Task</Text>
+                  <Text style={styles.linkedTaskText}>{tr('View Scheduled Follow-up Task')}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={16} color={colors.primary} />
               </TouchableOpacity>
@@ -297,8 +291,7 @@ export const VisitDetailScreen = ({ route, navigation }) => {
         {/* 6. Record Integrity & Sync Status */}
         <View style={styles.footerAudit}>
           <Ionicons name="cloud-done-outline" size={14} color={colors.success} />
-          <Text style={styles.footerAuditText}>
-            Record synced with ABDM and Cloud Firestore ({visit.id})
+          <Text style={styles.footerAuditText}>{tr('Record synced with ABDM and Cloud Firestore (')}{tr(visit.id)})
           </Text>
         </View>
       </ScrollView>
@@ -309,7 +302,7 @@ export const VisitDetailScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   container: {
     padding: spacing.screenPadding,
@@ -349,7 +342,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20
   },
   backBtn: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: radius.pill
@@ -357,7 +350,7 @@ const styles = StyleSheet.create({
   backBtnText: {
     ...typography.button,
     color: colors.textWhite,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   heroCard: {
     backgroundColor: colors.surface,
@@ -376,7 +369,7 @@ const styles = StyleSheet.create({
   iconContainer: {
     width: 52,
     height: 52,
-    borderRadius: 14,
+    borderRadius: 18,
     backgroundColor: colors.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
@@ -389,7 +382,7 @@ const styles = StyleSheet.create({
     ...typography.heading2,
     color: colors.textPrimary,
     fontSize: 18,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   beneficiaryName: {
     ...typography.bodyMedium,
@@ -417,7 +410,7 @@ const styles = StyleSheet.create({
   },
   statusBadgeText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.success
   },
   categoryPill: {
@@ -449,7 +442,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary
   },
   boldText: {
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textPrimary
   },
   cardSection: {
@@ -478,29 +471,29 @@ const styles = StyleSheet.create({
   },
   sectionBadgeAIText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primary
   },
   sectionBadgeMic: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EAF1FF',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: radius.pill,
     borderWidth: 1,
-    borderColor: '#BFDBFE'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   sectionBadgeMicText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#1E60AA'
+    fontWeight: '600',
+    color: '#1D4ED8'
   },
   sectionTitle: {
     ...typography.heading3,
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textPrimary,
     marginBottom: 10
   },
@@ -508,8 +501,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceSecondary,
     borderRadius: radius.md,
     padding: 12,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.primary
   },
   summaryText: {
     ...typography.bodyMedium,
@@ -517,11 +508,11 @@ const styles = StyleSheet.create({
     lineHeight: 20
   },
   transcriptBox: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F5F7FB',
     borderRadius: radius.md,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     position: 'relative'
   },
   transcriptBoxEmpty: {
@@ -532,12 +523,12 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: colors.primary,
     lineHeight: 24,
-    fontWeight: '700',
+    fontWeight: '600',
     marginBottom: -4
   },
   transcriptText: {
     ...typography.bodyMedium,
-    color: '#1E293B',
+    color: '#0B1220',
     fontStyle: 'italic',
     lineHeight: 22,
     paddingHorizontal: 4
@@ -549,7 +540,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#E2E8F0'
+    borderTopColor: '#E8ECF3'
   },
   transcriptFooterText: {
     fontSize: 11,
@@ -585,7 +576,7 @@ const styles = StyleSheet.create({
   infoValue: {
     ...typography.bodyMedium,
     color: colors.textPrimary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   outcomePill: {
     flexDirection: 'row',
@@ -631,7 +622,7 @@ const styles = StyleSheet.create({
   },
   followupValue: {
     ...typography.bodyMedium,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   followupDateBadge: {
     flexDirection: 'row',
@@ -646,7 +637,7 @@ const styles = StyleSheet.create({
   },
   followupDateText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primary
   },
   linkedTaskBtn: {
@@ -666,7 +657,7 @@ const styles = StyleSheet.create({
   },
   linkedTaskText: {
     fontSize: 12.5,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryDark
   },
   footerAudit: {

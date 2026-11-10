@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
@@ -29,12 +30,12 @@ export const VisitHighlightCard = ({
         </View>
 
         <View style={styles.infoCol}>
-          <Text style={styles.nameText} numberOfLines={1}>{beneficiaryName}</Text>
-          <Text style={styles.purposeText} numberOfLines={1}>{visitPurpose} • {householdId}</Text>
+          <Text style={styles.nameText} numberOfLines={1}>{tr(beneficiaryName)}</Text>
+          <Text style={styles.purposeText} numberOfLines={1}>{tr(visitPurpose)} • {tr(householdId)}</Text>
         </View>
 
         <View style={styles.priorityCapsule}>
-          <Text style={styles.priorityText}>{priority}</Text>
+          <Text style={styles.priorityText}>{tr(priority)}</Text>
         </View>
       </View>
 
@@ -42,32 +43,30 @@ export const VisitHighlightCard = ({
       <View style={styles.capsuleRow}>
         <View style={styles.capsule}>
           <Svg width={13} height={13} viewBox="0 0 24 24" fill="none" style={styles.capsuleIcon}>
-            <Rect x="3" y="4" width="18" height="18" rx="2" stroke="#FFFFFF" strokeWidth="2" />
-            <Line x1="16" y1="2" x2="16" y2="6" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
-            <Line x1="8" y1="2" x2="8" y2="6" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
-            <Line x1="3" y1="10" x2="21" y2="10" stroke="#FFFFFF" strokeWidth="2" />
+            <Rect x="3" y="4" width="18" height="18" rx="2" stroke={colors.textSecondary} strokeWidth="2" />
+            <Line x1="16" y1="2" x2="16" y2="6" stroke={colors.textSecondary} strokeWidth="2" strokeLinecap="round" />
+            <Line x1="8" y1="2" x2="8" y2="6" stroke={colors.textSecondary} strokeWidth="2" strokeLinecap="round" />
+            <Line x1="3" y1="10" x2="21" y2="10" stroke={colors.textSecondary} strokeWidth="2" />
           </Svg>
-          <Text style={styles.capsuleText}>{scheduledDate}, {scheduledTime}</Text>
+          <Text style={styles.capsuleText}>{tr(scheduledDate)}, {tr(scheduledTime)}</Text>
         </View>
         <View style={styles.capsule}>
           <Svg width={13} height={13} viewBox="0 0 24 24" fill="none" style={styles.capsuleIcon}>
-            <Path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke="#FFFFFF" strokeWidth="2" />
-            <Circle cx="12" cy="10" r="3" stroke="#FFFFFF" strokeWidth="2" />
+            <Path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke={colors.textSecondary} strokeWidth="2" />
+            <Circle cx="12" cy="10" r="3" stroke={colors.textSecondary} strokeWidth="2" />
           </Svg>
-          <Text style={styles.capsuleText}>Ward 3, Rampur Kalan</Text>
+          <Text style={styles.capsuleText}>{tr('Ward 3, Rampur Kalan')}</Text>
         </View>
       </View>
 
       {/* Clinical Guidance Box */}
       <View style={styles.clinicalGuidanceBox}>
         <Svg width={15} height={15} viewBox="0 0 24 24" fill="none" style={{ marginRight: 6, marginTop: 1 }}>
-          <Circle cx="12" cy="12" r="10" stroke="#93C5FD" strokeWidth="2" />
-          <Line x1="12" y1="16" x2="12" y2="12" stroke="#93C5FD" strokeWidth="2" strokeLinecap="round" />
-          <Circle cx="12" cy="8" r="1" fill="#93C5FD" />
+          <Circle cx="12" cy="12" r="10" stroke={colors.primary} strokeWidth="2" />
+          <Line x1="12" y1="16" x2="12" y2="12" stroke={colors.primary} strokeWidth="2" strokeLinecap="round" />
+          <Circle cx="12" cy="8" r="1" fill={colors.primary} />
         </Svg>
-        <Text style={styles.clinicalNoteText}>
-          IFA tablet intake verification & blood pressure monitoring due today.
-        </Text>
+        <Text style={styles.clinicalNoteText}>{tr('IFA tablet intake verification & blood pressure monitoring due today.')}</Text>
       </View>
 
       {/* Action Buttons with 48px Minimum Touch Target */}
@@ -76,29 +75,29 @@ export const VisitHighlightCard = ({
           onPress={onPressRecord}
           activeOpacity={0.85}
           style={styles.recordButton}
-          accessibilityLabel="Record Visit"
+          accessibilityLabel={tr('Record Visit')}
         >
           <Svg width={17} height={17} viewBox="0 0 24 24" fill="none" style={{ marginRight: 6 }}>
-            <Rect x="9" y="2" width="6" height="12" rx="3" fill="#1E60AA" />
-            <Path d="M5 10v2a7 7 0 0 0 14 0v-2" stroke="#1E60AA" strokeWidth="2.2" strokeLinecap="round" />
-            <Line x1="12" y1="19" x2="12" y2="22" stroke="#1E60AA" strokeWidth="2.2" strokeLinecap="round" />
+            <Rect x="9" y="2" width="6" height="12" rx="3" fill="#FFFFFF" />
+            <Path d="M5 10v2a7 7 0 0 0 14 0v-2" stroke="#FFFFFF" strokeWidth="2.2" strokeLinecap="round" />
+            <Line x1="12" y1="19" x2="12" y2="22" stroke="#FFFFFF" strokeWidth="2.2" strokeLinecap="round" />
           </Svg>
-          <Text style={styles.recordButtonText}>Record Visit</Text>
+          <Text style={styles.recordButtonText}>{tr('Record Visit')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={onPressReschedule}
           activeOpacity={0.8}
           style={styles.rescheduleButton}
-          accessibilityLabel="Reschedule"
+          accessibilityLabel={tr('Reschedule')}
         >
           <Svg width={15} height={15} viewBox="0 0 24 24" fill="none" style={{ marginRight: 6 }}>
-            <Rect x="3" y="4" width="18" height="18" rx="2" stroke="#FFFFFF" strokeWidth="2" />
-            <Line x1="16" y1="2" x2="16" y2="6" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
-            <Line x1="8" y1="2" x2="8" y2="6" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
-            <Line x1="3" y1="10" x2="21" y2="10" stroke="#FFFFFF" strokeWidth="2" />
+            <Rect x="3" y="4" width="18" height="18" rx="2" stroke={colors.textSecondary} strokeWidth="2" />
+            <Line x1="16" y1="2" x2="16" y2="6" stroke={colors.textSecondary} strokeWidth="2" strokeLinecap="round" />
+            <Line x1="8" y1="2" x2="8" y2="6" stroke={colors.textSecondary} strokeWidth="2" strokeLinecap="round" />
+            <Line x1="3" y1="10" x2="21" y2="10" stroke={colors.textSecondary} strokeWidth="2" />
           </Svg>
-          <Text style={styles.rescheduleButtonText}>Reschedule</Text>
+          <Text style={styles.rescheduleButtonText}>{tr('Reschedule')}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -107,7 +106,7 @@ export const VisitHighlightCard = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#1E60AA',
+    backgroundColor: colors.surface,
     borderRadius: radius.card,
     padding: spacing.cardInternal,
     marginHorizontal: spacing.screenHorizontal,
@@ -136,17 +135,17 @@ const styles = StyleSheet.create({
   },
   nameText: {
     fontSize: 18,
-    color: '#FFFFFF',
-    fontWeight: '700',
+    color: colors.textPrimary,
+    fontWeight: '600',
     letterSpacing: -0.2
   },
   purposeText: {
     fontSize: 13,
-    color: '#DBEAFE',
+    color: colors.textSecondary,
     marginTop: 2
   },
   priorityCapsule: {
-    backgroundColor: '#EF4444',
+    backgroundColor: colors.dangerLight,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: radius.pill,
@@ -154,8 +153,8 @@ const styles = StyleSheet.create({
   },
   priorityText: {
     fontSize: 11,
-    fontWeight: '700',
-    color: '#FFFFFF'
+    fontWeight: '600',
+    color: colors.danger
   },
   capsuleRow: {
     flexDirection: 'row',
@@ -166,23 +165,23 @@ const styles = StyleSheet.create({
   capsule: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+    backgroundColor: colors.surfaceSecondary,
     paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: radius.sm
+    paddingVertical: 6,
+    borderRadius: radius.pill
   },
   capsuleIcon: {
     marginRight: 5
   },
   capsuleText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#FFFFFF'
+    fontWeight: '500',
+    color: colors.textPrimary
   },
   clinicalGuidanceBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: colors.primaryLight,
     borderRadius: radius.sm,
     padding: 10,
     marginBottom: 16
@@ -190,7 +189,7 @@ const styles = StyleSheet.create({
   clinicalNoteText: {
     flex: 1,
     fontSize: 12,
-    color: '#F1F5F9',
+    color: colors.textPrimary,
     lineHeight: 17
   },
   actionRow: {
@@ -203,31 +202,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.ink,
     height: spacing.minTouchTarget,
-    borderRadius: radius.md,
-    ...shadows.subtle
+    borderRadius: radius.pill
   },
   recordButtonText: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#1E60AA'
+    fontWeight: '600',
+    color: colors.textWhite
   },
   rescheduleButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'transparent',
+    backgroundColor: colors.surfaceSecondary,
     height: spacing.minTouchTarget,
-    borderRadius: radius.md,
-    borderWidth: 1.5,
-    borderColor: '#FFFFFF'
+    borderRadius: radius.pill
   },
   rescheduleButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF'
+    color: colors.textPrimary
   }
 });
 

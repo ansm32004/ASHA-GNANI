@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, StatusBar, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -28,21 +29,19 @@ export const SplashScreen = ({ navigation }) => {
       <View style={styles.logoBadge}>
         <Ionicons name="heart-pulse" size={54} color={colors.primary} />
       </View>
-      <Text style={styles.title}>सहायिका</Text>
-      <Text style={styles.subTitle}>SAHAYIKA</Text>
-      <Text style={styles.tagline}>Voice-First Digital Companion for ASHA Workers</Text>
+      <Text style={styles.title}>{tr('सहायिका')}</Text>
+      <Text style={styles.subTitle}>{tr('SAHAYIKA')}</Text>
+      <Text style={styles.tagline}>{tr('Voice-First Digital Companion for ASHA Workers')}</Text>
 
       <View style={styles.enterButton}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Text style={styles.enterText}>प्रवेश करें (Enter App)</Text>
+          <Text style={styles.enterText}>{tr('प्रवेश करें (Enter App)')}</Text>
           <Ionicons name="chevron-forward" size={14} color={colors.textWhite} style={{ marginLeft: 4 }} />
         </View>
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.motto}>
-          "Spend less time managing records. Spend more time supporting people."
-        </Text>
+        <Text style={styles.motto}>{tr('"Spend less time managing records. Spend more time supporting people."')}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -51,7 +50,7 @@ export const SplashScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
     padding: spacing['2xl']
@@ -72,14 +71,12 @@ const styles = StyleSheet.create({
     ...typography.displayLarge,
     fontSize: 32,
     color: colors.textPrimary,
-    letterSpacing: 0.5
   },
   subTitle: {
     ...typography.caption,
     fontSize: 13,
     color: colors.primary,
-    letterSpacing: 3,
-    fontWeight: '700',
+    fontWeight: '600',
     marginTop: 4
   },
   tagline: {
@@ -90,7 +87,7 @@ const styles = StyleSheet.create({
     maxWidth: 280
   },
   enterButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     paddingHorizontal: 22,
     paddingVertical: 12,
     borderRadius: radius.pill,
@@ -99,7 +96,7 @@ const styles = StyleSheet.create({
   },
   enterText: {
     ...typography.button,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textWhite
   },
   footer: {

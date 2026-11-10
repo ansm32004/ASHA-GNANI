@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState } from 'react';
 import { View, Image, Text, StyleSheet } from 'react-native';
 import { getProfileAvatar } from '../../utils/profileAvatars';
@@ -38,7 +39,7 @@ export const AvatarImage = ({
         ]}
       >
         <Text style={[styles.fallbackText, { fontSize: Math.max(12, Math.round(size * 0.42)) }]}>
-          {initial}
+          {tr(initial)}
         </Text>
       </View>
     );
@@ -86,7 +87,7 @@ const styles = StyleSheet.create({
   },
   fallbackText: {
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   }
 });
 

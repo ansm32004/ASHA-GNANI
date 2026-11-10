@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -61,10 +62,10 @@ export const RecordVisitScreen = ({ route, navigation }) => {
         }
       } catch (err) {
         Alert.alert(
-          'Microphone Permission Required',
-          err.permanentlyDenied
+          tr('Microphone Permission Required'),
+          tr(err.permanentlyDenied
             ? 'Microphone permission has been permanently denied. Please enable it in Settings.'
-            : 'Please grant microphone access to record visit voice notes.'
+            : 'Please grant microphone access to record visit voice notes.')
         );
       }
     } else {
@@ -74,7 +75,7 @@ export const RecordVisitScreen = ({ route, navigation }) => {
       if (audioUri) {
         processAudioRecording(audioUri);
       } else {
-        Alert.alert('Recording Failed', 'No valid audio was captured. Please speak again.');
+        Alert.alert(tr('Recording Failed'), tr('No valid audio was captured. Please speak again.'));
       }
     }
   };
@@ -111,7 +112,7 @@ export const RecordVisitScreen = ({ route, navigation }) => {
           });
           if (transcribeRes?.error) {
             setIsProcessing(false);
-            Alert.alert('Speech Recognition Notice', transcribeRes.error);
+            Alert.alert(tr('Speech Recognition Notice'), tr(transcribeRes.error));
             return;
           }
           transcriptText = transcribeRes?.transcript || '';
@@ -120,8 +121,8 @@ export const RecordVisitScreen = ({ route, navigation }) => {
 
       if (!transcriptText || !transcriptText.trim()) {
         Alert.alert(
-          'No Speech Detected',
-          'Could not detect speech in the audio recording. Please speak clearly into the microphone or switch to manual typing.'
+          tr('No Speech Detected'),
+          tr('Could not detect speech in the audio recording. Please speak clearly into the microphone or switch to manual typing.')
         );
         setCapturedTranscript('');
       } else {
@@ -131,14 +132,14 @@ export const RecordVisitScreen = ({ route, navigation }) => {
     } catch (e) {
       setIsProcessing(false);
       const msg = e.userFriendlyMessage || e.response?.data?.detail || e.message || 'Could not transcribe voice. You can retry speaking or switch to typing.';
-      Alert.alert('Transcription Error', msg);
+      Alert.alert(tr('Transcription Error'), tr(msg));
     }
   };
 
   const handleExtractAndNavigate = async (textToExtract) => {
     const cleanText = (textToExtract || capturedTranscript || manualText).trim();
     if (!cleanText) {
-      Alert.alert('Required', 'Please speak or enter your visit report first.');
+      Alert.alert(tr('Required'), tr('Please speak or enter your visit report first.'));
       return;
     }
 
@@ -176,7 +177,7 @@ export const RecordVisitScreen = ({ route, navigation }) => {
 
   const handleManualSubmit = async () => {
     if (!manualText.trim()) {
-      Alert.alert('Required', 'Please write your visit notes.');
+      Alert.alert(tr('Required'), tr('Please write your visit notes.'));
       return;
     }
     handleExtractAndNavigate(manualText.trim());
@@ -193,7 +194,7 @@ export const RecordVisitScreen = ({ route, navigation }) => {
 
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         {/* Household Horizontal Selector */}
-        <Text style={styles.sectionLabel}>Select Household</Text>
+        <Text style={styles.sectionLabel}>{tr('Select Household')}</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -213,10 +214,10 @@ export const RecordVisitScreen = ({ route, navigation }) => {
                 <VectorCategoryIcon category="household" size={18} style={{ marginRight: 6 }} />
                 <View>
                   <Text style={[styles.hhName, isSelected && styles.hhNameActive]}>
-                    {h.primary_contact_name}
+                    {tr(h.primary_contact_name)}
                   </Text>
                   <Text style={[styles.hhVillage, isSelected && styles.hhVillageActive]}>
-                    {h.village}
+                    {tr(h.village)}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -227,9 +228,8 @@ export const RecordVisitScreen = ({ route, navigation }) => {
         {selectedHousehold && (
           <View style={styles.selectedBanner}>
             <Ionicons name="checkmark-circle" size={16} color={colors.primary} />
-            <Text style={styles.selectedText}>
-              Selected: <Text style={{ fontWeight: '700' }}>{selectedHousehold.primary_contact_name}</Text>{' '}
-              ({selectedHousehold.village})
+            <Text style={styles.selectedText}>{tr('Selected:')}{' '}<Text style={{ fontWeight: '600' }}>{tr(selectedHousehold.primary_contact_name)}</Text>{tr(' ')}
+              ({tr(selectedHousehold.village)})
             </Text>
           </View>
         )}
@@ -240,15 +240,15 @@ export const RecordVisitScreen = ({ route, navigation }) => {
             <View style={styles.transcriptHeaderRow}>
               <View style={styles.micTag}>
                 <Ionicons name="mic" size={14} color={colors.primary} />
-                <Text style={styles.micTagText}>Voice Transcript</Text>
+                <Text style={styles.micTagText}>{tr('Voice Transcript')}</Text>
               </View>
               <TouchableOpacity onPress={() => setCapturedTranscript('')} style={styles.discardBtn}>
                 <Ionicons name="refresh" size={14} color={colors.danger} />
-                <Text style={styles.discardText}>Re-record</Text>
+                <Text style={styles.discardText}>{tr('Re-record')}</Text>
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.transcriptReviewLabel}>Review or edit your spoken report before saving:</Text>
+            <Text style={styles.transcriptReviewLabel}>{tr('Review or edit your spoken report before saving:')}</Text>
             <AppInput
               value={capturedTranscript}
               onChangeText={setCapturedTranscript}
@@ -278,7 +278,7 @@ export const RecordVisitScreen = ({ route, navigation }) => {
             {isRecording && (
               <TouchableOpacity onPress={handleCancelRecording} style={styles.cancelRecBtn}>
                 <Ionicons name="close-circle-outline" size={16} color={colors.danger} />
-                <Text style={styles.cancelRecText}>Cancel Recording</Text>
+                <Text style={styles.cancelRecText}>{tr('Cancel Recording')}</Text>
               </TouchableOpacity>
             )}
 
@@ -287,21 +287,21 @@ export const RecordVisitScreen = ({ route, navigation }) => {
               style={styles.switchModeBtn}
             >
               <Ionicons name="create-outline" size={15} color={colors.primary} />
-              <Text style={styles.switchModeText}>Switch to typing notes</Text>
+              <Text style={styles.switchModeText}>{tr('Switch to typing notes')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
           <View style={styles.studioCard}>
             <View style={styles.manualHeader}>
-              <Text style={styles.manualTitle}>Manual Field Notes</Text>
+              <Text style={styles.manualTitle}>{tr('Manual Field Notes')}</Text>
               <TouchableOpacity onPress={() => setManualMode(false)} style={styles.voiceTogglePill}>
                 <Ionicons name="mic" size={14} color={colors.primary} />
-                <Text style={styles.voiceToggleText}>Use Voice</Text>
+                <Text style={styles.voiceToggleText}>{tr('Use Voice')}</Text>
               </TouchableOpacity>
             </View>
 
             <AppInput
-              placeholder="e.g. आज मीना देवी के घर गई थी। बीपी 118/76 सामान्य था। शुक्रवार को दोबारा जाना है।"
+              placeholder={tr('e.g. आज मीना देवी के घर गई थी। बीपी 118/76 सामान्य था। शुक्रवार को दोबारा जाना है।')}
               value={manualText}
               onChangeText={setManualText}
               multiline
@@ -321,13 +321,9 @@ export const RecordVisitScreen = ({ route, navigation }) => {
 
         {/* Example Spoken Dialogue Guide */}
         <View style={styles.guideCard}>
-          <Text style={styles.guideTitle}>Example Spoken Report:</Text>
-          <Text style={styles.guideHindi}>
-            "आज मीना देवी के घर गई थी। उनके बच्चे का वैक्सीनेशन अगले हफ्ते है। शुक्रवार को दोबारा जाना है।"
-          </Text>
-          <Text style={styles.guideSub}>
-            SAHAYIKA extracts the outcome, child immunisation status, and automatically creates a reminder for Friday!
-          </Text>
+          <Text style={styles.guideTitle}>{tr('Example Spoken Report:')}</Text>
+          <Text style={styles.guideHindi}>{tr('"आज मीना देवी के घर गई थी। उनके बच्चे का वैक्सीनेशन अगले हफ्ते है। शुक्रवार को दोबारा जाना है।"')}</Text>
+          <Text style={styles.guideSub}>{tr('SAHAYIKA extracts the outcome, child immunisation status, and automatically creates a reminder for Friday!')}</Text>
         </View>
 
         <View style={{ height: 40 }} />
@@ -339,7 +335,7 @@ export const RecordVisitScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   container: {
     paddingHorizontal: spacing.screenPadding,
@@ -373,7 +369,7 @@ const styles = StyleSheet.create({
   },
   hhName: {
     ...typography.caption,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textPrimary
   },
   hhNameActive: {
@@ -423,7 +419,7 @@ const styles = StyleSheet.create({
   },
   switchModeText: {
     ...typography.caption,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primary,
     marginLeft: 5
   },
@@ -437,7 +433,7 @@ const styles = StyleSheet.create({
   manualTitle: {
     ...typography.heading3,
     color: colors.textPrimary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   voiceTogglePill: {
     flexDirection: 'row',
@@ -450,21 +446,20 @@ const styles = StyleSheet.create({
   voiceToggleText: {
     ...typography.caption,
     color: colors.primary,
-    fontWeight: '700',
+    fontWeight: '600',
     marginLeft: 4
   },
   guideCard: {
     backgroundColor: colors.tealLight,
-    borderRadius: 20,
+    borderRadius: 24,
     padding: spacing.base,
     borderWidth: 1,
-    borderColor: '#C7EBE4'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   guideTitle: {
     ...typography.caption,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.tealDark,
-    textTransform: 'uppercase',
     marginBottom: 4
   },
   guideHindi: {
@@ -495,7 +490,7 @@ const styles = StyleSheet.create({
   },
   micTagText: {
     ...typography.caption,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primary,
     marginLeft: 5
   },
@@ -529,7 +524,7 @@ const styles = StyleSheet.create({
   cancelRecText: {
     ...typography.caption,
     color: colors.danger,
-    fontWeight: '700',
+    fontWeight: '600',
     marginLeft: 4
   },
   transcriptInput: {

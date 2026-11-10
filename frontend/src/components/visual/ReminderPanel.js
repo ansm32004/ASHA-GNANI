@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
@@ -25,17 +26,17 @@ export const ReminderPanel = ({
   const accentColor = category === 'Pregnancy' ? colors.coral : category === 'Child' ? colors.teal : colors.primary;
 
   return (
-    <View style={[styles.card, { borderLeftColor: accentColor }]}>
+    <View style={[styles.card]}>
       {/* Top Header Row */}
       <View style={styles.topRow}>
         <View style={styles.tagGroup}>
           <View style={[styles.categoryPill, { backgroundColor: `${accentColor}18` }]}>
-            <Text style={[styles.categoryPillText, { color: accentColor }]}>{category}</Text>
+            <Text style={[styles.categoryPillText, { color: accentColor }]}>{tr(category)}</Text>
           </View>
           {isUrgent && (
             <View style={styles.urgentPill}>
               <View style={styles.urgentDot} />
-              <Text style={styles.urgentText}>Priority</Text>
+              <Text style={styles.urgentText}>{tr('Priority')}</Text>
             </View>
           )}
         </View>
@@ -50,19 +51,19 @@ export const ReminderPanel = ({
             />
             <Path d="M16 2V6M8 2V6M3 10H21" stroke={colors.secondaryText} strokeWidth="2" strokeLinecap="round" />
           </Svg>
-          <Text style={styles.dateText}>{formatDate(date)}</Text>
+          <Text style={styles.dateText}>{tr(formatDate(date))}</Text>
         </View>
       </View>
 
       {/* Main Title & Member Info */}
-      <Text style={styles.titleText}>{title}</Text>
+      <Text style={styles.titleText}>{tr(title)}</Text>
       <View style={styles.memberRow}>
-        <Text style={styles.memberName}>{beneficiaryName}</Text>
-        <Text style={styles.memberId}>({householdId})</Text>
+        <Text style={styles.memberName}>{tr(beneficiaryName)}</Text>
+        <Text style={styles.memberId}>({tr(householdId)})</Text>
       </View>
 
       {/* Description */}
-      <Text style={styles.descriptionText}>{description}</Text>
+      <Text style={styles.descriptionText}>{tr(description)}</Text>
 
       {/* Action Buttons */}
       <View style={styles.actionRow}>
@@ -72,7 +73,7 @@ export const ReminderPanel = ({
             onPress={onSecondaryAction}
             activeOpacity={0.8}
           >
-            <Text style={styles.secondaryBtnText}>{secondaryActionLabel}</Text>
+            <Text style={styles.secondaryBtnText}>{tr(secondaryActionLabel)}</Text>
           </TouchableOpacity>
         ) : null}
 
@@ -81,7 +82,7 @@ export const ReminderPanel = ({
           onPress={onAction}
           activeOpacity={0.85}
         >
-          <Text style={styles.primaryBtnText}>{actionLabel}</Text>
+          <Text style={styles.primaryBtnText}>{tr(actionLabel)}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -91,10 +92,9 @@ export const ReminderPanel = ({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: colors.border,
-    borderLeftWidth: 4,
     marginHorizontal: spacing.screenPadding,
     marginVertical: spacing.xs,
     padding: spacing.cardPadding,
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
   },
   categoryPillText: {
     fontSize: 11,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   urgentPill: {
     flexDirection: 'row',
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   },
   urgentText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.danger
   },
   dateCapsule: {
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
   },
   titleText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText,
     lineHeight: 22
   },
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   },
   memberName: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.deepBlue
   },
   memberId: {
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   },
   primaryBtnText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textWhite
   }
 });

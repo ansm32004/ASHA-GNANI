@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -56,7 +57,7 @@ export const ConversationBubble = ({
               role="ASHA"
               size={20}
             />
-            <Text style={styles.assistantName}>Sahayika Companion</Text>
+            <Text style={styles.assistantName}>{tr('Sahayika Companion')}</Text>
             {audioPlayable && (onPlayAudio || onToggleAudio) && (
               <View style={styles.audioControlsRow}>
                 {/* Single In-Place Listen / Pause / Resume Button */}
@@ -71,7 +72,7 @@ export const ConversationBubble = ({
                   activeOpacity={0.7}
                   accessibilityRole="button"
                   accessibilityLabel={
-                    isPlayingAudio ? 'Pause Audio' : isPausedAudio ? 'Resume Audio' : 'Listen to Audio'
+                    tr(isPlayingAudio ? 'Pause Audio' : isPausedAudio ? 'Resume Audio' : 'Listen to Audio')
                   }
                 >
                   {isLoadingAudio ? (
@@ -91,7 +92,7 @@ export const ConversationBubble = ({
                       isLoadingAudio && styles.listenLabelLoading
                     ]}
                   >
-                    {isLoadingAudio ? 'Loading...' : isPlayingAudio ? 'Pause' : isPausedAudio ? 'Resume' : 'Listen'}
+                    {tr(isLoadingAudio ? 'Loading...' : isPlayingAudio ? 'Pause' : isPausedAudio ? 'Resume' : 'Listen')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -100,12 +101,12 @@ export const ConversationBubble = ({
         )}
 
         <Text style={[styles.messageText, !isAssistant && styles.userMessageText]}>
-          {text}
+          {tr(text)}
         </Text>
 
         {timestamp ? (
           <Text style={[styles.timeText, !isAssistant && styles.userTimeText]}>
-            {timestamp}
+            {tr(timestamp)}
           </Text>
         ) : null}
       </View>
@@ -127,7 +128,7 @@ const styles = StyleSheet.create({
   },
   bubble: {
     maxWidth: '86%',
-    borderRadius: 20,
+    borderRadius: 24,
     paddingHorizontal: 14,
     paddingVertical: 12
   },
@@ -139,7 +140,7 @@ const styles = StyleSheet.create({
     ...shadows.card
   },
   bubbleUser: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     borderTopRightRadius: 4,
     ...shadows.subtle
   },
@@ -152,19 +153,19 @@ const styles = StyleSheet.create({
   avatarMini: {
     width: 20,
     height: 20,
-    borderRadius: 10,
+    borderRadius: 14,
     backgroundColor: colors.tealLight,
     alignItems: 'center',
     justifyContent: 'center'
   },
   avatarInitial: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.tealDark
   },
   assistantName: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText,
     flex: 1
   },
@@ -185,12 +186,12 @@ const styles = StyleSheet.create({
   speakerBtnPlaying: {
     backgroundColor: '#FEF3C7',
     borderWidth: 1,
-    borderColor: '#FCD34D'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   speakerBtnPaused: {
     backgroundColor: '#DCFCE7',
     borderWidth: 1,
-    borderColor: '#86EFAC'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   listenLabel: {
     fontSize: 11,
@@ -199,11 +200,11 @@ const styles = StyleSheet.create({
   },
   listenLabelPlaying: {
     color: '#92400E',
-    fontWeight: '700'
+    fontWeight: '600'
   },
   listenLabelPaused: {
     color: '#15803D',
-    fontWeight: '700'
+    fontWeight: '600'
   },
   listenLabelLoading: {
     color: colors.primary,

@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
@@ -22,20 +23,20 @@ export const IllustrationCard = ({
               <Circle cx="12" cy="8" r="6" stroke="#0D9488" strokeWidth="2" fill="#CCFBF1" />
               <Path d="M8.5 13.5L7 22l5-3 5 3-1.5-8.5" stroke="#0D9488" strokeWidth="2" strokeLinejoin="round" />
             </Svg>
-            <Text style={styles.badgeText}>{badge}</Text>
+            <Text style={styles.badgeText}>{tr(badge)}</Text>
           </View>
-          <Text style={styles.titleText}>{title}</Text>
-          <Text style={styles.descText}>{description}</Text>
+          <Text style={styles.titleText}>{tr(title)}</Text>
+          <Text style={styles.descText}>{tr(description)}</Text>
 
           {onPressAction && (
             <TouchableOpacity
               onPress={onPressAction}
               activeOpacity={0.75}
               style={styles.actionBtn}
-              accessibilityLabel={actionText}
+              accessibilityLabel={tr(actionText)}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={styles.actionText}>{actionText}</Text>
+                <Text style={styles.actionText}>{tr(actionText)}</Text>
                 <Ionicons name="chevron-forward" size={13} color="#0F766E" style={{ marginLeft: 2 }} />
               </View>
             </TouchableOpacity>
@@ -58,7 +59,7 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.screenHorizontal,
     marginBottom: 0,
     borderWidth: 1,
-    borderColor: '#99F6E4'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   contentRow: {
     flexDirection: 'row',
@@ -82,19 +83,17 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 10,
     color: '#0F766E',
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase'
+    fontWeight: '600',
   },
   titleText: {
     fontSize: 16,
     color: '#134E4A',
-    fontWeight: '700',
+    fontWeight: '600',
     marginBottom: 4
   },
   descText: {
     fontSize: 13,
-    color: '#334155',
+    color: '#3A4560',
     lineHeight: 18,
     marginBottom: 10
   },
@@ -106,7 +105,7 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 13,
     color: '#0F766E',
-    fontWeight: '700'
+    fontWeight: '600'
   },
   illustrationWrap: {
     alignItems: 'center',

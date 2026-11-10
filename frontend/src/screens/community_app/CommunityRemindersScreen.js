@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -55,7 +56,7 @@ export const CommunityRemindersScreen = () => {
 
   const handleCreateRequest = async () => {
     if (!createDescription.trim()) {
-      Alert.alert('विवरण आवश्यक है', 'कृपया आशा दीदी के लिए अपनी समस्या का विवरण लिखें।');
+      Alert.alert(tr('विवरण आवश्यक है'), tr('कृपया आशा दीदी के लिए अपनी समस्या का विवरण लिखें।'));
       return;
     }
 
@@ -75,13 +76,13 @@ export const CommunityRemindersScreen = () => {
       await loadRequests();
 
       Alert.alert(
-        'अनुरोध दर्ज हुआ (Request Submitted)',
-        'आपका अनुरोध आशा दीदी (सुनीता देवी) को भेज दिया गया है। स्थिति नीचे देखें।',
-        [{ text: 'ठीक है', onPress: () => setSelectedRequest(newReq) }]
+        tr('अनुरोध दर्ज हुआ (Request Submitted)'),
+        tr('आपका अनुरोध आशा दीदी (सुनीता देवी) को भेज दिया गया है। स्थिति नीचे देखें।'),
+        [{ text: tr('ठीक है'), onPress: () => setSelectedRequest(newReq) }]
       );
     } catch (e) {
       setIsSubmitting(false);
-      Alert.alert('त्रुटि', 'अनुरोध भेजने में समस्या आई। पुनः प्रयास करें।');
+      Alert.alert(tr('त्रुटि'), tr('अनुरोध भेजने में समस्या आई। पुनः प्रयास करें।'));
     }
   };
 
@@ -92,7 +93,7 @@ export const CommunityRemindersScreen = () => {
       case 'completed':
         return { label: 'पूर्ण (Resolved)', bg: '#ECFDF5', text: '#065F46', icon: 'checkmark-circle' };
       case 'scheduled':
-        return { label: 'भेंट तय (Scheduled)', bg: '#EFF6FF', text: '#1D4ED8', icon: 'calendar' };
+        return { label: 'भेंट तय (Scheduled)', bg: '#EAF1FF', text: '#1D4ED8', icon: 'calendar' };
       case 'acknowledged':
         return { label: 'स्वीकृत (Acknowledged)', bg: '#F0FDFA', text: '#0F766E', icon: 'checkbox-outline' };
       case 'in progress':
@@ -146,17 +147,17 @@ export const CommunityRemindersScreen = () => {
         {/* Header */}
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.headerTitle}>रिमाइंडर एवं अनुरोध (Reminders)</Text>
-            <Text style={styles.headerSubtitle}>आशा कार्यकर्ता सुनीता देवी के साथ लाइव सिंक्रनाइज़ेशन</Text>
+            <Text style={styles.headerTitle}>{tr('रिमाइंडर एवं अनुरोध (Reminders)')}</Text>
+            <Text style={styles.headerSubtitle}>{tr('आशा कार्यकर्ता सुनीता देवी के साथ लाइव सिंक्रनाइज़ेशन')}</Text>
           </View>
           <TouchableOpacity
             style={styles.newRequestBtn}
             onPress={() => setShowCreateModal(true)}
             activeOpacity={0.8}
-            accessibilityLabel="New Request"
+            accessibilityLabel={tr('New Request')}
           >
             <Ionicons name="add" size={18} color="#FFFFFF" />
-            <Text style={styles.newRequestText}>नया अनुरोध</Text>
+            <Text style={styles.newRequestText}>{tr('नया अनुरोध')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -166,24 +167,20 @@ export const CommunityRemindersScreen = () => {
             style={[styles.segmentBtn, activeTab === 'all' && styles.segmentBtnActive]}
             onPress={() => setActiveTab('all')}
           >
-            <Text style={[styles.segmentBtnText, activeTab === 'all' && styles.segmentBtnTextActive]}>
-              सभी (All)
-            </Text>
+            <Text style={[styles.segmentBtnText, activeTab === 'all' && styles.segmentBtnTextActive]}>{tr('सभी (All)')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.segmentBtn, activeTab === 'dates' && styles.segmentBtnActive]}
             onPress={() => setActiveTab('dates')}
           >
-            <Text style={[styles.segmentBtnText, activeTab === 'dates' && styles.segmentBtnTextActive]}>
-              स्वास्थ्य तिथियां ({UPCOMING_HEALTH_DATES.length})
+            <Text style={[styles.segmentBtnText, activeTab === 'dates' && styles.segmentBtnTextActive]}>{tr('स्वास्थ्य तिथियां (')}{tr(UPCOMING_HEALTH_DATES.length)})
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.segmentBtn, activeTab === 'requests' && styles.segmentBtnActive]}
             onPress={() => setActiveTab('requests')}
           >
-            <Text style={[styles.segmentBtnText, activeTab === 'requests' && styles.segmentBtnTextActive]}>
-              आशा अनुरोध ({requests.length})
+            <Text style={[styles.segmentBtnText, activeTab === 'requests' && styles.segmentBtnTextActive]}>{tr('आशा अनुरोध (')}{tr(requests.length)})
             </Text>
           </TouchableOpacity>
         </View>
@@ -194,26 +191,26 @@ export const CommunityRemindersScreen = () => {
             <View style={styles.sectionHeaderRow}>
               <View style={styles.sectionIconTitle}>
                 <Ionicons name="calendar-outline" size={20} color={colors.primary} />
-                <Text style={styles.sectionTitle}>आगामी स्वास्थ्य तिथियां (Upcoming Health Dates)</Text>
+                <Text style={styles.sectionTitle}>{tr('आगामी स्वास्थ्य तिथियां (Upcoming Health Dates)')}</Text>
               </View>
             </View>
 
             {UPCOMING_HEALTH_DATES.map((item) => (
-              <View key={item.id} style={[styles.dateCard, { borderLeftColor: item.accentColor }]}>
+              <View key={item.id} style={[styles.dateCard]}>
                 <View style={styles.dateCardHeader}>
                   <View style={styles.beneficiaryBadge}>
                     <Ionicons name="person" size={12} color={colors.primary} />
-                    <Text style={styles.beneficiaryText}>{item.beneficiary}</Text>
+                    <Text style={styles.beneficiaryText}>{tr(item.beneficiary)}</Text>
                   </View>
-                  <Text style={styles.dueTimeText}>{item.dateText}</Text>
+                  <Text style={styles.dueTimeText}>{tr(item.dateText)}</Text>
                 </View>
 
-                <Text style={styles.dateCardTitle}>{item.title}</Text>
-                <Text style={styles.dateCardDesc}>{item.details}</Text>
+                <Text style={styles.dateCardTitle}>{tr(item.title)}</Text>
+                <Text style={styles.dateCardDesc}>{tr(item.details)}</Text>
 
                 <View style={styles.providerRow}>
                   <Ionicons name="medkit-outline" size={14} color={colors.teal} />
-                  <Text style={styles.providerText}>{item.provider}</Text>
+                  <Text style={styles.providerText}>{tr(item.provider)}</Text>
                 </View>
               </View>
             ))}
@@ -226,9 +223,9 @@ export const CommunityRemindersScreen = () => {
             <View style={styles.sectionHeaderRow}>
               <View style={styles.sectionIconTitle}>
                 <Ionicons name="mail-unread-outline" size={20} color={colors.teal} />
-                <Text style={styles.sectionTitle}>आशा दीदी को भेजे गए अनुरोध (Visit Requests)</Text>
+                <Text style={styles.sectionTitle}>{tr('आशा दीदी को भेजे गए अनुरोध (Visit Requests)')}</Text>
               </View>
-              <Text style={styles.syncHint}>लाइव अपडेट</Text>
+              <Text style={styles.syncHint}>{tr('लाइव अपडेट')}</Text>
             </View>
 
             {requests.length > 0 ? (
@@ -244,22 +241,21 @@ export const CommunityRemindersScreen = () => {
                     <View style={styles.requestTop}>
                       <View style={{ flex: 1 }}>
                         <Text style={styles.requestBeneficiary}>
-                          {req.beneficiary_name || req.household_name} • {req.category}
+                          {tr(req.beneficiary_name || req.household_name)} • {tr(req.category)}
                         </Text>
-                        <Text style={styles.requestTimeText}>
-                          भेजने का समय: {req.time_received || 'हाल ही में'}
+                        <Text style={styles.requestTimeText}>{tr('भेजने का समय:')}{' '}{tr(req.time_received || 'हाल ही में')}
                         </Text>
                       </View>
                       <View style={[styles.statusBadge, { backgroundColor: badge.bg }]}>
                         <Ionicons name={badge.icon} size={13} color={badge.text} />
                         <Text style={[styles.statusBadgeText, { color: badge.text }]}>
-                          {badge.label}
+                          {tr(badge.label)}
                         </Text>
                       </View>
                     </View>
 
                     <Text style={styles.requestDescription} numberOfLines={2}>
-                      {req.description}
+                      {tr(req.description)}
                     </Text>
 
                     {/* Latest Response or scheduled note */}
@@ -267,13 +263,13 @@ export const CommunityRemindersScreen = () => {
                       <View style={styles.responseBanner}>
                         <Ionicons name="chatbubbles" size={14} color={colors.primary} />
                         <Text style={styles.responseText} numberOfLines={2}>
-                          {req.response_history[req.response_history.length - 1]}
+                          {tr(req.response_history[req.response_history.length - 1])}
                         </Text>
                       </View>
                     )}
 
                     <View style={styles.requestFooterRow}>
-                      <Text style={styles.viewTimelineText}>विवरण एवं प्रगति देखें</Text>
+                      <Text style={styles.viewTimelineText}>{tr('विवरण एवं प्रगति देखें')}</Text>
                       <Ionicons name="chevron-forward" size={14} color={colors.primary} />
                     </View>
                   </TouchableOpacity>
@@ -282,15 +278,13 @@ export const CommunityRemindersScreen = () => {
             ) : (
               <View style={styles.emptyCard}>
                 <Ionicons name="chatbox-outline" size={36} color={colors.textMuted} />
-                <Text style={styles.emptyTitle}>कोई सक्रिय अनुरोध नहीं है</Text>
-                <Text style={styles.emptySub}>
-                  यदि आपको किसी जांच या परामर्श की आवश्यकता है तो 'नया अनुरोध' दबाएं।
-                </Text>
+                <Text style={styles.emptyTitle}>{tr('कोई सक्रिय अनुरोध नहीं है')}</Text>
+                <Text style={styles.emptySub}>{tr('यदि आपको किसी जांच या परामर्श की आवश्यकता है तो \'नया अनुरोध\' दबाएं।')}</Text>
                 <TouchableOpacity
                   style={styles.emptyCreateBtn}
                   onPress={() => setShowCreateModal(true)}
                 >
-                  <Text style={styles.emptyCreateBtnText}>आशा दीदी को संदेश भेजें</Text>
+                  <Text style={styles.emptyCreateBtnText}>{tr('आशा दीदी को संदेश भेजें')}</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -308,7 +302,7 @@ export const CommunityRemindersScreen = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>अनुरोध की स्थिति एवं प्रगति</Text>
+              <Text style={styles.modalTitle}>{tr('अनुरोध की स्थिति एवं प्रगति')}</Text>
               <TouchableOpacity onPress={() => setSelectedRequest(null)}>
                 <Ionicons name="close" size={24} color={colors.textSecondary} />
               </TouchableOpacity>
@@ -324,56 +318,56 @@ export const CommunityRemindersScreen = () => {
                       <View style={[styles.modalStatusBadge, { backgroundColor: badge.bg }]}>
                         <Ionicons name={badge.icon} size={16} color={badge.text} />
                         <Text style={[styles.modalStatusText, { color: badge.text }]}>
-                          {badge.label}
+                          {tr(badge.label)}
                         </Text>
                       </View>
                     );
                   })()}
-                  <Text style={styles.modalReqId}>अनुरोध ID: {selectedRequest.id}</Text>
+                  <Text style={styles.modalReqId}>{tr('अनुरोध ID:')}{' '}{tr(selectedRequest.id)}</Text>
                 </View>
 
                 {/* Details Card */}
                 <View style={styles.modalDetailBox}>
-                  <Text style={styles.modalDetailLabel}>श्रेणी (Category):</Text>
-                  <Text style={styles.modalDetailVal}>{selectedRequest.category}</Text>
+                  <Text style={styles.modalDetailLabel}>{tr('श्रेणी (Category):')}</Text>
+                  <Text style={styles.modalDetailVal}>{tr(selectedRequest.category)}</Text>
 
-                  <Text style={[styles.modalDetailLabel, { marginTop: 8 }]}>लाभार्थी (Beneficiary):</Text>
+                  <Text style={[styles.modalDetailLabel, { marginTop: 8 }]}>{tr('लाभार्थी (Beneficiary):')}</Text>
                   <Text style={styles.modalDetailVal}>
-                    {selectedRequest.beneficiary_name || selectedRequest.household_name}
+                    {tr(selectedRequest.beneficiary_name || selectedRequest.household_name)}
                   </Text>
 
-                  <Text style={[styles.modalDetailLabel, { marginTop: 8 }]}>अनुरोध विवरण (Message):</Text>
-                  <Text style={styles.modalDetailDesc}>{selectedRequest.description}</Text>
+                  <Text style={[styles.modalDetailLabel, { marginTop: 8 }]}>{tr('अनुरोध विवरण (Message):')}</Text>
+                  <Text style={styles.modalDetailDesc}>{tr(selectedRequest.description)}</Text>
 
-                  <Text style={[styles.modalDetailLabel, { marginTop: 8 }]}>भेजने का समय:</Text>
-                  <Text style={styles.modalDetailVal}>{selectedRequest.time_received || 'हाल ही में'}</Text>
+                  <Text style={[styles.modalDetailLabel, { marginTop: 8 }]}>{tr('भेजने का समय:')}</Text>
+                  <Text style={styles.modalDetailVal}>{tr(selectedRequest.time_received || 'हाल ही में')}</Text>
                 </View>
 
                 {/* Response Timeline */}
-                <Text style={styles.timelineHeading}>आशा कार्यकर्ता प्रतिक्रिया एवं प्रगति (Timeline):</Text>
+                <Text style={styles.timelineHeading}>{tr('आशा कार्यकर्ता प्रतिक्रिया एवं प्रगति (Timeline):')}</Text>
                 {selectedRequest.response_history && selectedRequest.response_history.length > 0 ? (
                   selectedRequest.response_history.map((step, idx) => (
                     <View key={idx} style={styles.timelineRow}>
                       <View style={styles.timelineDot} />
                       <View style={styles.timelineTextContainer}>
-                        <Text style={styles.timelineText}>{step}</Text>
+                        <Text style={styles.timelineText}>{tr(step)}</Text>
                       </View>
                     </View>
                   ))
                 ) : (
-                  <Text style={styles.noTimelineText}>आशा दीदी को संदेश प्राप्त हो गया है। प्रतिक्रिया प्रतीक्षित है।</Text>
+                  <Text style={styles.noTimelineText}>{tr('आशा दीदी को संदेश प्राप्त हो गया है। प्रतिक्रिया प्रतीक्षित है।')}</Text>
                 )}
 
                 {/* Assigned ASHA Contact */}
                 <View style={styles.ashaCallCard}>
                   <Ionicons name="person-circle" size={32} color={colors.primary} />
                   <View style={{ flex: 1, marginLeft: 10 }}>
-                    <Text style={styles.ashaName}>आशा कार्यकर्ता: सुनीता देवी</Text>
-                    <Text style={styles.ashaPhone}>फोन: +91 9876543210 (Rampur SC-04)</Text>
+                    <Text style={styles.ashaName}>{tr('आशा कार्यकर्ता: सुनीता देवी')}</Text>
+                    <Text style={styles.ashaPhone}>{tr('फोन: +91 9876543210 (Rampur SC-04)')}</Text>
                   </View>
                   <TouchableOpacity
                     style={styles.callIconBtn}
-                    onPress={() => Alert.alert('कॉल करें', 'सुनीता देवी (+91 9876543210) को कॉल मिलाई जा रही है...')}
+                    onPress={() => Alert.alert(tr('कॉल करें'), tr('सुनीता देवी (+91 9876543210) को कॉल मिलाई जा रही है...'))}
                   >
                     <Ionicons name="call" size={18} color="#FFFFFF" />
                   </TouchableOpacity>
@@ -385,7 +379,7 @@ export const CommunityRemindersScreen = () => {
               style={styles.closeBtn}
               onPress={() => setSelectedRequest(null)}
             >
-              <Text style={styles.closeBtnText}>बंद करें (Close)</Text>
+              <Text style={styles.closeBtnText}>{tr('बंद करें (Close)')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -401,18 +395,16 @@ export const CommunityRemindersScreen = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>नया अनुरोध भेजें</Text>
+              <Text style={styles.modalTitle}>{tr('नया अनुरोध भेजें')}</Text>
               <TouchableOpacity onPress={() => setShowCreateModal(false)}>
                 <Ionicons name="close" size={24} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.modalSubtitle}>
-              आशा दीदी (सुनीता देवी) से घर आकर मिलने या सलाह का अनुरोध करें।
-            </Text>
+            <Text style={styles.modalSubtitle}>{tr('आशा दीदी (सुनीता देवी) से घर आकर मिलने या सलाह का अनुरोध करें।')}</Text>
 
             {/* Select Beneficiary */}
-            <Text style={styles.inputLabel}>लाभार्थी चुनें:</Text>
+            <Text style={styles.inputLabel}>{tr('लाभार्थी चुनें:')}</Text>
             <View style={styles.chipsSelectorRow}>
               {['मीना देवी', 'आरव कुमार', 'राजेश कुमार'].map((name) => (
                 <TouchableOpacity
@@ -421,14 +413,14 @@ export const CommunityRemindersScreen = () => {
                   onPress={() => setCreateBeneficiary(name)}
                 >
                   <Text style={[styles.selectorChipText, createBeneficiary === name && styles.selectorChipTextActive]}>
-                    {name}
+                    {tr(name)}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
 
             {/* Select Category */}
-            <Text style={[styles.inputLabel, { marginTop: 12 }]}>अनुरोध का प्रकार:</Text>
+            <Text style={[styles.inputLabel, { marginTop: 12 }]}>{tr('अनुरोध का प्रकार:')}</Text>
             <View style={styles.chipsSelectorRow}>
               {[
                 'Household visit request',
@@ -442,20 +434,20 @@ export const CommunityRemindersScreen = () => {
                   onPress={() => setCreateCategory(cat)}
                 >
                   <Text style={[styles.selectorChipText, createCategory === cat && styles.selectorChipTextActive]}>
-                    {cat.replace(' request', '')}
+                    {tr(cat.replace(' request', ''))}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
 
-            <Text style={[styles.inputLabel, { marginTop: 12 }]}>समस्या या संदेश का विवरण:</Text>
+            <Text style={[styles.inputLabel, { marginTop: 12 }]}>{tr('समस्या या संदेश का विवरण:')}</Text>
             <TextInput
               style={styles.textArea}
               multiline
               numberOfLines={4}
               value={createDescription}
               onChangeText={setCreateDescription}
-              placeholder="जैसे: मुझे 2 दिन से चक्कर आ रहे हैं, कृपया बीपी की जांच के लिए घर आएं।"
+              placeholder={tr('जैसे: मुझे 2 दिन से चक्कर आ रहे हैं, कृपया बीपी की जांच के लिए घर आएं।')}
               placeholderTextColor={colors.textMuted}
             />
 
@@ -464,7 +456,7 @@ export const CommunityRemindersScreen = () => {
                 style={styles.cancelActionBtn}
                 onPress={() => setShowCreateModal(false)}
               >
-                <Text style={styles.cancelActionText}>रद्द करें</Text>
+                <Text style={styles.cancelActionText}>{tr('रद्द करें')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.submitActionBtn, isSubmitting && { opacity: 0.7 }]}
@@ -476,7 +468,7 @@ export const CommunityRemindersScreen = () => {
                 ) : (
                   <>
                     <Ionicons name="send" size={16} color="#FFFFFF" />
-                    <Text style={styles.submitActionText}>अनुरोध भेजें</Text>
+                    <Text style={styles.submitActionText}>{tr('अनुरोध भेजें')}</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -491,7 +483,7 @@ export const CommunityRemindersScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F8FAFC'
+    backgroundColor: '#F5F7FB'
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -506,7 +498,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...typography.heading2,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   headerSubtitle: {
@@ -518,7 +510,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: radius.pill,
@@ -527,11 +519,11 @@ const styles = StyleSheet.create({
   newRequestText: {
     ...typography.caption,
     color: '#FFFFFF',
-    fontWeight: '700'
+    fontWeight: '600'
   },
   segmentedControl: {
     flexDirection: 'row',
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#E8ECF3',
     borderRadius: radius.pill,
     padding: 3,
     marginBottom: 16
@@ -554,7 +546,7 @@ const styles = StyleSheet.create({
   },
   segmentBtnTextActive: {
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   sectionWrapper: {
     marginBottom: 20
@@ -573,7 +565,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     ...typography.heading3,
     color: colors.primaryText,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   syncHint: {
     ...typography.caption,
@@ -584,8 +576,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderLeftWidth: 4,
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     padding: 14,
     marginBottom: 10,
     ...shadows.card
@@ -608,7 +599,7 @@ const styles = StyleSheet.create({
   beneficiaryText: {
     ...typography.caption,
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   dueTimeText: {
     ...typography.caption,
@@ -617,7 +608,7 @@ const styles = StyleSheet.create({
   },
   dateCardTitle: {
     ...typography.bodyLarge,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText,
     marginBottom: 4
   },
@@ -641,7 +632,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     padding: 14,
     marginBottom: 10,
     ...shadows.card
@@ -654,7 +645,7 @@ const styles = StyleSheet.create({
   },
   requestBeneficiary: {
     ...typography.bodyMedium,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   requestTimeText: {
@@ -672,7 +663,7 @@ const styles = StyleSheet.create({
   },
   statusBadgeText: {
     ...typography.caption,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   requestDescription: {
     ...typography.bodyMedium,
@@ -688,7 +679,7 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: radius.sm,
     borderWidth: 1,
-    borderColor: '#BAE6FD',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     marginBottom: 8
   },
   responseText: {
@@ -703,13 +694,13 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     gap: 4,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: '#F1F4FA',
     paddingTop: 8
   },
   viewTimelineText: {
     ...typography.caption,
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   emptyCard: {
     backgroundColor: '#FFFFFF',
@@ -717,11 +708,11 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   emptyTitle: {
     ...typography.bodyLarge,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText,
     marginTop: 10
   },
@@ -733,7 +724,7 @@ const styles = StyleSheet.create({
     marginBottom: 16
   },
   emptyCreateBtn: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: radius.md
@@ -762,7 +753,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     ...typography.heading2,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   modalSubtitle: {
@@ -786,18 +777,18 @@ const styles = StyleSheet.create({
   },
   modalStatusText: {
     ...typography.caption,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   modalReqId: {
     ...typography.caption,
     color: colors.textMuted
   },
   modalDetailBox: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F5F7FB',
     borderRadius: radius.md,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     marginBottom: 14
   },
   modalDetailLabel: {
@@ -808,7 +799,7 @@ const styles = StyleSheet.create({
   modalDetailVal: {
     ...typography.bodyMedium,
     color: colors.textPrimary,
-    fontWeight: '700',
+    fontWeight: '600',
     marginTop: 1
   },
   modalDetailDesc: {
@@ -820,7 +811,7 @@ const styles = StyleSheet.create({
   timelineHeading: {
     ...typography.label,
     color: colors.textPrimary,
-    fontWeight: '700',
+    fontWeight: '600',
     marginBottom: 8
   },
   timelineRow: {
@@ -833,12 +824,12 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     marginTop: 6
   },
   timelineTextContainer: {
     flex: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F1F4FA',
     padding: 8,
     borderRadius: radius.sm
   },
@@ -860,13 +851,13 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#BAE6FD',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     marginTop: 10,
     marginBottom: 16
   },
   ashaName: {
     ...typography.bodyMedium,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textPrimary
   },
   ashaPhone: {
@@ -875,15 +866,15 @@ const styles = StyleSheet.create({
     marginTop: 2
   },
   callIconBtn: {
-    backgroundColor: colors.teal,
+    backgroundColor: colors.ink,
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center'
   },
   closeBtn: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F1F4FA',
     paddingVertical: 12,
     borderRadius: radius.md,
     alignItems: 'center'
@@ -904,12 +895,12 @@ const styles = StyleSheet.create({
     gap: 8
   },
   selectorChip: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F1F4FA',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: radius.pill,
     borderWidth: 1,
-    borderColor: '#E2E8F0'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   selectorChipActive: {
     backgroundColor: colors.primaryLight,
@@ -922,13 +913,13 @@ const styles = StyleSheet.create({
   },
   selectorChipTextActive: {
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   textArea: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F5F7FB',
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     padding: 12,
     ...typography.bodyMedium,
     color: colors.textPrimary,
@@ -945,7 +936,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     alignItems: 'center'
   },
   cancelActionText: {
@@ -958,7 +949,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     paddingVertical: 12,
     borderRadius: radius.md
   },

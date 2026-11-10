@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState } from 'react';
 import {
   View,
@@ -28,22 +29,22 @@ export const CommunityProfileScreen = ({ navigation }) => {
 
   const handleCallAsha = () => {
     Linking.openURL('tel:9876543210').catch(() => {
-      Alert.alert('आशा दीदी को कॉल', 'सुनीता देवी (+91 9876543210) को कॉल मिलाई जा रही है...');
+      Alert.alert(tr('आशा दीदी को कॉल'), tr('सुनीता देवी (+91 9876543210) को कॉल मिलाई जा रही है...'));
     });
   };
 
   const handleEmergencyCall = () => {
     Alert.alert(
-      'आपातकालीन सेवा (112 National Helpline)',
-      '112 पर तुरंत कॉल करके एम्बुलेंस एवं आपातकालीन चिकित्सा सहायता प्राप्त करें।',
+      tr('आपातकालीन सेवा (112 National Helpline)'),
+      tr('112 पर तुरंत कॉल करके एम्बुलेंस एवं आपातकालीन चिकित्सा सहायता प्राप्त करें।'),
       [
-        { text: 'रद्द करें', style: 'cancel' },
+        { text: tr('रद्द करें'), style: 'cancel' },
         {
-          text: '112 पर कॉल करें',
+          text: tr('112 पर कॉल करें'),
           style: 'destructive',
           onPress: () => {
             Linking.openURL('tel:112').catch(() => {
-              Alert.alert('आपातकालीन कॉल', '112 आपातकालीन सहायता को कॉल मिलाई जा रही है...');
+              Alert.alert(tr('आपातकालीन कॉल'), tr('112 आपातकालीन सहायता को कॉल मिलाई जा रही है...'));
             });
           }
         }
@@ -70,8 +71,8 @@ export const CommunityProfileScreen = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>खाता एवं सेटिंग्स (Profile & Settings)</Text>
-          <Text style={styles.headerSubtitle}>सहयिका समुदाय सदस्य पोर्टल</Text>
+          <Text style={styles.headerTitle}>{tr('खाता एवं सेटिंग्स (Profile & Settings)')}</Text>
+          <Text style={styles.headerSubtitle}>{tr('सहयिका समुदाय सदस्य पोर्टल')}</Text>
         </View>
 
         {/* User Profile Card */}
@@ -85,16 +86,15 @@ export const CommunityProfileScreen = ({ navigation }) => {
             style={{ marginRight: 14 }}
           />
           <View style={styles.profileInfo}>
-            <Text style={styles.userName}>{user?.name || 'Meena Devi'}</Text>
-            <Text style={styles.userPhone}>+91 {user?.phone || '9871100221'}</Text>
-            <Text style={styles.userArea}>
-              गृह कोड: {user?.household_code || 'HH-RK-001'} • {user?.village_name || 'Rampur Kalan'}
+            <Text style={styles.userName}>{tr(user?.name || 'Meena Devi')}</Text>
+            <Text style={styles.userPhone}>+91 {tr(user?.phone || '9871100221')}</Text>
+            <Text style={styles.userArea}>{tr('गृह कोड:')}{' '}{tr(user?.household_code || 'HH-RK-001')} • {tr(user?.village_name || 'Rampur Kalan')}
             </Text>
           </View>
         </View>
 
         {/* Assigned ASHA Worker Details */}
-        <Text style={styles.sectionTitle}>आपकी नामित आशा कार्यकर्ता (Assigned ASHA)</Text>
+        <Text style={styles.sectionTitle}>{tr('आपकी नामित आशा कार्यकर्ता (Assigned ASHA)')}</Text>
         <View style={styles.ashaCard}>
           <View style={styles.ashaTopRow}>
             <AvatarImage
@@ -106,46 +106,46 @@ export const CommunityProfileScreen = ({ navigation }) => {
               style={{ marginRight: 12 }}
             />
             <View style={styles.ashaTextCol}>
-              <Text style={styles.ashaName}>सुनीता देवी (Sunita Devi)</Text>
-              <Text style={styles.ashaDesignation}>मान्यता प्राप्त सामाजिक स्वास्थ्य कार्यकर्ता (ASHA)</Text>
-              <Text style={styles.ashaCentre}>रामपुर उप-केंद्र SC-04 • प्राथमिक स्वास्थ्य केंद्र काशी</Text>
+              <Text style={styles.ashaName}>{tr('सुनीता देवी (Sunita Devi)')}</Text>
+              <Text style={styles.ashaDesignation}>{tr('मान्यता प्राप्त सामाजिक स्वास्थ्य कार्यकर्ता (ASHA)')}</Text>
+              <Text style={styles.ashaCentre}>{tr('रामपुर उप-केंद्र SC-04 • प्राथमिक स्वास्थ्य केंद्र काशी')}</Text>
             </View>
           </View>
 
           <TouchableOpacity style={styles.callAshaBtn} onPress={handleCallAsha} activeOpacity={0.85}>
             <Ionicons name="call" size={16} color="#FFFFFF" />
-            <Text style={styles.callAshaBtnText}>आशा दीदी को कॉल करें (+91 9876543210)</Text>
+            <Text style={styles.callAshaBtnText}>{tr('आशा दीदी को कॉल करें (+91 9876543210)')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Emergency Assistance 112 Button */}
-        <Text style={styles.sectionTitle}>आपातकालीन सहायता (Emergency Support)</Text>
+        <Text style={styles.sectionTitle}>{tr('आपातकालीन सहायता (Emergency Support)')}</Text>
         <TouchableOpacity style={styles.emergencyBtn} onPress={handleEmergencyCall} activeOpacity={0.85}>
           <View style={styles.emergencyIconPod}>
             <Ionicons name="warning" size={20} color="#FFFFFF" />
           </View>
           <View style={styles.emergencyTextCol}>
-            <Text style={styles.emergencyTitle}>112 राष्ट्रीय आपातकालीन हेल्पलाइन</Text>
-            <Text style={styles.emergencySubtitle}>24x7 एम्बुलेंस व त्वरित आपातकालीन सेवा</Text>
+            <Text style={styles.emergencyTitle}>{tr('112 राष्ट्रीय आपातकालीन हेल्पलाइन')}</Text>
+            <Text style={styles.emergencySubtitle}>{tr('24x7 एम्बुलेंस व त्वरित आपातकालीन सेवा')}</Text>
           </View>
           <Ionicons name="call" size={20} color={colors.danger} />
         </TouchableOpacity>
 
         {/* Language & Voice Preferences */}
-        <Text style={styles.sectionTitle}>भाषा एवं ध्वनि प्राथमिकताएं (Preferences)</Text>
+        <Text style={styles.sectionTitle}>{tr('भाषा एवं ध्वनि प्राथमिकताएं (Preferences)')}</Text>
 
         <TouchableOpacity style={styles.settingsRow} onPress={handleLanguageToggle} activeOpacity={0.8}>
           <View style={styles.settingsIcon}>
             <Ionicons name="language" size={18} color={colors.primary} />
           </View>
           <View style={styles.settingsTextCol}>
-            <Text style={styles.settingsTitle}>ऐप की भाषा (App Language)</Text>
+            <Text style={styles.settingsTitle}>{tr('ऐप की भाषा (App Language)')}</Text>
             <Text style={styles.settingsValue}>
-              {i18n.language === 'hi' ? 'हिन्दी (Hindi)' : 'English'}
+              {tr(i18n.language === 'hi' ? 'हिन्दी (Hindi)' : 'English')}
             </Text>
           </View>
           <View style={styles.actionChip}>
-            <Text style={styles.actionChipText}>बदलें</Text>
+            <Text style={styles.actionChipText}>{tr('बदलें')}</Text>
           </View>
         </TouchableOpacity>
 
@@ -154,9 +154,9 @@ export const CommunityProfileScreen = ({ navigation }) => {
             <Ionicons name="volume-medium" size={18} color={colors.teal} />
           </View>
           <View style={styles.settingsTextCol}>
-            <Text style={styles.settingsTitle}>आवाज पढ़ने की गति (Voice Speed)</Text>
+            <Text style={styles.settingsTitle}>{tr('आवाज पढ़ने की गति (Voice Speed)')}</Text>
             <Text style={styles.settingsValue}>
-              {voicePlaybackSpeed === 'normal' ? 'सामान्य गति (Normal)' : 'धीमी गति (Slow - आसान समझ)'}
+              {tr(voicePlaybackSpeed === 'normal' ? 'सामान्य गति (Normal)' : 'धीमी गति (Slow - आसान समझ)')}
             </Text>
           </View>
           <TouchableOpacity
@@ -164,7 +164,7 @@ export const CommunityProfileScreen = ({ navigation }) => {
             onPress={() => setVoicePlaybackSpeed(voicePlaybackSpeed === 'normal' ? 'slow' : 'normal')}
           >
             <Text style={styles.actionChipText}>
-              {voicePlaybackSpeed === 'normal' ? 'धीमी करें' : 'सामान्य'}
+              {tr(voicePlaybackSpeed === 'normal' ? 'धीमी करें' : 'सामान्य')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -174,54 +174,52 @@ export const CommunityProfileScreen = ({ navigation }) => {
             <Ionicons name="notifications" size={18} color={colors.primary} />
           </View>
           <View style={styles.settingsTextCol}>
-            <Text style={styles.settingsTitle}>टीकाकरण व जांच रिमाइंडर (Notifications)</Text>
+            <Text style={styles.settingsTitle}>{tr('टीकाकरण व जांच रिमाइंडर (Notifications)')}</Text>
             <Text style={styles.settingsValue}>
-              {notificationsEnabled ? 'सक्रिय (Alerts On)' : 'निष्क्रिय (Muted)'}
+              {tr(notificationsEnabled ? 'सक्रिय (Alerts On)' : 'निष्क्रिय (Muted)')}
             </Text>
           </View>
           <Switch
             value={notificationsEnabled}
             onValueChange={setNotificationsEnabled}
-            trackColor={{ false: '#CBD5E1', true: colors.primaryLight }}
-            thumbColor={notificationsEnabled ? colors.primary : '#94A3B8'}
+            trackColor={{ false: '#D5DBE7', true: colors.primaryLight }}
+            thumbColor={notificationsEnabled ? colors.primary : '#98A2B8'}
           />
         </View>
 
         {/* Privacy & ABDM Health Records */}
-        <Text style={styles.sectionTitle}>डेटा गोपनीयता एवं सुरक्षा (Privacy)</Text>
+        <Text style={styles.sectionTitle}>{tr('डेटा गोपनीयता एवं सुरक्षा (Privacy)')}</Text>
         <View style={styles.settingsRow}>
           <View style={styles.settingsIcon}>
             <Ionicons name="shield-checkmark" size={18} color="#10B981" />
           </View>
           <View style={styles.settingsTextCol}>
-            <Text style={styles.settingsTitle}>PHC डॉक्टर के साथ रिकॉर्ड साझाकरण</Text>
+            <Text style={styles.settingsTitle}>{tr('PHC डॉक्टर के साथ रिकॉर्ड साझाकरण')}</Text>
             <Text style={styles.settingsValue}>
-              {phcDataSharing ? 'अनुमति दी गई (ABDM Compliant)' : 'निजी (Only ASHA)'}
+              {tr(phcDataSharing ? 'अनुमति दी गई (ABDM Compliant)' : 'निजी (Only ASHA)')}
             </Text>
           </View>
           <Switch
             value={phcDataSharing}
             onValueChange={(val) => {
               setPhcDataSharing(val);
-              Alert.alert('गोपनीयता अपडेट', val ? 'स्वास्थ्य रिकॉर्ड PHC डॉक्टर परामर्श हेतु साझा किए जा रहे हैं।' : 'स्वास्थ्य रिकॉर्ड साझाकरण सीमित कर दिया गया है।');
+              Alert.alert(tr('गोपनीयता अपडेट'), tr(val ? 'स्वास्थ्य रिकॉर्ड PHC डॉक्टर परामर्श हेतु साझा किए जा रहे हैं।' : 'स्वास्थ्य रिकॉर्ड साझाकरण सीमित कर दिया गया है।'));
             }}
-            trackColor={{ false: '#CBD5E1', true: '#D1FAE5' }}
-            thumbColor={phcDataSharing ? '#10B981' : '#94A3B8'}
+            trackColor={{ false: '#D5DBE7', true: '#D1FAE5' }}
+            thumbColor={phcDataSharing ? '#10B981' : '#98A2B8'}
           />
         </View>
 
         {/* Demo Account Indicator */}
         <View style={styles.demoCard}>
           <Ionicons name="information-circle-outline" size={16} color={colors.primary} />
-          <Text style={styles.demoText}>
-            लॉगिन खाता: community.demo@sahayika.test (समुदाय सदस्य)
-          </Text>
+          <Text style={styles.demoText}>{tr('लॉगिन खाता: community.demo@sahayika.test (समुदाय सदस्य)')}</Text>
         </View>
 
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutBtn} onPress={() => setShowLogoutModal(true)} activeOpacity={0.8}>
           <Ionicons name="log-out-outline" size={18} color={colors.danger} />
-          <Text style={styles.logoutBtnText}>समुदाय ऐप से लॉग आउट करें (Logout)</Text>
+          <Text style={styles.logoutBtnText}>{tr('समुदाय ऐप से लॉग आउट करें (Logout)')}</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -237,10 +235,8 @@ export const CommunityProfileScreen = ({ navigation }) => {
             <View style={styles.modalIconPod}>
               <Ionicons name="log-out" size={28} color={colors.danger} />
             </View>
-            <Text style={styles.modalTitle}>लॉग आउट की पुष्टि (Confirm Logout)</Text>
-            <Text style={styles.modalMessage}>
-              क्या आप सुनिश्चित हैं कि आप सहयिका समुदाय ऐप से लॉग आउट करना चाहते हैं?
-            </Text>
+            <Text style={styles.modalTitle}>{tr('लॉग आउट की पुष्टि (Confirm Logout)')}</Text>
+            <Text style={styles.modalMessage}>{tr('क्या आप सुनिश्चित हैं कि आप सहयिका समुदाय ऐप से लॉग आउट करना चाहते हैं?')}</Text>
 
             <View style={styles.modalBtnRow}>
               <TouchableOpacity
@@ -248,7 +244,7 @@ export const CommunityProfileScreen = ({ navigation }) => {
                 onPress={() => setShowLogoutModal(false)}
                 activeOpacity={0.8}
               >
-                <Text style={styles.modalCancelText}>रद्द करें</Text>
+                <Text style={styles.modalCancelText}>{tr('रद्द करें')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -256,7 +252,7 @@ export const CommunityProfileScreen = ({ navigation }) => {
                 onPress={handleConfirmLogout}
                 activeOpacity={0.85}
               >
-                <Text style={styles.modalConfirmText}>लॉग आउट</Text>
+                <Text style={styles.modalConfirmText}>{tr('लॉग आउट')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -269,7 +265,7 @@ export const CommunityProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F8FAFC'
+    backgroundColor: '#F5F7FB'
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -281,7 +277,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...typography.heading2,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   headerSubtitle: {
@@ -295,7 +291,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     padding: 16,
     marginBottom: 16,
     ...shadows.card
@@ -311,7 +307,7 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     ...typography.heading2,
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#EF4444'
   },
   profileInfo: {
@@ -319,7 +315,7 @@ const styles = StyleSheet.create({
   },
   userName: {
     ...typography.bodyLarge,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   userPhone: {
@@ -336,17 +332,15 @@ const styles = StyleSheet.create({
   sectionTitle: {
     ...typography.label,
     color: colors.textSecondary,
-    fontWeight: '700',
+    fontWeight: '600',
     marginTop: 12,
     marginBottom: 8,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5
   },
   ashaCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     padding: 14,
     marginBottom: 14,
     ...shadows.card
@@ -368,14 +362,14 @@ const styles = StyleSheet.create({
   ashaInitial: {
     ...typography.heading3,
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   ashaTextCol: {
     flex: 1
   },
   ashaName: {
     ...typography.bodyLarge,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   ashaDesignation: {
@@ -393,7 +387,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     paddingVertical: 12,
     borderRadius: radius.md
   },
@@ -406,7 +400,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FEF2F2',
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     borderRadius: radius.md,
     padding: 14,
     marginBottom: 14
@@ -425,7 +419,7 @@ const styles = StyleSheet.create({
   },
   emergencyTitle: {
     ...typography.bodyMedium,
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#991B1B'
   },
   emergencySubtitle: {
@@ -439,7 +433,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     padding: 12,
     marginBottom: 8
   },
@@ -447,7 +441,7 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 8,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F1F4FA',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12
@@ -466,17 +460,17 @@ const styles = StyleSheet.create({
     marginTop: 1
   },
   actionChip: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F1F4FA',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: radius.pill,
     borderWidth: 1,
-    borderColor: '#E2E8F0'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   actionChipText: {
     ...typography.caption,
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   demoCard: {
     flexDirection: 'row',
@@ -486,7 +480,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#BAE6FD',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     marginTop: 12,
     marginBottom: 16
   },
@@ -511,7 +505,7 @@ const styles = StyleSheet.create({
   logoutBtnText: {
     ...typography.button,
     color: colors.danger,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   modalOverlay: {
     flex: 1,
@@ -540,7 +534,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     ...typography.heading3,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText,
     textAlign: 'center',
     marginBottom: 6
@@ -562,7 +556,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     alignItems: 'center'
   },
   modalCancelText: {

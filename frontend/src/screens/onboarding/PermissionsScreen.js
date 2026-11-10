@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,9 +22,9 @@ export const PermissionsScreen = ({ navigation }) => {
           <Ionicons name="key" size={36} color={colors.primary} />
         </View>
 
-        <Text style={styles.title}>{t('auth.permissionsTitle') || 'Permissions Needed'}</Text>
+        <Text style={styles.title}>{tr(t('auth.permissionsTitle') || 'Permissions Needed')}</Text>
         <Text style={styles.subtitle}>
-          {t('auth.permissionsSubtitle') || 'To record voice visits and navigate emergency routing'}
+          {tr(t('auth.permissionsSubtitle') || 'To record voice visits and navigate emergency routing')}
         </Text>
 
         <View style={styles.permList}>
@@ -32,9 +33,9 @@ export const PermissionsScreen = ({ navigation }) => {
               <Ionicons name="mic" size={22} color={colors.primary} />
             </View>
             <View style={styles.permTextCol}>
-              <Text style={styles.permName}>माइक्रोफ़ोन (Microphone)</Text>
+              <Text style={styles.permName}>{tr('माइक्रोफ़ोन (Microphone)')}</Text>
               <Text style={styles.permDesc}>
-                {t('auth.microphonePerm') || 'Required for voice visits and speech notes'}
+                {tr(t('auth.microphonePerm') || 'Required for voice visits and speech notes')}
               </Text>
             </View>
             <Ionicons name="checkmark-circle" size={22} color={colors.primary} />
@@ -45,9 +46,9 @@ export const PermissionsScreen = ({ navigation }) => {
               <Ionicons name="location" size={22} color={colors.primary} />
             </View>
             <View style={styles.permTextCol}>
-              <Text style={styles.permName}>लोकेशन (Location)</Text>
+              <Text style={styles.permName}>{tr('लोकेशन (Location)')}</Text>
               <Text style={styles.permDesc}>
-                {t('auth.locationPerm') || 'Required for SOS 112 emergency routing'}
+                {tr(t('auth.locationPerm') || 'Required for SOS 112 emergency routing')}
               </Text>
             </View>
             <Ionicons name="checkmark-circle" size={22} color={colors.primary} />
@@ -58,9 +59,9 @@ export const PermissionsScreen = ({ navigation }) => {
               <Ionicons name="notifications" size={22} color={colors.primary} />
             </View>
             <View style={styles.permTextCol}>
-              <Text style={styles.permName}>सूचनाएं (Notifications)</Text>
+              <Text style={styles.permName}>{tr('सूचनाएं (Notifications)')}</Text>
               <Text style={styles.permDesc}>
-                {t('auth.notificationsPerm') || 'Required for due visits and vaccination reminders'}
+                {tr(t('auth.notificationsPerm') || 'Required for due visits and vaccination reminders')}
               </Text>
             </View>
             <Ionicons name="checkmark-circle" size={22} color={colors.primary} />
@@ -81,7 +82,7 @@ export const PermissionsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   container: {
     padding: spacing.screenPadding,
@@ -143,7 +144,7 @@ const styles = StyleSheet.create({
   },
   permName: {
     ...typography.bodyMedium,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textPrimary
   },
   permDesc: {

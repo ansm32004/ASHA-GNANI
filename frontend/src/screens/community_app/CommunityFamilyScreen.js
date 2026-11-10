@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -91,9 +92,8 @@ export const CommunityFamilyScreen = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>My Family Health</Text>
-          <Text style={styles.headerSubtitle}>
-            Household {user?.household_code || 'HH-RK-001'} • {user?.village_name || 'Rampur Kalan'}
+          <Text style={styles.headerTitle}>{tr('My Family Health')}</Text>
+          <Text style={styles.headerSubtitle}>{tr('Household')}{' '}{tr(user?.household_code || 'HH-RK-001')} • {tr(user?.village_name || 'Rampur Kalan')}
           </Text>
         </View>
 
@@ -101,22 +101,22 @@ export const CommunityFamilyScreen = ({ navigation }) => {
         <View style={styles.idCard}>
           <View style={styles.idCardTop}>
             <View style={styles.flagDot} />
-            <Text style={styles.idCardScheme}>National Health Authority • Govt of India</Text>
+            <Text style={styles.idCardScheme}>{tr('National Health Authority • Govt of India')}</Text>
             <View style={styles.verifiedChip}>
               <Ionicons name="checkmark-circle" size={12} color="#34D399" />
-              <Text style={styles.verifiedText}>Verified</Text>
+              <Text style={styles.verifiedText}>{tr('Verified')}</Text>
             </View>
           </View>
-          <Text style={styles.headName}>{user?.name || 'Meena Devi'}</Text>
-          <Text style={styles.idNumber}>ABHA: 91-4521-8834-0192 • HH-RK-001</Text>
+          <Text style={styles.headName}>{tr(user?.name || 'Meena Devi')}</Text>
+          <Text style={styles.idNumber}>{tr('ABHA: 91-4521-8834-0192 • HH-RK-001')}</Text>
           <View style={styles.idCardFooter}>
             <Ionicons name="person-circle-outline" size={16} color="#B8D5F6" />
-            <Text style={styles.idCardFooterText}>Assigned ASHA: Sunita Devi (+91 9876543210)</Text>
+            <Text style={styles.idCardFooterText}>{tr('Assigned ASHA: Sunita Devi (+91 9876543210)')}</Text>
           </View>
         </View>
 
         {/* Family Members List */}
-        <Text style={styles.sectionTitle}>Registered Family Members ({members.length})</Text>
+        <Text style={styles.sectionTitle}>{tr('Registered Family Members (')}{tr(members.length)})</Text>
 
         {members.map((member) => {
           const isMother = member.category === 'Pregnant Woman';
@@ -140,36 +140,36 @@ export const CommunityFamilyScreen = ({ navigation }) => {
 
                 <View style={styles.memberInfo}>
                   <View style={styles.memberNameRow}>
-                    <Text style={styles.memberName}>{member.name}</Text>
+                    <Text style={styles.memberName}>{tr(member.name)}</Text>
                     <View style={[styles.badge, isMother && { backgroundColor: colors.coralLight }]}>
                       <Text style={[styles.badgeText, isMother && { color: colors.coral }]}>
-                        {member.relation}
+                        {tr(member.relation)}
                       </Text>
                     </View>
                   </View>
                   <Text style={styles.memberMeta}>
-                    {member.age} yrs • {member.gender} • {member.category}
+                    {tr(member.age)}{' '}{tr('yrs •')}{' '}{tr(member.gender)} • {tr(member.category)}
                   </Text>
                   {member.status ? (
-                    <Text style={styles.memberStatusText}>Status: {member.status}</Text>
+                    <Text style={styles.memberStatusText}>{tr('Status:')}{' '}{tr(member.status)}</Text>
                   ) : null}
                   {member.next_checkup ? (
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
                       <Ionicons name="calendar-outline" size={12} color={colors.teal} style={{ marginRight: 4 }} />
-                      <Text style={styles.memberActionNote}>Next Checkup: {member.next_checkup}</Text>
+                      <Text style={styles.memberActionNote}>{tr('Next Checkup:')}{' '}{tr(member.next_checkup)}</Text>
                     </View>
                   ) : null}
                   {member.next_vaccine ? (
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
                       <Ionicons name="shield-checkmark-outline" size={12} color={colors.teal} style={{ marginRight: 4 }} />
-                      <Text style={styles.memberActionNote}>Vaccine Due: {member.next_vaccine}</Text>
+                      <Text style={styles.memberActionNote}>{tr('Vaccine Due:')}{' '}{tr(member.next_vaccine)}</Text>
                     </View>
                   ) : null}
                 </View>
               </View>
 
               <View style={styles.cardActionBtn}>
-                <Text style={styles.cardActionBtnText}>View Health History & ABHA</Text>
+                <Text style={styles.cardActionBtnText}>{tr('View Health History & ABHA')}</Text>
                 <Ionicons name="chevron-forward" size={14} color={colors.primary} />
               </View>
             </TouchableOpacity>
@@ -179,9 +179,7 @@ export const CommunityFamilyScreen = ({ navigation }) => {
         {/* Privacy Note */}
         <View style={styles.privacyNotice}>
           <Ionicons name="lock-closed-outline" size={16} color={colors.teal} />
-          <Text style={styles.privacyText}>
-            Your family health records are encrypted under Ayushman Bharat Digital Mission (ABDM) standards and strictly accessible only to your assigned ASHA worker and PHC.
-          </Text>
+          <Text style={styles.privacyText}>{tr('Your family health records are encrypted under Ayushman Bharat Digital Mission (ABDM) standards and strictly accessible only to your assigned ASHA worker and PHC.')}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -191,7 +189,7 @@ export const CommunityFamilyScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   scrollContent: {
     paddingHorizontal: spacing.screenPadding,
@@ -204,7 +202,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     ...typography.heading1,
     color: colors.primaryText,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   headerSubtitle: {
     ...typography.caption,
@@ -212,8 +210,8 @@ const styles = StyleSheet.create({
     marginTop: 2
   },
   idCard: {
-    backgroundColor: '#0F172A',
-    borderRadius: 20,
+    backgroundColor: '#0B1220',
+    borderRadius: 24,
     padding: spacing.base,
     marginBottom: spacing.lg,
     ...shadows.card
@@ -233,7 +231,7 @@ const styles = StyleSheet.create({
   idCardScheme: {
     ...typography.caption,
     fontWeight: '600',
-    color: '#CBD5E1',
+    color: '#D5DBE7',
     flex: 1
   },
   verifiedChip: {
@@ -253,7 +251,7 @@ const styles = StyleSheet.create({
   },
   headName: {
     ...typography.heading2,
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#FFFFFF'
   },
   idNumber: {
@@ -264,7 +262,7 @@ const styles = StyleSheet.create({
   },
   idCardFooter: {
     borderTopWidth: 1,
-    borderTopColor: '#1E293B',
+    borderTopColor: '#0B1220',
     paddingTop: 8,
     flexDirection: 'row',
     alignItems: 'center',
@@ -272,18 +270,18 @@ const styles = StyleSheet.create({
   },
   idCardFooterText: {
     ...typography.caption,
-    color: '#CBD5E1',
+    color: '#D5DBE7',
     fontWeight: '500'
   },
   sectionTitle: {
     ...typography.heading3,
     color: colors.primaryText,
-    fontWeight: '700',
+    fontWeight: '600',
     marginBottom: spacing.md
   },
   memberCard: {
     backgroundColor: colors.surface,
-    borderRadius: 16,
+    borderRadius: 22,
     padding: spacing.base,
     marginBottom: spacing.md,
     borderWidth: 1,
@@ -315,7 +313,7 @@ const styles = StyleSheet.create({
   genericAvatarText: {
     ...typography.heading3,
     color: '#4F46E5',
-    fontWeight: '700'
+    fontWeight: '600'
   },
   memberInfo: {
     flex: 1
@@ -328,11 +326,11 @@ const styles = StyleSheet.create({
   },
   memberName: {
     ...typography.bodyLarge,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   badge: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F1F4FA',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: radius.pill
@@ -370,7 +368,7 @@ const styles = StyleSheet.create({
   },
   cardActionBtnText: {
     ...typography.caption,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primary
   },
   privacyNotice: {
@@ -379,9 +377,9 @@ const styles = StyleSheet.create({
     gap: 8,
     backgroundColor: '#F0FDFA',
     padding: spacing.base,
-    borderRadius: 14,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#CCFBF1',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     marginTop: 8
   },
   privacyText: {

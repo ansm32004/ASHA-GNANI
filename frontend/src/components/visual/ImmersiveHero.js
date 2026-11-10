@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Svg, { Path, Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
@@ -22,7 +23,7 @@ export const ImmersiveHero = ({
         <Svg width="100%" height="100%" viewBox="0 0 400 240" preserveAspectRatio="none">
           <Defs>
             <LinearGradient id="heroSkyGrad" x1="0" y1="0" x2="0" y2="240" gradientUnits="userSpaceOnUse">
-              <Stop stopColor="#EAF3FD" stopOpacity="0.9" />
+              <Stop stopColor="#EAF1FF" stopOpacity="0.9" />
               <Stop offset="0.6" stopColor="#F2F8FC" stopOpacity="0.8" />
               <Stop offset="1" stopColor={colors.background} />
             </LinearGradient>
@@ -43,10 +44,10 @@ export const ImmersiveHero = ({
         <View style={styles.heroTextColumn}>
           <View style={styles.pillBadge}>
             <View style={styles.pillDot} />
-            <Text style={styles.pillText}>COMMUNITY CARE</Text>
+            <Text style={styles.pillText}>{tr('COMMUNITY CARE')}</Text>
           </View>
-          <Text style={styles.headlineText}>{headline}</Text>
-          <Text style={styles.taglineText}>{tagline}</Text>
+          <Text style={styles.headlineText}>{tr(headline)}</Text>
+          <Text style={styles.taglineText}>{tr(tagline)}</Text>
         </View>
 
         {/* Mature Maternal Illustration */}
@@ -61,7 +62,7 @@ export const ImmersiveHero = ({
         onPress={onPressVoice}
         activeOpacity={0.88}
         accessibilityRole="button"
-        accessibilityLabel="Open voice assistant"
+        accessibilityLabel={tr('Open voice assistant')}
       >
         <View style={styles.micCircle}>
           <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
@@ -77,12 +78,12 @@ export const ImmersiveHero = ({
         </View>
 
         <View style={styles.voicePromptColumn}>
-          <Text style={styles.voiceTitle}>Voice Companion</Text>
-          <Text style={styles.voiceSubtitle} numberOfLines={1}>{voicePrompt}</Text>
+          <Text style={styles.voiceTitle}>{tr('Voice Companion')}</Text>
+          <Text style={styles.voiceSubtitle} numberOfLines={1}>{tr(voicePrompt)}</Text>
         </View>
 
         <View style={styles.askButton}>
-          <Text style={styles.askButtonText}>Speak</Text>
+          <Text style={styles.askButtonText}>{tr('Speak')}</Text>
         </View>
       </TouchableOpacity>
     </View>
@@ -116,24 +117,23 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     marginBottom: 6,
     borderWidth: 1,
-    borderColor: '#E2EAF3'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   pillDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.teal,
+    backgroundColor: colors.ink,
     marginRight: 6
   },
   pillText: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.deepBlue,
-    letterSpacing: 0.6
   },
   headlineText: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText,
     lineHeight: 26,
     letterSpacing: -0.2
@@ -152,19 +152,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
-    borderRadius: 18,
+    borderRadius: 22,
     paddingVertical: 10,
     paddingHorizontal: 12,
     marginTop: spacing.xs,
     borderWidth: 1,
-    borderColor: '#E3E9F2',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     ...shadows.card
   },
   micCircle: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.primary,
+    borderRadius: 22,
+    backgroundColor: colors.ink,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   },
   voiceTitle: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   voiceSubtitle: {
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   },
   askButtonText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primary
   }
 });

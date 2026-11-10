@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -32,8 +33,8 @@ export const ClaimScreen = ({ navigation }) => {
     await loadClaims();
     setLoading(false);
     Alert.alert(
-      'Draft Claim Prepared',
-      `Claim for November 2026 prepared with ₹${newClaim.total_estimated_amount} eligible activities.`
+      tr('Draft Claim Prepared'),
+      `${tr('Claim for November 2026 prepared with ₹')}${newClaim.total_estimated_amount} ${tr('eligible activities.')}`
     );
   };
 
@@ -43,8 +44,8 @@ export const ClaimScreen = ({ navigation }) => {
     setSubmittingId(null);
     await loadClaims();
     Alert.alert(
-      'Submitted to Supervisor',
-      'Claim submitted to Medical Officer and ANM for register verification.'
+      tr('Submitted to Supervisor'),
+      tr('Claim submitted to Medical Officer and ANM for register verification.')
     );
   };
 
@@ -65,13 +66,13 @@ export const ClaimScreen = ({ navigation }) => {
               <ClaimsIncentiveVector size={30} />
             </View>
             <View style={styles.cycleBadge}>
-              <Text style={styles.cycleBadgeText}>CURRENT CYCLE</Text>
+              <Text style={styles.cycleBadgeText}>{tr('CURRENT CYCLE')}</Text>
             </View>
           </View>
 
-          <Text style={styles.monthLabel}>November 2026</Text>
+          <Text style={styles.monthLabel}>{tr('November 2026')}</Text>
           <Text style={styles.amountText}>₹3,400</Text>
-          <Text style={styles.subtext}>14 verified activities eligible for NHM incentive</Text>
+          <Text style={styles.subtext}>{tr('14 verified activities eligible for NHM incentive')}</Text>
 
           <TouchableOpacity
             onPress={handlePrepareNewClaim}
@@ -79,27 +80,25 @@ export const ClaimScreen = ({ navigation }) => {
             style={styles.prepareBtn}
           >
             <Ionicons name="add-circle" size={16} color={colors.primary} />
-            <Text style={styles.prepareBtnText}>Prepare Draft Claim</Text>
+            <Text style={styles.prepareBtnText}>{tr('Prepare Draft Claim')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Disclaimer Notice */}
         <View style={styles.disclaimerRow}>
           <Ionicons name="information-circle-outline" size={15} color={colors.textSecondary} />
-          <Text style={styles.disclaimerText}>
-            Incentive claims are compiled based on verified field records and subject to ANM/MO approval.
-          </Text>
+          <Text style={styles.disclaimerText}>{tr('Incentive claims are compiled based on verified field records and subject to ANM/MO approval.')}</Text>
         </View>
 
         {/* History List */}
-        <Text style={styles.sectionHeader}>Claim Records History</Text>
+        <Text style={styles.sectionHeader}>{tr('Claim Records History')}</Text>
         <View style={styles.listContainer}>
           {claims.map((claim, idx) => (
             <MinimalListRow
               key={claim.id}
               category="claim"
-              title={`${claim.month} ${claim.year} — ₹${claim.total_estimated_amount}`}
-              subtitle={`${claim.activities_count} activities logged • ${claim.supervisor_notes || 'Pending ANM verification'}`}
+              title={`${tr(claim.month)} ${tr(claim.year)} — ₹${tr(claim.total_estimated_amount)}`}
+              subtitle={`${tr(claim.activities_count)} ${tr('activities logged •')} ${tr(claim.supervisor_notes || 'Pending ANM verification')}`}
               status={claim.status}
               showDivider={idx < claims.length - 1}
               rightAction={
@@ -108,7 +107,7 @@ export const ClaimScreen = ({ navigation }) => {
                     onPress={() => handleSubmitClaim(claim.id)}
                     style={styles.submitPill}
                   >
-                    <Text style={styles.submitPillText}>Submit</Text>
+                    <Text style={styles.submitPillText}>{tr('Submit')}</Text>
                   </TouchableOpacity>
                 ) : null
               }
@@ -125,7 +124,7 @@ export const ClaimScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   container: {
     paddingHorizontal: spacing.screenPadding,
@@ -133,7 +132,7 @@ const styles = StyleSheet.create({
     paddingBottom: 110
   },
   heroCard: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     borderRadius: 24,
     padding: spacing.base,
     marginBottom: spacing.sm
@@ -146,7 +145,7 @@ const styles = StyleSheet.create({
   coinWrap: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 24,
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center'
@@ -160,9 +159,8 @@ const styles = StyleSheet.create({
   cycleBadgeText: {
     ...typography.caption,
     color: colors.textWhite,
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 9.5,
-    letterSpacing: 0.5
   },
   monthLabel: {
     ...typography.caption,
@@ -174,7 +172,7 @@ const styles = StyleSheet.create({
     ...typography.displayLarge,
     fontSize: 30,
     color: colors.textWhite,
-    fontWeight: '700',
+    fontWeight: '600',
     marginVertical: 2
   },
   subtext: {
@@ -193,7 +191,7 @@ const styles = StyleSheet.create({
   prepareBtnText: {
     ...typography.button,
     color: colors.primary,
-    fontWeight: '700',
+    fontWeight: '600',
     marginLeft: 5,
     fontSize: 13
   },
@@ -213,16 +211,14 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     ...typography.caption,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
     marginTop: spacing.md,
     marginBottom: spacing.xs
   },
   listContainer: {
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: 24,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: colors.border
@@ -236,7 +232,7 @@ const styles = StyleSheet.create({
   submitPillText: {
     ...typography.caption,
     color: colors.primary,
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 11
   }
 });

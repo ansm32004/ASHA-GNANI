@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,9 +18,9 @@ export const WelcomeScreen = ({ navigation }) => {
           </View>
         </View>
 
-        <Text style={styles.title}>{t('auth.welcomeTitle') || 'Welcome to SAHAYIKA'}</Text>
+        <Text style={styles.title}>{tr(t('auth.welcomeTitle') || 'Welcome to SAHAYIKA')}</Text>
         <Text style={styles.subtitle}>
-          {t('auth.welcomeSubtitle') || 'Your dependable daily health work companion'}
+          {tr(t('auth.welcomeSubtitle') || 'Your dependable daily health work companion')}
         </Text>
 
         <View style={styles.featuresCard}>
@@ -28,10 +29,8 @@ export const WelcomeScreen = ({ navigation }) => {
               <Ionicons name="mic-outline" size={20} color={colors.primary} />
             </View>
             <View style={styles.featureTextCol}>
-              <Text style={styles.featureTitle}>आवाज से रिकॉर्डिंग (Voice-First)</Text>
-              <Text style={styles.featureDesc}>
-                विजिट के बाद बोलें, सहायिका खुद सारा विवरण फॉर्म में भर देगी।
-              </Text>
+              <Text style={styles.featureTitle}>{tr('आवाज से रिकॉर्डिंग (Voice-First)')}</Text>
+              <Text style={styles.featureDesc}>{tr('विजिट के बाद बोलें, सहायिका खुद सारा विवरण फॉर्म में भर देगी।')}</Text>
             </View>
           </View>
 
@@ -40,10 +39,8 @@ export const WelcomeScreen = ({ navigation }) => {
               <Ionicons name="calendar-outline" size={20} color={colors.teal} />
             </View>
             <View style={styles.featureTextCol}>
-              <Text style={styles.featureTitle}>फॉलो-अप याद दिलाना</Text>
-              <Text style={styles.featureDesc}>
-                टीकाकरण और गर्भवती महिलाओं के चेकअप कभी नहीं छूटेंगे।
-              </Text>
+              <Text style={styles.featureTitle}>{tr('फॉलो-अप याद दिलाना')}</Text>
+              <Text style={styles.featureDesc}>{tr('टीकाकरण और गर्भवती महिलाओं के चेकअप कभी नहीं छूटेंगे।')}</Text>
             </View>
           </View>
 
@@ -52,10 +49,8 @@ export const WelcomeScreen = ({ navigation }) => {
               <Ionicons name="wallet-outline" size={20} color={colors.primary} />
             </View>
             <View style={styles.featureTextCol}>
-              <Text style={styles.featureTitle}>प्रोत्साहन दावा सहायक (Claims)</Text>
-              <Text style={styles.featureDesc}>
-                माह के अंत में सभी गतिविधियों का दावा आसानी से तैयार करें।
-              </Text>
+              <Text style={styles.featureTitle}>{tr('प्रोत्साहन दावा सहायक (Claims)')}</Text>
+              <Text style={styles.featureDesc}>{tr('माह के अंत में सभी गतिविधियों का दावा आसानी से तैयार करें।')}</Text>
             </View>
           </View>
         </View>
@@ -75,7 +70,7 @@ export const WelcomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   container: {
     padding: spacing.screenPadding,
@@ -140,7 +135,7 @@ const styles = StyleSheet.create({
   },
   featureTitle: {
     ...typography.bodyMedium,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textPrimary
   },
   featureDesc: {

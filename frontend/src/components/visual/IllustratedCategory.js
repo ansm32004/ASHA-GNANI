@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { colors, shadows, radius, spacing } from '../../theme';
@@ -85,15 +86,15 @@ export const IllustratedCategoryTile = ({
         <Illustration size={68} />
         {badge ? (
           <View style={[styles.badge, { backgroundColor: accentColor }]}>
-            <Text style={styles.badgeText}>{badge}</Text>
+            <Text style={styles.badgeText}>{tr(badge)}</Text>
           </View>
         ) : null}
       </View>
 
       {/* Info labels */}
       <View style={styles.infoArea}>
-        <Text style={styles.titleText} numberOfLines={1}>{title}</Text>
-        <Text style={styles.subtitleText} numberOfLines={1}>{subtitle}</Text>
+        <Text style={styles.titleText} numberOfLines={1}>{tr(title)}</Text>
+        <Text style={styles.subtitleText} numberOfLines={1}>{tr(subtitle)}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
   tile: {
     width: 130,
     backgroundColor: colors.surface,
-    borderRadius: 18,
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: colors.border,
     padding: 8,
@@ -143,7 +144,7 @@ const styles = StyleSheet.create({
   },
   illustrationContainer: {
     height: 80,
-    borderRadius: 14,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -159,9 +160,8 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textWhite,
-    textTransform: 'uppercase'
   },
   infoArea: {
     marginTop: 8,
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   },
   titleText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   subtitleText: {

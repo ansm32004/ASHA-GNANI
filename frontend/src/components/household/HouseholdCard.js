@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -32,8 +33,8 @@ export const HouseholdCard = ({ household, onPress }) => {
         />
 
         <View style={styles.headInfo}>
-          <Text style={styles.name}>{household.primary_contact_name}</Text>
-          <Text style={styles.idText}>{household.household_id} • {household.village}</Text>
+          <Text style={styles.name}>{tr(household.primary_contact_name)}</Text>
+          <Text style={styles.idText}>{tr(household.household_id)} • {tr(household.village)}</Text>
         </View>
 
         <PriorityBadge priority={household.priority} />
@@ -41,47 +42,45 @@ export const HouseholdCard = ({ household, onPress }) => {
 
       {household.sub_area ? (
         <Text style={styles.areaText} numberOfLines={1}>
-          <Ionicons name="location-outline" size={12} color={colors.textSecondary} /> {household.sub_area}
+          <Ionicons name="location-outline" size={12} color={colors.textSecondary} /> {tr(household.sub_area)}
         </Text>
       ) : null}
 
       <View style={styles.statsRow}>
         <View style={styles.badgePill}>
           <Ionicons name="people-outline" size={13} color={colors.textSecondary} />
-          <Text style={styles.badgeText}>{household.members_count || members.length} members</Text>
+          <Text style={styles.badgeText}>{tr(household.members_count || members.length)}{' '}{tr('members')}</Text>
         </View>
 
         {pregnantCount > 0 && (
           <View style={[styles.badgePill, styles.pregnantPill]}>
             <Ionicons name="female-outline" size={12} color="#D97706" style={{ marginRight: 4 }} />
-            <Text style={styles.pregnantText}>{pregnantCount} Pregnant</Text>
+            <Text style={styles.pregnantText}>{tr(pregnantCount)}{' '}{tr('Pregnant')}</Text>
           </View>
         )}
 
         {infantCount > 0 && (
           <View style={[styles.badgePill, styles.infantPill]}>
             <Ionicons name="happy-outline" size={12} color={colors.teal} style={{ marginRight: 4 }} />
-            <Text style={styles.infantText}>{infantCount} Infant</Text>
+            <Text style={styles.infantText}>{tr(infantCount)}{' '}{tr('Infant')}</Text>
           </View>
         )}
 
         {highRiskCount > 0 && (
           <View style={[styles.badgePill, styles.highRiskPill]}>
             <Ionicons name="alert-circle-outline" size={12} color={colors.danger} style={{ marginRight: 4 }} />
-            <Text style={styles.highRiskText}>High Risk</Text>
+            <Text style={styles.highRiskText}>{tr('High Risk')}</Text>
           </View>
         )}
       </View>
 
       <View style={styles.footerRow}>
-        <Text style={styles.footerText}>
-          Last visit: {household.last_visit_date ? formatDate(household.last_visit_date) : 'None'}
+        <Text style={styles.footerText}>{tr('Last visit:')}{' '}{tr(household.last_visit_date ? formatDate(household.last_visit_date) : 'None')}
         </Text>
         {household.next_follow_up && (
           <View style={styles.followupContainer}>
             <Ionicons name="time-outline" size={12} color={colors.primary} />
-            <Text style={styles.followupText}>
-              Next: {formatDate(household.next_follow_up)}
+            <Text style={styles.followupText}>{tr('Next:')}{' '}{tr(formatDate(household.next_follow_up))}
             </Text>
           </View>
         )}
@@ -107,7 +106,7 @@ const styles = StyleSheet.create({
   avatarCircle: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 24,
     backgroundColor: colors.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
@@ -116,7 +115,7 @@ const styles = StyleSheet.create({
   avatarInitial: {
     ...typography.heading3,
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   headInfo: {
     flex: 1,
@@ -160,7 +159,7 @@ const styles = StyleSheet.create({
   pregnantPill: {
     backgroundColor: colors.warningLight,
     borderWidth: 1,
-    borderColor: '#FCE0B3'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   pregnantText: {
     ...typography.caption,
@@ -182,12 +181,12 @@ const styles = StyleSheet.create({
   highRiskPill: {
     backgroundColor: colors.dangerLight,
     borderWidth: 1,
-    borderColor: '#F7C5C5'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   highRiskText: {
     ...typography.caption,
     color: colors.danger,
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 10
   },
   footerRow: {

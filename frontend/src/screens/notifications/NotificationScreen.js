@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity } from 'react-native';
 import { colors, spacing, typography, radius } from '../../theme';
@@ -57,7 +58,7 @@ export const NotificationScreen = ({ navigation }) => {
         onBack={() => navigation.goBack()}
         rightAction={
           <TouchableOpacity onPress={handleMarkAll} style={styles.markAllBtn}>
-            <Text style={styles.markAllText}>Mark all read</Text>
+            <Text style={styles.markAllText}>{tr('Mark all read')}</Text>
           </TouchableOpacity>
         }
       />
@@ -72,7 +73,7 @@ export const NotificationScreen = ({ navigation }) => {
             category={item.category}
             title={item.title}
             subtitle={item.message}
-            meta={`${item.category} • ${item.timestamp}`}
+            meta={`${tr(item.category)} • ${tr(item.timestamp)}`}
             priority={item.priority}
             showDivider={index < notifications.length - 1}
             onPress={() => handleNotifPress(item)}
@@ -89,7 +90,7 @@ export const NotificationScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   markAllBtn: {
     paddingHorizontal: 10,
@@ -99,12 +100,12 @@ const styles = StyleSheet.create({
   },
   markAllText: {
     ...typography.caption,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primary
   },
   listContent: {
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: 24,
     marginHorizontal: spacing.screenPadding,
     marginTop: spacing.sm,
     paddingBottom: 110,
@@ -116,6 +117,6 @@ const styles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 3.5,
-    backgroundColor: colors.primary
+    backgroundColor: colors.ink
   }
 });

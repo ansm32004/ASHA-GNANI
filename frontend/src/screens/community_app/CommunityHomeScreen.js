@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert, Modal, TextInput, Platform } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -183,20 +184,20 @@ export const CommunityHomeScreen = ({ navigation }) => {
           setLiveTranscription(i18n.language === 'hi' ? 'बोलिए... (सुन रहा हूँ)' : 'Listening...');
         } else {
           Alert.alert(
-            i18n.language === 'hi' ? 'रिकॉर्डर त्रुटि' : 'Recorder Initialization Error',
-            i18n.language === 'hi'
+            tr(i18n.language === 'hi' ? 'रिकॉर्डर त्रुटि' : 'Recorder Initialization Error'),
+            tr(i18n.language === 'hi'
               ? 'रिकॉर्डर प्रारंभ करने में विफल। कृपया पुनः प्रयास करें।'
-              : 'Recorder initialization failed. Please try again.'
+              : 'Recorder initialization failed. Please try again.')
           );
         }
       } catch (err) {
         Alert.alert(
-          'Microphone Permission Required',
-          err.permanentlyDenied
+          tr('Microphone Permission Required'),
+          tr(err.permanentlyDenied
             ? 'Microphone permission has been permanently denied. Please enable it in Settings.'
             : (i18n.language === 'hi'
                 ? 'माइक्रोफ़ोन अनुमति आवश्यक है। स्वास्थ्य प्रश्न पूछने के लिए अनुमति दें।'
-                : 'Please allow microphone access to ask health questions by voice.')
+                : 'Please allow microphone access to ask health questions by voice.'))
         );
       }
     } else {
@@ -344,8 +345,8 @@ export const CommunityHomeScreen = ({ navigation }) => {
       setRequestModalVisible(false);
       setRequestNotes('');
       Alert.alert(
-        'Request Sent to ASHA Di',
-        `Your request has been delivered to Sunita Devi for ${prefDate}. She will visit or contact you on this date.`
+        tr('Request Sent to ASHA Di'),
+        `${tr('Your request has been delivered to Sunita Devi for')} ${prefDate}${tr('. She will visit or contact you on this date.')}`
       );
     } catch (e) {
       const prefDate = requestPreferredDate.trim() || getTodayFormatted();
@@ -360,8 +361,8 @@ export const CommunityHomeScreen = ({ navigation }) => {
       setRequestSubmitting(false);
       setRequestModalVisible(false);
       Alert.alert(
-        'Request Logged',
-        `Your visit request has been sent to ASHA worker Sunita Devi for ${requestPreferredDate.trim() || 'your chosen date'}.`
+        tr('Request Logged'),
+        `${tr('Your visit request has been sent to ASHA worker Sunita Devi for')} ${requestPreferredDate.trim() || 'your chosen date'}.`
       );
     }
   };
@@ -424,8 +425,8 @@ export const CommunityHomeScreen = ({ navigation }) => {
       onPress: () => {
         if (activeVisitRequest) {
           Alert.alert(
-            'Visit Scheduled with Sunita Devi',
-            `Date: ${activeVisitRequest.preferred_date || 'Today'}\nReason: ${activeVisitRequest.category || 'Household visit'}\nStatus: ${activeVisitRequest.status || 'Scheduled'}\n\nSunita Devi has been notified and will visit your home on this date.`
+            tr('Visit Scheduled with Sunita Devi'),
+            `${tr('Date:')} ${activeVisitRequest.preferred_date || 'Today'}\nReason: ${activeVisitRequest.category || 'Household visit'}\nStatus: ${activeVisitRequest.status || 'Scheduled'}\n\nSunita Devi has been notified and will visit your home on this date.`
           );
         } else {
           setRequestModalVisible(true);
@@ -442,21 +443,21 @@ export const CommunityHomeScreen = ({ navigation }) => {
           <View style={styles.greetingCol}>
             <View style={styles.communityPill}>
               <View style={styles.onlineDot} />
-              <Text style={styles.communityPillText}>Sahayika Community</Text>
+              <Text style={styles.communityPillText}>{tr('Sahayika Community')}</Text>
             </View>
-            <Text style={styles.greetingTitle}>Namaste, {user?.name || 'Meena ji'}</Text>
-            <Text style={styles.greetingSub}>{user?.village_name || 'Rampur Kalan'} • Household {user?.household_code || 'HH-RK-001'}</Text>
+            <Text style={styles.greetingTitle}>{tr('Namaste,')}{' '}{tr(user?.name || 'Meena ji')}</Text>
+            <Text style={styles.greetingSub}>{tr(user?.village_name || 'Rampur Kalan')}{' '}{tr('• Household')}{' '}{tr(user?.household_code || 'HH-RK-001')}</Text>
           </View>
 
           <View style={styles.headerRightActions}>
             <TouchableOpacity style={styles.langPill} onPress={handleLanguageToggle}>
-              <Text style={styles.langText}>{i18n.language === 'hi' ? 'हिन्दी' : 'English'}</Text>
+              <Text style={styles.langText}>{tr(i18n.language === 'hi' ? 'हिन्दी' : 'English')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.notifBtn}
               onPress={() => navigation.navigate('Notifications')}
-              accessibilityLabel="Notifications"
+              accessibilityLabel={tr('Notifications')}
             >
               <Ionicons name="notifications-outline" size={20} color={colors.textPrimary} />
               <View style={styles.notifDot} />
@@ -467,10 +468,8 @@ export const CommunityHomeScreen = ({ navigation }) => {
         {/* 2. Primary Voice Assistant Interaction Pod */}
         <View style={styles.voiceSectionCard}>
           <View style={styles.voicePromptArea}>
-            <Text style={styles.voiceQuestion}>Aapko kis cheez mein madad chahiye?</Text>
-            <Text style={styles.voicePromptSub}>
-              बोलकर गर्भावस्था, बच्चे के टीके, या पोषण की जानकारी पूछें
-            </Text>
+            <Text style={styles.voiceQuestion}>{tr('Aapko kis cheez mein madad chahiye?')}</Text>
+            <Text style={styles.voicePromptSub}>{tr('बोलकर गर्भावस्था, बच्चे के टीके, या पोषण की जानकारी पूछें')}</Text>
           </View>
 
           {/* Large Distinctive Microphone Button */}
@@ -479,14 +478,14 @@ export const CommunityHomeScreen = ({ navigation }) => {
               style={[styles.largeMicBtn, isRecording && styles.largeMicBtnRecording]}
               onPress={handleToggleVoice}
               activeOpacity={0.85}
-              accessibilityLabel="Tap to speak"
+              accessibilityLabel={tr('Tap to speak')}
             >
               <Ionicons name="mic" size={34} color={colors.surface} />
             </TouchableOpacity>
           </View>
 
           <Text style={styles.micInstruction}>
-            {isRecording ? `सुन रहा हूँ... 00:0${seconds}` : 'माइक दबाएं और अपनी भाषा में पूछें'}
+            {tr(isRecording ? `सुन रहा हूँ... 00:0${tr(seconds)}` : 'माइक दबाएं और अपनी भाषा में पूछें')}
           </Text>
 
           {/* Live Voice Assistant Response */}
@@ -523,7 +522,7 @@ export const CommunityHomeScreen = ({ navigation }) => {
                 activeOpacity={0.75}
               >
                 <Ionicons name="chatbubble-ellipses-outline" size={13} color={colors.primary} />
-                <Text style={styles.chipText}>{chip}</Text>
+                <Text style={styles.chipText}>{tr(chip)}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -532,7 +531,7 @@ export const CommunityHomeScreen = ({ navigation }) => {
           <View style={styles.textQueryRow}>
             <TextInput
               style={styles.textQueryInput}
-              placeholder={i18n.language === 'hi' ? 'या अपना प्रश्न यहाँ लिखें...' : 'Or type a question here...'}
+              placeholder={tr(i18n.language === 'hi' ? 'या अपना प्रश्न यहाँ लिखें...' : 'Or type a question here...')}
               placeholderTextColor={colors.textMuted}
               value={textQuery}
               onChangeText={setTextQuery}
@@ -541,7 +540,7 @@ export const CommunityHomeScreen = ({ navigation }) => {
             <TouchableOpacity
               style={styles.textQuerySendBtn}
               onPress={() => handleVoiceQuery()}
-              accessibilityLabel="Send question"
+              accessibilityLabel={tr('Send question')}
             >
               <Ionicons name="arrow-up" size={16} color={colors.textWhite} />
             </TouchableOpacity>
@@ -550,29 +549,27 @@ export const CommunityHomeScreen = ({ navigation }) => {
 
         {/* 3. Upcoming Family Health Reminders */}
         <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Your Family Reminders</Text>
+          <Text style={styles.sectionTitle}>{tr('Your Family Reminders')}</Text>
           <TouchableOpacity onPress={() => navigation.navigate('RemindersTab')}>
-            <Text style={styles.seeAllText}>View All</Text>
+            <Text style={styles.seeAllText}>{tr('View All')}</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.reminderCard}>
           <View style={styles.reminderTop}>
             <View style={[styles.reminderPill, { backgroundColor: colors.coralLight }]}>
-              <Text style={[styles.reminderPillText, { color: colors.coral }]}>3rd Trimester ANC</Text>
+              <Text style={[styles.reminderPillText, { color: colors.coral }]}>{tr('3rd Trimester ANC')}</Text>
             </View>
-            <Text style={styles.reminderTime}>Today, 11:30 AM</Text>
+            <Text style={styles.reminderTime}>{tr('Today, 11:30 AM')}</Text>
           </View>
-          <Text style={styles.reminderHeading}>Home Visit by Sunita Devi (ASHA)</Text>
-          <Text style={styles.reminderDetail}>
-            Routine checkup: Blood pressure, haemoglobin check, and nutrition consultation.
-          </Text>
+          <Text style={styles.reminderHeading}>{tr('Home Visit by Sunita Devi (ASHA)')}</Text>
+          <Text style={styles.reminderDetail}>{tr('Routine checkup: Blood pressure, haemoglobin check, and nutrition consultation.')}</Text>
         </View>
 
         {/* 4. Large Visual Shortcuts */}
         <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Health Guide & Programmes</Text>
-          <Text style={styles.sectionSub}>Verified village health resources</Text>
+          <Text style={styles.sectionTitle}>{tr('Health Guide & Programmes')}</Text>
+          <Text style={styles.sectionSub}>{tr('Verified village health resources')}</Text>
         </View>
 
         <View style={styles.shortcutsGrid}>
@@ -588,8 +585,8 @@ export const CommunityHomeScreen = ({ navigation }) => {
                 <View style={[styles.shortcutArtwork, { backgroundColor: bgColor }]}>
                   <Illustration />
                 </View>
-                <Text style={styles.shortcutTitle}>{title}</Text>
-                <Text style={styles.shortcutSubtitle} numberOfLines={1}>{subtitle}</Text>
+                <Text style={styles.shortcutTitle}>{tr(title)}</Text>
+                <Text style={styles.shortcutSubtitle} numberOfLines={1}>{tr(subtitle)}</Text>
               </TouchableOpacity>
             );
           })}
@@ -607,11 +604,11 @@ export const CommunityHomeScreen = ({ navigation }) => {
               style={{ marginRight: spacing.md }}
             />
             <View style={styles.ashaDetails}>
-              <Text style={styles.ashaName}>Sunita Devi (ASHA Di)</Text>
-              <Text style={styles.ashaArea}>Assigned for Rampur Kalan • +91 9876543210</Text>
+              <Text style={styles.ashaName}>{tr('Sunita Devi (ASHA Di)')}</Text>
+              <Text style={styles.ashaArea}>{tr('Assigned for Rampur Kalan • +91 9876543210')}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
                 <Ionicons name="checkmark-circle-outline" size={13} color={colors.teal} style={{ marginRight: 4 }} />
-                <Text style={styles.ashaStatus}>Active in your village today</Text>
+                <Text style={styles.ashaStatus}>{tr('Active in your village today')}</Text>
               </View>
             </View>
 
@@ -622,7 +619,7 @@ export const CommunityHomeScreen = ({ navigation }) => {
                 activeOpacity={0.85}
               >
                 <Ionicons name="calendar-outline" size={14} color={colors.textWhite} />
-                <Text style={styles.requestVisitBtnText}>Request Visit</Text>
+                <Text style={styles.requestVisitBtnText}>{tr('Request Visit')}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -632,12 +629,11 @@ export const CommunityHomeScreen = ({ navigation }) => {
               <View style={styles.activeVisitHeader}>
                 <View style={styles.activeVisitBadge}>
                   <View style={styles.pulseDot} />
-                  <Text style={styles.activeVisitBadgeText}>Visit Requested</Text>
+                  <Text style={styles.activeVisitBadgeText}>{tr('Visit Requested')}</Text>
                 </View>
                 <View style={styles.activeVisitDatePill}>
                   <Ionicons name="calendar" size={13} color={colors.coral} />
-                  <Text style={styles.activeVisitDateText}>
-                    Visit on {activeVisitRequest.preferred_date || 'Today'}
+                  <Text style={styles.activeVisitDateText}>{tr('Visit on')}{' '}{tr(activeVisitRequest.preferred_date || 'Today')}
                   </Text>
                 </View>
               </View>
@@ -645,16 +641,14 @@ export const CommunityHomeScreen = ({ navigation }) => {
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Ionicons name="medkit-outline" size={14} color={colors.primary} style={{ marginRight: 5 }} />
                 <Text style={styles.activeVisitReason}>
-                  {activeVisitRequest.category || 'Household visit request'}
-                  {activeVisitRequest.description ? ` • ${activeVisitRequest.description}` : ''}
+                  {tr(activeVisitRequest.category || 'Household visit request')}
+                  {tr(activeVisitRequest.description ? ` • ${tr(activeVisitRequest.description)}` : '')}
                 </Text>
               </View>
 
               <View style={styles.activeVisitFooter}>
                 <Ionicons name="checkmark-circle" size={14} color={colors.teal} style={{ marginRight: 5 }} />
-                <Text style={styles.activeVisitNote}>
-                  Sunita Devi is notified and will visit or call you on this date.
-                </Text>
+                <Text style={styles.activeVisitNote}>{tr('Sunita Devi is notified and will visit or call you on this date.')}</Text>
               </View>
             </View>
           ) : null}
@@ -673,12 +667,10 @@ export const CommunityHomeScreen = ({ navigation }) => {
         <View style={styles.modalBackdrop}>
           <View style={styles.modalSheet}>
             <View style={styles.modalHandle} />
-            <Text style={styles.modalTitle}>Request ASHA Di Visit / Callback</Text>
-            <Text style={styles.modalDesc}>
-              Sunita Devi will be notified immediately to visit your home or call you.
-            </Text>
+            <Text style={styles.modalTitle}>{tr('Request ASHA Di Visit / Callback')}</Text>
+            <Text style={styles.modalDesc}>{tr('Sunita Devi will be notified immediately to visit your home or call you.')}</Text>
 
-            <Text style={styles.inputLabel}>Reason for Request</Text>
+            <Text style={styles.inputLabel}>{tr('Reason for Request')}</Text>
             <View style={styles.categoryPickerRow}>
               {[
                 'Household visit request',
@@ -692,13 +684,13 @@ export const CommunityHomeScreen = ({ navigation }) => {
                   onPress={() => setRequestCategory(cat)}
                 >
                   <Text style={[styles.choiceText, requestCategory === cat && styles.choiceTextActive]}>
-                    {cat}
+                    {tr(cat)}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
 
-            <Text style={styles.inputLabel}>Preferred Date for ASHA Di Call / Visit</Text>
+            <Text style={styles.inputLabel}>{tr('Preferred Date for ASHA Di Call / Visit')}</Text>
             <View style={styles.dateChipsRow}>
               {[
                 { label: 'Today', val: getTodayFormatted() },
@@ -711,10 +703,10 @@ export const CommunityHomeScreen = ({ navigation }) => {
                   onPress={() => setRequestPreferredDate(d.val)}
                 >
                   <Text style={[styles.dateChipText, requestPreferredDate === d.val && styles.dateChipTextActive]}>
-                    {d.label}
+                    {tr(d.label)}
                   </Text>
                   <Text style={[styles.dateChipSub, requestPreferredDate === d.val && styles.dateChipSubActive]}>
-                    {d.val.slice(0, 5)}
+                    {tr(d.val.slice(0, 5))}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -724,17 +716,17 @@ export const CommunityHomeScreen = ({ navigation }) => {
               <Ionicons name="calendar-outline" size={16} color={colors.primary} style={{ marginRight: 8 }} />
               <TextInput
                 style={styles.dateInput}
-                placeholder="Or enter custom date (DD-MM-YYYY)"
+                placeholder={tr('Or enter custom date (DD-MM-YYYY)')}
                 placeholderTextColor={colors.textMuted}
                 value={requestPreferredDate}
                 onChangeText={setRequestPreferredDate}
               />
             </View>
 
-            <Text style={styles.inputLabel}>Additional Notes / Symptoms</Text>
+            <Text style={styles.inputLabel}>{tr('Additional Notes / Symptoms')}</Text>
             <TextInput
               style={styles.notesInput}
-              placeholder="e.g. Need blood pressure checkup and IFA tablets refill"
+              placeholder={tr('e.g. Need blood pressure checkup and IFA tablets refill')}
               placeholderTextColor={colors.textMuted}
               multiline
               value={requestNotes}
@@ -746,7 +738,7 @@ export const CommunityHomeScreen = ({ navigation }) => {
                 style={styles.cancelBtn}
                 onPress={() => setRequestModalVisible(false)}
               >
-                <Text style={styles.cancelBtnText}>Cancel</Text>
+                <Text style={styles.cancelBtnText}>{tr('Cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.sendRequestBtn}
@@ -754,7 +746,7 @@ export const CommunityHomeScreen = ({ navigation }) => {
                 disabled={requestSubmitting}
               >
                 <Text style={styles.sendRequestBtnText}>
-                  {requestSubmitting ? 'Sending...' : 'Send Request'}
+                  {tr(requestSubmitting ? 'Sending...' : 'Send Request')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -768,7 +760,7 @@ export const CommunityHomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   scrollContent: {
     paddingHorizontal: spacing.screenPadding,
@@ -800,7 +792,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.teal,
+    backgroundColor: colors.ink,
     marginRight: 6
   },
   communityPillText: {
@@ -810,7 +802,7 @@ const styles = StyleSheet.create({
   },
   greetingTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   greetingSub: {
@@ -828,7 +820,7 @@ const styles = StyleSheet.create({
   },
   langText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primary
   },
   headerRightActions: {
@@ -839,7 +831,7 @@ const styles = StyleSheet.create({
   notifBtn: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 22,
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
@@ -873,7 +865,7 @@ const styles = StyleSheet.create({
   },
   voiceQuestion: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText,
     textAlign: 'center'
   },
@@ -893,11 +885,11 @@ const styles = StyleSheet.create({
     width: 76,
     height: 76,
     borderRadius: 38,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 4,
-    borderColor: '#EAF3FD',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     ...shadows.raised
   },
   largeMicBtnRecording: {
@@ -946,7 +938,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   sectionSub: {
@@ -955,18 +947,16 @@ const styles = StyleSheet.create({
   },
   seeAllText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primary
   },
   reminderCard: {
     backgroundColor: colors.surface,
-    borderRadius: 18,
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.cardPadding,
     marginVertical: spacing.xs,
-    borderLeftWidth: 4,
-    borderLeftColor: colors.coral,
     ...shadows.card
   },
   reminderTop: {
@@ -982,7 +972,7 @@ const styles = StyleSheet.create({
   },
   reminderPillText: {
     fontSize: 10,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   reminderTime: {
     fontSize: 11,
@@ -991,7 +981,7 @@ const styles = StyleSheet.create({
   },
   reminderHeading: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   reminderDetail: {
@@ -1009,7 +999,7 @@ const styles = StyleSheet.create({
   shortcutTile: {
     width: '48%',
     backgroundColor: colors.surface,
-    borderRadius: 18,
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: colors.border,
     padding: 10,
@@ -1017,14 +1007,14 @@ const styles = StyleSheet.create({
   },
   shortcutArtwork: {
     height: 76,
-    borderRadius: 14,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8
   },
   shortcutTitle: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   shortcutSubtitle: {
@@ -1036,7 +1026,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
-    borderRadius: 18,
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.cardPadding,
@@ -1046,7 +1036,7 @@ const styles = StyleSheet.create({
   ashaAvatar: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 24,
     backgroundColor: colors.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1054,7 +1044,7 @@ const styles = StyleSheet.create({
   },
   ashaAvatarInitial: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primary
   },
   ashaDetails: {
@@ -1062,7 +1052,7 @@ const styles = StyleSheet.create({
   },
   ashaName: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   ashaArea: {
@@ -1078,7 +1068,7 @@ const styles = StyleSheet.create({
   requestVisitBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.teal,
+    backgroundColor: colors.ink,
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderRadius: radius.pill,
@@ -1086,7 +1076,7 @@ const styles = StyleSheet.create({
   },
   requestVisitBtnText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textWhite
   },
   ashaWorkerCardActiveVisit: {
@@ -1130,10 +1120,8 @@ const styles = StyleSheet.create({
   },
   activeVisitBadgeText: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.coral,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5
   },
   activeVisitDatePill: {
     flexDirection: 'row',
@@ -1144,11 +1132,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     gap: 4,
     borderWidth: 1,
-    borderColor: '#FFD9CF'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   activeVisitDateText: {
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '600',
     color: colors.coral
   },
   activeVisitReason: {
@@ -1194,7 +1182,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   modalDesc: {
@@ -1205,7 +1193,7 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText,
     marginBottom: 6
   },
@@ -1233,7 +1221,7 @@ const styles = StyleSheet.create({
   },
   choiceTextActive: {
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   dateChipsRow: {
     flexDirection: 'row',
@@ -1244,7 +1232,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 7,
     paddingHorizontal: 6,
-    borderRadius: 12,
+    borderRadius: 16,
     backgroundColor: colors.surfaceSecondary,
     borderWidth: 1,
     borderColor: colors.border,
@@ -1262,7 +1250,7 @@ const styles = StyleSheet.create({
   },
   dateChipTextActive: {
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   dateChipSub: {
     fontSize: 9,
@@ -1277,7 +1265,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surfaceSecondary,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.border,
     paddingHorizontal: 12,
@@ -1291,7 +1279,7 @@ const styles = StyleSheet.create({
   },
   notesInput: {
     backgroundColor: colors.surfaceSecondary,
-    borderRadius: 14,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: colors.border,
     padding: 12,
@@ -1321,12 +1309,12 @@ const styles = StyleSheet.create({
     flex: 1.5,
     paddingVertical: 12,
     borderRadius: radius.pill,
-    backgroundColor: colors.teal,
+    backgroundColor: colors.ink,
     alignItems: 'center'
   },
   sendRequestBtnText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textWhite
   },
   textQueryRow: {
@@ -1351,8 +1339,8 @@ const styles = StyleSheet.create({
   textQuerySendBtn: {
     width: 32,
     height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.primary,
+    borderRadius: 22,
+    backgroundColor: colors.ink,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 8

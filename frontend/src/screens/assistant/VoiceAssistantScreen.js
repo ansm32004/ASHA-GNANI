@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, TextInput, Platform, Alert, Animated } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
@@ -441,10 +442,10 @@ export const VoiceAssistantScreen = ({ navigation }) => {
     } else {
       setVoiceState('idle');
       Alert.alert(
-        i18n.language === 'hi' ? 'ऑडियो अनुपलब्ध' : 'Audio Unavailable',
-        i18n.language === 'hi'
+        tr(i18n.language === 'hi' ? 'ऑडियो अनुपलब्ध' : 'Audio Unavailable'),
+        tr(i18n.language === 'hi'
           ? 'इस संदेश का ऑडियो उत्पन्न नहीं हो सका। कृपया पुनः प्रयास करें।'
-          : 'Could not generate speech audio for this message. Please try again.'
+          : 'Could not generate speech audio for this message. Please try again.')
       );
     }
   };
@@ -561,7 +562,7 @@ export const VoiceAssistantScreen = ({ navigation }) => {
           <View style={[styles.statusCapsule, { backgroundColor: stateInfo.bg }]}>
             <View style={[styles.statusDot, { backgroundColor: stateInfo.dot }]} />
             <Text style={[styles.statusCapsuleText, { color: stateInfo.color }]}>
-              {stateInfo.text}
+              {tr(stateInfo.text)}
             </Text>
           </View>
 
@@ -586,7 +587,7 @@ export const VoiceAssistantScreen = ({ navigation }) => {
                 ]}
                 onPress={handleToggleVoice}
                 activeOpacity={0.85}
-                accessibilityLabel="Microphone control"
+                accessibilityLabel={tr('Microphone control')}
               >
                 <Svg width={26} height={26} viewBox="0 0 24 24" fill="none">
                   <Path
@@ -615,7 +616,7 @@ export const VoiceAssistantScreen = ({ navigation }) => {
 
           {/* Live Transcription or Hint */}
           <Text style={styles.transcriptionHint} numberOfLines={1}>
-            {liveTranscription || (voiceState === 'listening' ? 'Listening to your query...' : 'Ask today\'s schedule, pregnant women, or vaccination dates')}
+            {tr(liveTranscription || (voiceState === 'listening' ? 'Listening to your query...' : 'Ask today\'s schedule, pregnant women, or vaccination dates'))}
           </Text>
         </View>
 
@@ -658,7 +659,7 @@ export const VoiceAssistantScreen = ({ navigation }) => {
                       style={styles.actionPill}
                       activeOpacity={0.8}
                     >
-                      <Text style={styles.actionPillText}>{act}</Text>
+                      <Text style={styles.actionPillText}>{tr(act)}</Text>
                       <Ionicons name="chevron-forward" size={12} color={colors.primary} />
                     </TouchableOpacity>
                   ))}
@@ -670,7 +671,7 @@ export const VoiceAssistantScreen = ({ navigation }) => {
         </View>
 
         {/* Frequently Asked Questions (Compact Chips) */}
-        <Text style={styles.sectionTitle}>Frequently Asked Questions</Text>
+        <Text style={styles.sectionTitle}>{tr('Frequently Asked Questions')}</Text>
         <View style={styles.promptsGrid}>
           {SUGGESTED_PROMPTS.map((p, idx) => (
             <TouchableOpacity
@@ -680,7 +681,7 @@ export const VoiceAssistantScreen = ({ navigation }) => {
               style={styles.promptChip}
             >
               <VectorCategoryIcon category={p.type} size={18} style={{ marginRight: 6 }} />
-              <Text style={styles.promptLabel} numberOfLines={1}>{p.label}</Text>
+              <Text style={styles.promptLabel} numberOfLines={1}>{tr(p.label)}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -688,7 +689,7 @@ export const VoiceAssistantScreen = ({ navigation }) => {
         {/* Subtle Text Fallback Input Bar */}
         <View style={styles.inputBar}>
           <TextInput
-            placeholder="Or type a question in Hindi / English..."
+            placeholder={tr('Or type a question in Hindi / English...')}
             placeholderTextColor={colors.textMuted}
             value={textQuery}
             onChangeText={setTextQuery}
@@ -698,7 +699,7 @@ export const VoiceAssistantScreen = ({ navigation }) => {
           <TouchableOpacity
             onPress={() => handleAskQuestion()}
             style={styles.sendBtn}
-            accessibilityLabel="Send question"
+            accessibilityLabel={tr('Send question')}
           >
             <Ionicons name="arrow-up" size={16} color={colors.textWhite} />
           </TouchableOpacity>
@@ -707,9 +708,7 @@ export const VoiceAssistantScreen = ({ navigation }) => {
         {/* Safety Guardrail Notice */}
         <View style={styles.guardrail}>
           <Ionicons name="shield-checkmark-outline" size={13} color={colors.teal} />
-          <Text style={styles.guardrailText}>
-            सहायक केवल प्रशासनिक और सरकारी योजना संबंधी जानकारी के लिए है।
-          </Text>
+          <Text style={styles.guardrailText}>{tr('सहायक केवल प्रशासनिक और सरकारी योजना संबंधी जानकारी के लिए है।')}</Text>
         </View>
 
         {/* Full clearance for bottom navigation */}
@@ -722,7 +721,7 @@ export const VoiceAssistantScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   container: {
     paddingHorizontal: spacing.screenPadding,
@@ -731,7 +730,7 @@ const styles = StyleSheet.create({
   },
   compactVoicePod: {
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: colors.border,
     paddingVertical: 12,
@@ -791,11 +790,11 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
-    borderColor: '#EAF3FD',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     ...shadows.soft
   },
   micBtnListening: {
@@ -837,18 +836,16 @@ const styles = StyleSheet.create({
   },
   actionPillText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primary,
     marginRight: 4
   },
   sectionTitle: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.secondaryText,
     marginTop: 8,
     marginBottom: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5
   },
   promptsGrid: {
     gap: 6,
@@ -894,7 +891,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     alignItems: 'center',
     justifyContent: 'center'
   },

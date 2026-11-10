@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,12 +23,12 @@ export const SosScreen = ({ navigation }) => {
 
   const handleTriggerSOS = async () => {
     Alert.alert(
-      'CONFIRM EMERGENCY ALERT (112)',
-      'This will trigger an emergency dispatch simulation and alert your Primary Health Centre emergency team.',
+      tr('CONFIRM EMERGENCY ALERT (112)'),
+      tr('This will trigger an emergency dispatch simulation and alert your Primary Health Centre emergency team.'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: tr('Cancel'), style: 'cancel' },
         {
-          text: 'TRIGGER ALERT NOW',
+          text: tr('TRIGGER ALERT NOW'),
           style: 'destructive',
           onPress: async () => {
             setLoading(true);
@@ -82,7 +83,7 @@ export const SosScreen = ({ navigation }) => {
         {/* Notice */}
         <View style={styles.simBanner}>
           <Ionicons name="information-circle-outline" size={16} color={colors.danger} />
-          <Text style={styles.simText}>Connected to National Emergency Response 112 simulation.</Text>
+          <Text style={styles.simText}>{tr('Connected to National Emergency Response 112 simulation.')}</Text>
         </View>
 
         {activeAlert ? (
@@ -92,8 +93,8 @@ export const SosScreen = ({ navigation }) => {
                 <EmergencySupportVector size={28} />
               </View>
               <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={styles.activeTitle}>EMERGENCY ALERT ACTIVE</Text>
-                <Text style={styles.activeSub}>Event ID: {activeAlert.id}</Text>
+                <Text style={styles.activeTitle}>{tr('EMERGENCY ALERT ACTIVE')}</Text>
+                <Text style={styles.activeSub}>{tr('Event ID:')}{' '}{tr(activeAlert.id)}</Text>
               </View>
             </View>
 
@@ -106,7 +107,7 @@ export const SosScreen = ({ navigation }) => {
               ].map((msg, i) => (
                 <View key={i} style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <Ionicons name="checkmark-circle-outline" size={13} color={colors.teal} style={{ marginRight: 6 }} />
-                  <Text style={styles.statusItem}>{msg}</Text>
+                  <Text style={styles.statusItem}>{tr(msg)}</Text>
                 </View>
               ))}
             </View>
@@ -115,12 +116,12 @@ export const SosScreen = ({ navigation }) => {
               onPress={() => setActiveAlert(null)}
               style={styles.standDownBtn}
             >
-              <Text style={styles.standDownText}>Acknowledge & Stand Down</Text>
+              <Text style={styles.standDownText}>{tr('Acknowledge & Stand Down')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
           <View style={styles.formGroup}>
-            <Text style={styles.sectionHeader}>Emergency Classification</Text>
+            <Text style={styles.sectionHeader}>{tr('Emergency Classification')}</Text>
 
             {classifications.map((item) => {
               const isSelected = emergencyType === item.type;
@@ -141,12 +142,12 @@ export const SosScreen = ({ navigation }) => {
                     <Text
                       style={[
                         styles.typeLabel,
-                        isSelected && { color: item.color, fontWeight: '700' }
+                        isSelected && { color: item.color, fontWeight: '600' }
                       ]}
                     >
-                      {item.label}
+                      {tr(item.label)}
                     </Text>
-                    <Text style={styles.typeDesc}>{item.desc}</Text>
+                    <Text style={styles.typeDesc}>{tr(item.desc)}</Text>
                   </View>
                 </TouchableOpacity>
               );
@@ -175,9 +176,7 @@ export const SosScreen = ({ navigation }) => {
                 size={18}
                 color={colors.primary}
               />
-              <Text style={styles.consentText}>
-                Transmit GPS coordinates for 112 / 108 emergency ambulance routing.
-              </Text>
+              <Text style={styles.consentText}>{tr('Transmit GPS coordinates for 112 / 108 emergency ambulance routing.')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -187,7 +186,7 @@ export const SosScreen = ({ navigation }) => {
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
                 <Ionicons name="warning-outline" size={17} color={colors.textWhite} style={{ marginRight: 6 }} />
-                <Text style={styles.triggerBtnText}>TRIGGER EMERGENCY SOS (112)</Text>
+                <Text style={styles.triggerBtnText}>{tr('TRIGGER EMERGENCY SOS (112)')}</Text>
               </View>
             </TouchableOpacity>
           </View>
@@ -202,7 +201,7 @@ export const SosScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   container: {
     paddingHorizontal: spacing.screenPadding,
@@ -214,38 +213,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.dangerLight,
     padding: spacing.md,
-    borderRadius: 16,
+    borderRadius: 22,
     borderWidth: 1,
-    borderColor: '#F8B4B4',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     marginBottom: spacing.base
   },
   simText: {
     ...typography.caption,
     color: colors.danger,
-    fontWeight: '700',
+    fontWeight: '600',
     marginLeft: 6,
     flex: 1
   },
   formGroup: {
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: 24,
     padding: spacing.base,
     borderWidth: 1,
     borderColor: colors.border
   },
   sectionHeader: {
     ...typography.caption,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
     marginBottom: spacing.sm
   },
   typeOption: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
-    borderRadius: 16,
+    borderRadius: 22,
     backgroundColor: colors.surfaceSecondary,
     marginBottom: spacing.sm,
     borderWidth: 1.5,
@@ -271,7 +268,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     padding: 8,
     backgroundColor: colors.surfaceSecondary,
-    borderRadius: 12
+    borderRadius: 16
   },
   consentText: {
     ...typography.caption,
@@ -291,11 +288,11 @@ const styles = StyleSheet.create({
   triggerBtnText: {
     ...typography.button,
     color: colors.textWhite,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   activeAlertCard: {
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: 24,
     padding: spacing.base,
     borderWidth: 2,
     borderColor: colors.danger
@@ -316,7 +313,7 @@ const styles = StyleSheet.create({
   activeTitle: {
     ...typography.heading3,
     color: colors.danger,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   activeSub: {
     ...typography.caption,
@@ -326,7 +323,7 @@ const styles = StyleSheet.create({
   statusBox: {
     backgroundColor: colors.surfaceSecondary,
     padding: spacing.base,
-    borderRadius: 16,
+    borderRadius: 22,
     gap: 6
   },
   statusItem: {

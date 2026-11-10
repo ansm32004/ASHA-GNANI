@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
@@ -142,11 +143,11 @@ export const CreateClaimScreen = ({ navigation }) => {
 
   const handleSubmitClaim = async () => {
     if (!selectedActivity) {
-      Alert.alert('Required', 'Please choose a completed healthcare activity.');
+      Alert.alert(tr('Required'), tr('Please choose a completed healthcare activity.'));
       return;
     }
     if (!activityDate) {
-      Alert.alert('Required', 'Please select the date on which the activity was completed.');
+      Alert.alert(tr('Required'), tr('Please select the date on which the activity was completed.'));
       return;
     }
 
@@ -182,7 +183,7 @@ export const CreateClaimScreen = ({ navigation }) => {
       setSuccessModalVisible(true);
     } catch (err) {
       const errMsg = err?.response?.data?.detail || err?.message || 'Could not submit claim. Please try again.';
-      Alert.alert('Submission Notice', errMsg);
+      Alert.alert(tr('Submission Notice'), tr(errMsg));
     } finally {
       setLoading(false);
     }
@@ -199,7 +200,7 @@ export const CreateClaimScreen = ({ navigation }) => {
 
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         {/* Step 1: Claim Period */}
-        <Text style={styles.stepTitle}>1. Select Claim Month</Text>
+        <Text style={styles.stepTitle}>{tr('1. Select Claim Month')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillsScroll}>
           {CLAIM_MONTHS.map((m) => {
             const isSelected = selectedMonth === m;
@@ -210,14 +211,14 @@ export const CreateClaimScreen = ({ navigation }) => {
                 style={[styles.monthPill, isSelected && styles.monthPillActive]}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.monthPillText, isSelected && styles.monthPillTextActive]}>{m}</Text>
+                <Text style={[styles.monthPillText, isSelected && styles.monthPillTextActive]}>{tr(m)}</Text>
               </TouchableOpacity>
             );
           })}
         </ScrollView>
 
         {/* Step 2: Incentive Category */}
-        <Text style={styles.stepTitle}>2. Select Incentive Category</Text>
+        <Text style={styles.stepTitle}>{tr('2. Select Incentive Category')}</Text>
         <View style={styles.categoryGrid}>
           {INCENTIVE_CATEGORIES.map((cat) => {
             const isSelected = selectedCategory === cat.key;
@@ -241,7 +242,7 @@ export const CreateClaimScreen = ({ navigation }) => {
                   style={{ marginBottom: 4 }}
                 />
                 <Text style={[styles.categoryTileText, isSelected && styles.categoryTileTextActive]}>
-                  {cat.label}
+                  {tr(cat.label)}
                 </Text>
               </TouchableOpacity>
             );
@@ -249,7 +250,7 @@ export const CreateClaimScreen = ({ navigation }) => {
         </View>
 
         {/* Step 3: Choose Completed Healthcare Activity */}
-        <Text style={styles.stepTitle}>3. Choose Completed Healthcare Activity</Text>
+        <Text style={styles.stepTitle}>{tr('3. Choose Completed Healthcare Activity')}</Text>
         <View style={styles.activitiesWrapper}>
           {visibleActivities.map((act) => {
             const isSelected = selectedActivity?.type === act.type;
@@ -266,14 +267,14 @@ export const CreateClaimScreen = ({ navigation }) => {
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.activityOptionTitle, isSelected && styles.activityOptionTitleActive]}>
-                      {act.title}
+                      {tr(act.title)}
                     </Text>
-                    <Text style={styles.activityOptionSub}>{act.subtitle}</Text>
+                    <Text style={styles.activityOptionSub}>{tr(act.subtitle)}</Text>
                   </View>
                 </View>
                 <View style={styles.rateBadge}>
                   <Text style={[styles.rateBadgeText, act.rate === null && styles.ratePendingText]}>
-                    {act.rateDisplay}
+                    {tr(act.rateDisplay)}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -282,7 +283,7 @@ export const CreateClaimScreen = ({ navigation }) => {
         </View>
 
         {/* Step 4: Activity Date */}
-        <Text style={styles.stepTitle}>4. Activity Date</Text>
+        <Text style={styles.stepTitle}>{tr('4. Activity Date')}</Text>
         <InlineDatePicker
           value={activityDate}
           onChangeDate={(formattedDate) => setActivityDate(formattedDate)}
@@ -291,7 +292,7 @@ export const CreateClaimScreen = ({ navigation }) => {
         />
 
         {/* Step 5: Select Beneficiary / Household */}
-        <Text style={styles.stepTitle}>5. Select Beneficiary / Household</Text>
+        <Text style={styles.stepTitle}>{tr('5. Select Beneficiary / Household')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillsScroll}>
           {households.map((h) => {
             const isSelected = selectedHh?.id === h.id;
@@ -310,10 +311,10 @@ export const CreateClaimScreen = ({ navigation }) => {
                 />
                 <View>
                   <Text style={[styles.hhChipName, isSelected && styles.hhChipNameActive]}>
-                    {h.primary_contact_name}
+                    {tr(h.primary_contact_name)}
                   </Text>
                   <Text style={[styles.hhChipVillage, isSelected && styles.hhChipVillageActive]}>
-                    {h.village}
+                    {tr(h.village)}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -322,7 +323,7 @@ export const CreateClaimScreen = ({ navigation }) => {
         </ScrollView>
 
         {/* Step 6: Number of Completed Activities */}
-        <Text style={styles.stepTitle}>6. Number of Completed Activities</Text>
+        <Text style={styles.stepTitle}>{tr('6. Number of Completed Activities')}</Text>
         <View style={styles.stepperContainer}>
           <TouchableOpacity
             onPress={() => setActivityCount((prev) => Math.max(1, prev - 1))}
@@ -333,8 +334,8 @@ export const CreateClaimScreen = ({ navigation }) => {
             <Ionicons name="remove" size={18} color={activityCount <= 1 ? colors.borderStrong : colors.primaryText} />
           </TouchableOpacity>
           <View style={styles.stepperValueBox}>
-            <Text style={styles.stepperValueText}>{activityCount}</Text>
-            <Text style={styles.stepperUnitText}>facilitation{activityCount > 1 ? 's' : ''}</Text>
+            <Text style={styles.stepperValueText}>{tr(activityCount)}</Text>
+            <Text style={styles.stepperUnitText}>{tr('facilitation')}{tr(activityCount > 1 ? 's' : '')}</Text>
           </View>
           <TouchableOpacity
             onPress={() => setActivityCount((prev) => Math.min(20, prev + 1))}
@@ -346,10 +347,10 @@ export const CreateClaimScreen = ({ navigation }) => {
         </View>
 
         {/* Step 7: Supporting Evidence & Verification Notes */}
-        <Text style={styles.stepTitle}>7. Verification Notes & Register References</Text>
+        <Text style={styles.stepTitle}>{tr('7. Verification Notes & Register References')}</Text>
         <AppInput
           label="Supporting Details / RCH Register No. (Optional)"
-          placeholder="e.g. RCH Register Vol 2, Page 14 • ANM verified"
+          placeholder={tr('e.g. RCH Register Vol 2, Page 14 • ANM verified')}
           value={supportingNotes}
           onChangeText={setSupportingNotes}
           multiline
@@ -360,39 +361,37 @@ export const CreateClaimScreen = ({ navigation }) => {
         <View style={styles.reviewCard}>
           <View style={styles.reviewHeader}>
             <Ionicons name="calculator-outline" size={18} color={colors.primary} />
-            <Text style={styles.reviewHeaderTitle}>Claim Estimation Summary</Text>
+            <Text style={styles.reviewHeaderTitle}>{tr('Claim Estimation Summary')}</Text>
           </View>
 
           <View style={styles.reviewRow}>
-            <Text style={styles.reviewKey}>Claim Period:</Text>
-            <Text style={styles.reviewVal}>{selectedMonth}</Text>
+            <Text style={styles.reviewKey}>{tr('Claim Period:')}</Text>
+            <Text style={styles.reviewVal}>{tr(selectedMonth)}</Text>
           </View>
           <View style={styles.reviewRow}>
-            <Text style={styles.reviewKey}>Beneficiary:</Text>
-            <Text style={styles.reviewVal}>{selectedHh?.primary_contact_name || 'Community Member'}</Text>
+            <Text style={styles.reviewKey}>{tr('Beneficiary:')}</Text>
+            <Text style={styles.reviewVal}>{tr(selectedHh?.primary_contact_name || 'Community Member')}</Text>
           </View>
           <View style={styles.reviewRow}>
-            <Text style={styles.reviewKey}>Activity Date:</Text>
-            <Text style={styles.reviewVal}>{activityDate}</Text>
+            <Text style={styles.reviewKey}>{tr('Activity Date:')}</Text>
+            <Text style={styles.reviewVal}>{tr(activityDate)}</Text>
           </View>
           <View style={styles.reviewRow}>
-            <Text style={styles.reviewKey}>Quantity:</Text>
-            <Text style={styles.reviewVal}>{activityCount} completed</Text>
+            <Text style={styles.reviewKey}>{tr('Quantity:')}</Text>
+            <Text style={styles.reviewVal}>{tr(activityCount)}{' '}{tr('completed')}</Text>
           </View>
 
           <View style={styles.reviewDivider} />
 
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Estimated Incentive:</Text>
+            <Text style={styles.totalLabel}>{tr('Estimated Incentive:')}</Text>
             <Text style={[styles.totalAmount, isPendingVerification && styles.totalPendingText]}>
-              {isPendingVerification ? 'Amount pending verification' : `₹${estimatedAmount.toLocaleString('en-IN')}`}
+              {tr(isPendingVerification ? 'Amount pending verification' : `₹${tr(estimatedAmount.toLocaleString('en-IN'))}`)}
             </Text>
           </View>
 
           {isPendingVerification ? (
-            <Text style={styles.pendingHintText}>
-              The official applicable rate for this non-standard activity will be determined by the Medical Officer upon review.
-            </Text>
+            <Text style={styles.pendingHintText}>{tr('The official applicable rate for this non-standard activity will be determined by the Medical Officer upon review.')}</Text>
           ) : null}
         </View>
 
@@ -416,37 +415,35 @@ export const CreateClaimScreen = ({ navigation }) => {
               <Ionicons name="checkmark-done" size={32} color={colors.success} />
             </View>
 
-            <Text style={styles.successTitle}>Claim Submitted Successfully!</Text>
-            <Text style={styles.successSubtitle}>
-              Your claim record has been generated and queued for supervisor verification.
-            </Text>
+            <Text style={styles.successTitle}>{tr('Claim Submitted Successfully!')}</Text>
+            <Text style={styles.successSubtitle}>{tr('Your claim record has been generated and queued for supervisor verification.')}</Text>
 
             {createdClaim ? (
               <View style={styles.claimReceipt}>
                 <View style={styles.receiptRow}>
-                  <Text style={styles.receiptKey}>Claim ID:</Text>
-                  <Text style={styles.receiptVal}>{createdClaim.id}</Text>
+                  <Text style={styles.receiptKey}>{tr('Claim ID:')}</Text>
+                  <Text style={styles.receiptVal}>{tr(createdClaim.id)}</Text>
                 </View>
                 <View style={styles.receiptRow}>
-                  <Text style={styles.receiptKey}>Submission Date:</Text>
-                  <Text style={styles.receiptVal}>{formatDate(createdClaim.submitted_at || new Date().toISOString())}</Text>
+                  <Text style={styles.receiptKey}>{tr('Submission Date:')}</Text>
+                  <Text style={styles.receiptVal}>{tr(formatDate(createdClaim.submitted_at || new Date().toISOString()))}</Text>
                 </View>
                 <View style={styles.receiptRow}>
-                  <Text style={styles.receiptKey}>Claim Period:</Text>
-                  <Text style={styles.receiptVal}>{createdClaim.month} {createdClaim.year}</Text>
+                  <Text style={styles.receiptKey}>{tr('Claim Period:')}</Text>
+                  <Text style={styles.receiptVal}>{tr(createdClaim.month)} {tr(createdClaim.year)}</Text>
                 </View>
                 <View style={styles.receiptRow}>
-                  <Text style={styles.receiptKey}>Claimed Amount:</Text>
-                  <Text style={[styles.receiptVal, { color: colors.primaryDark, fontWeight: '800' }]}>
-                    {createdClaim.amount_pending_verification
+                  <Text style={styles.receiptKey}>{tr('Claimed Amount:')}</Text>
+                  <Text style={[styles.receiptVal, { color: colors.primaryDark, fontWeight: '600' }]}>
+                    {tr(createdClaim.amount_pending_verification
                       ? 'Pending verification'
-                      : `₹${(createdClaim.total_estimated_amount || 0).toLocaleString('en-IN')}`}
+                      : `₹${tr((createdClaim.total_estimated_amount || 0).toLocaleString('en-IN'))}`)}
                   </Text>
                 </View>
                 <View style={styles.receiptRow}>
-                  <Text style={styles.receiptKey}>Current Status:</Text>
-                  <Text style={[styles.receiptVal, { color: '#B45309', fontWeight: '700' }]}>
-                    {createdClaim.status}
+                  <Text style={styles.receiptKey}>{tr('Current Status:')}</Text>
+                  <Text style={[styles.receiptVal, { color: '#B45309', fontWeight: '600' }]}>
+                    {tr(createdClaim.status)}
                   </Text>
                 </View>
               </View>
@@ -470,7 +467,7 @@ export const CreateClaimScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: 'transparent'
   },
   container: {
     padding: spacing.screenPadding,
@@ -478,7 +475,7 @@ const styles = StyleSheet.create({
   },
   stepTitle: {
     fontSize: 13.5,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText,
     marginTop: 14,
     marginBottom: 8
@@ -497,7 +494,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border
   },
   monthPillActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     borderColor: colors.primaryDark
   },
   monthPillText: {
@@ -507,7 +504,7 @@ const styles = StyleSheet.create({
   },
   monthPillTextActive: {
     color: colors.textWhite,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   categoryGrid: {
     flexDirection: 'row',
@@ -517,7 +514,7 @@ const styles = StyleSheet.create({
   categoryTile: {
     width: '48.5%',
     backgroundColor: colors.surface,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 10,
     borderWidth: 1,
     borderColor: colors.border,
@@ -536,7 +533,7 @@ const styles = StyleSheet.create({
   },
   categoryTileTextActive: {
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   activitiesWrapper: {
     gap: 8
@@ -546,7 +543,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: colors.surface,
-    borderRadius: 14,
+    borderRadius: 18,
     padding: 12,
     borderWidth: 1,
     borderColor: colors.border,
@@ -578,11 +575,11 @@ const styles = StyleSheet.create({
     width: 9,
     height: 9,
     borderRadius: 4.5,
-    backgroundColor: colors.primary
+    backgroundColor: colors.ink
   },
   activityOptionTitle: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   activityOptionTitleActive: {
@@ -599,7 +596,7 @@ const styles = StyleSheet.create({
   },
   rateBadgeText: {
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '600',
     color: colors.primaryDark,
     backgroundColor: colors.surfaceSecondary,
     paddingHorizontal: 8,
@@ -621,12 +618,12 @@ const styles = StyleSheet.create({
     borderColor: colors.border
   },
   hhChipActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     borderColor: colors.primaryDark
   },
   hhChipName: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   hhChipNameActive: {
@@ -643,7 +640,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
-    borderRadius: 14,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: colors.border,
     padding: 6,
@@ -652,7 +649,7 @@ const styles = StyleSheet.create({
   stepperBtn: {
     width: 38,
     height: 38,
-    borderRadius: 10,
+    borderRadius: 14,
     backgroundColor: colors.surfaceSecondary,
     alignItems: 'center',
     justifyContent: 'center'
@@ -664,7 +661,7 @@ const styles = StyleSheet.create({
   },
   stepperValueText: {
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '600',
     color: colors.primaryText
   },
   stepperUnitText: {
@@ -673,7 +670,7 @@ const styles = StyleSheet.create({
   },
   reviewCard: {
     backgroundColor: colors.surface,
-    borderRadius: 16,
+    borderRadius: 22,
     padding: 14,
     borderWidth: 1,
     borderColor: colors.border,
@@ -688,7 +685,7 @@ const styles = StyleSheet.create({
   },
   reviewHeaderTitle: {
     fontSize: 13.5,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryDark
   },
   reviewRow: {
@@ -717,12 +714,12 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.primaryText
   },
   totalAmount: {
     fontSize: 17,
-    fontWeight: '800',
+    fontWeight: '600',
     color: colors.primaryDark
   },
   totalPendingText: {
@@ -750,7 +747,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 380,
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: 24,
     padding: 20,
     alignItems: 'center',
     ...shadows.subtle
@@ -766,7 +763,7 @@ const styles = StyleSheet.create({
   },
   successTitle: {
     fontSize: 17,
-    fontWeight: '800',
+    fontWeight: '600',
     color: colors.primaryText,
     textAlign: 'center'
   },
@@ -780,7 +777,7 @@ const styles = StyleSheet.create({
   claimReceipt: {
     width: '100%',
     backgroundColor: colors.surfaceSecondary,
-    borderRadius: 14,
+    borderRadius: 18,
     padding: 12,
     marginBottom: 16,
     gap: 6

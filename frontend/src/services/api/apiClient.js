@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { secureStorage } from '../storage/secureStorage';
+import { tr } from '../../localisation/tr';
 import {
   API_BASE_URL,
   API_ORIGIN,
@@ -58,25 +59,25 @@ apiClient.interceptors.response.use(
       error.isAuthError = status === 401 || status === 403;
 
       if (status === 401) {
-        error.userFriendlyMessage = 'Session expired. Please log in again.';
+        error.userFriendlyMessage = tr('Session expired. Please log in again.');
         if (typeof onUnauthorizedHandler === 'function') {
           onUnauthorizedHandler();
         }
       } else if (status === 403) {
-        error.userFriendlyMessage = 'Access denied. You do not have permission for this action.';
+        error.userFriendlyMessage = tr('Access denied. You do not have permission for this action.');
       } else if (status >= 500) {
-        error.userFriendlyMessage = 'Server error. Please try again in a few moments.';
+        error.userFriendlyMessage = tr('Server error. Please try again in a few moments.');
       } else {
-        error.userFriendlyMessage = error.response?.data?.detail || error.response?.data?.message || 'Request failed.';
+        error.userFriendlyMessage = tr(error.response?.data?.detail || error.response?.data?.message || 'Request failed.');
       }
     } else if (error.code === 'ECONNABORTED' || error.message?.toLowerCase().includes('timeout')) {
       error.isTimeout = true;
       error.isNetworkError = true;
-      error.userFriendlyMessage = `Connection to SAHAYIKA server timed out. Please check your network and verify the server is running at ${API_BASE_URL}.`;
+      error.userFriendlyMessage = tr('Connection to the SAHAYIKA server timed out. Please check your network and try again.');
     } else {
       // No response received - Network failure (e.g. ECONNREFUSED, ENOTFOUND, offline)
       error.isNetworkError = true;
-      error.userFriendlyMessage = `Cannot connect to SAHAYIKA server at ${API_BASE_URL}. Please check your Wi-Fi/data connection.`;
+      error.userFriendlyMessage = tr('Cannot connect to the SAHAYIKA server. Please check your Wi-Fi/data connection.');
     }
 
     error.targetUrl = targetUrl;

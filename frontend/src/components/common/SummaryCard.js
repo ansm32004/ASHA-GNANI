@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,8 +23,8 @@ export const SummaryCard = ({
       <View style={[styles.iconContainer, { backgroundColor: iconBg }]}>
         <Ionicons name={icon} size={18} color={iconColor} />
       </View>
-      <Text style={styles.valueText}>{value}</Text>
-      <Text style={styles.labelText} numberOfLines={1}>{label}</Text>
+      <Text style={styles.valueText}>{tr(value)}</Text>
+      <Text style={styles.labelText} numberOfLines={1}>{tr(label)}</Text>
     </TouchableOpacity>
   );
 };
@@ -41,7 +42,7 @@ const styles = StyleSheet.create({
   iconContainer: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.sm
@@ -49,7 +50,7 @@ const styles = StyleSheet.create({
   valueText: {
     ...typography.heading1,
     color: colors.textPrimary,
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 22
   },
   labelText: {

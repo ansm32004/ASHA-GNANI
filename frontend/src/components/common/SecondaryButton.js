@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, View } from 'react-native';
 import { colors, typography, radius, spacing } from '../../theme';
@@ -32,26 +33,26 @@ export const SecondaryButton = ({
         styles.button,
         {
           minHeight: getMinHeight(),
-          backgroundColor: isOutline ? 'transparent' : colors.primaryLight,
+          backgroundColor: isOutline ? 'transparent' : colors.surfaceSecondary,
           borderWidth: isOutline ? 1 : 0,
-          borderColor: colors.border
+          borderColor: colors.borderStrong
         },
         style
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={colors.primary} size="small" />
+        <ActivityIndicator color={colors.ink} size="small" />
       ) : (
         <View style={styles.contentRow}>
           {icon && <View style={styles.iconWrap}>{icon}</View>}
           <Text
             style={[
               styles.text,
-              { color: isOutline ? colors.textPrimary : colors.primary },
+              { color: colors.textPrimary },
               textStyle
             ]}
           >
-            {title}
+            {tr(title)}
           </Text>
         </View>
       )}

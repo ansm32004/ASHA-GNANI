@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, View } from 'react-native';
 import { colors, spacing, radius, typography, shadows } from '../../theme';
@@ -16,12 +17,12 @@ export const AppButton = ({
   const getBackgroundColor = () => {
     if (disabled) return colors.surfaceSecondary;
     switch (variant) {
-      case 'primary': return colors.primary;
-      case 'secondary': return colors.primaryLight;
+      case 'primary': return colors.ink;
+      case 'secondary': return colors.surfaceSecondary;
       case 'teal': return colors.teal;
       case 'danger': return colors.danger;
       case 'outline': return 'transparent';
-      default: return colors.primary;
+      default: return colors.ink;
     }
   };
 
@@ -29,10 +30,10 @@ export const AppButton = ({
     if (disabled) return colors.textMuted;
     switch (variant) {
       case 'primary': return colors.textWhite;
-      case 'secondary': return colors.primary;
+      case 'secondary': return colors.ink;
       case 'teal': return colors.textWhite;
       case 'danger': return colors.textWhite;
-      case 'outline': return colors.primary;
+      case 'outline': return colors.ink;
       default: return colors.textWhite;
     }
   };
@@ -40,7 +41,7 @@ export const AppButton = ({
   const getMinHeight = () => {
     switch (size) {
       case 'small': return 40;
-      case 'large': return 54;
+      case 'large': return 56;
       default: return 48; // minimum comfortable touch target
     }
   };
@@ -55,8 +56,8 @@ export const AppButton = ({
         {
           backgroundColor: getBackgroundColor(),
           minHeight: getMinHeight(),
-          borderWidth: variant === 'outline' ? 1.5 : 0,
-          borderColor: variant === 'outline' ? colors.primary : 'transparent',
+          borderWidth: variant === 'outline' ? 1 : 0,
+          borderColor: variant === 'outline' ? colors.borderStrong : 'transparent',
           paddingHorizontal: size === 'small' ? spacing.md : spacing.xl
         },
         variant === 'primary' && !disabled && shadows.soft,
@@ -69,7 +70,7 @@ export const AppButton = ({
         <View style={styles.contentRow}>
           {icon && <View style={styles.iconContainer}>{icon}</View>}
           <Text style={[styles.text, { color: getTextColor() }, textStyle]}>
-            {title}
+            {tr(title)}
           </Text>
         </View>
       )}

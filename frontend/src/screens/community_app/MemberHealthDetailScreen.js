@@ -1,3 +1,4 @@
+import { tr } from '../../localisation/tr';
 import React, { useState } from 'react';
 import {
   View,
@@ -52,7 +53,7 @@ export const MemberHealthDetailScreen = ({ route, navigation }) => {
 
   const handleSendVisitRequest = async () => {
     if (!requestText.trim()) {
-      Alert.alert('त्रुटि', 'कृपया संदेश लिखें।');
+      Alert.alert(tr('त्रुटि'), tr('कृपया संदेश लिखें।'));
       return;
     }
     setIsSubmitting(true);
@@ -67,13 +68,13 @@ export const MemberHealthDetailScreen = ({ route, navigation }) => {
       setIsSubmitting(false);
       setShowRequestModal(false);
       Alert.alert(
-        'अनुरोध दर्ज हुआ (Request Submitted)',
+        tr('अनुरोध दर्ज हुआ (Request Submitted)'),
         `${member.name} की जांच के लिए आशा दीदी (सुनीता देवी) को अनुरोध भेज दिया गया है।`,
-        [{ text: 'ठीक है', onPress: () => navigation.navigate('RemindersTab') }]
+        [{ text: tr('ठीक है'), onPress: () => navigation.navigate('RemindersTab') }]
       );
     } catch (e) {
       setIsSubmitting(false);
-      Alert.alert('त्रुटि', 'अनुरोध भेजने में समस्या आई। पुनः प्रयास करें।');
+      Alert.alert(tr('त्रुटि'), tr('अनुरोध भेजने में समस्या आई। पुनः प्रयास करें।'));
     }
   };
 
@@ -84,18 +85,18 @@ export const MemberHealthDetailScreen = ({ route, navigation }) => {
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
-          accessibilityLabel="Back"
+          accessibilityLabel={tr('Back')}
         >
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>{member.name} का स्वास्थ्य रिकॉर्ड</Text>
+        <Text style={styles.headerTitle} numberOfLines={1}>{tr(member.name)}{' '}{tr('का स्वास्थ्य रिकॉर्ड')}</Text>
         <TouchableOpacity
           onPress={() => setShowRequestModal(true)}
           style={styles.headerActionBtn}
-          accessibilityLabel="Request visit"
+          accessibilityLabel={tr('Request visit')}
         >
           <Ionicons name="add-circle" size={18} color="#FFFFFF" />
-          <Text style={styles.headerActionText}>जांच मांगें</Text>
+          <Text style={styles.headerActionText}>{tr('जांच मांगें')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -104,11 +105,11 @@ export const MemberHealthDetailScreen = ({ route, navigation }) => {
         <View style={styles.abhaCard}>
           <View style={styles.abhaTopRow}>
             <View style={styles.flagBadge}>
-              <Text style={styles.flagText}>भारत सरकार • National Health Authority</Text>
+              <Text style={styles.flagText}>{tr('भारत सरकार • National Health Authority')}</Text>
             </View>
             <View style={styles.verifiedChip}>
               <Ionicons name="checkmark-circle" size={14} color="#10B981" />
-              <Text style={styles.verifiedText}>सत्यापित ABHA</Text>
+              <Text style={styles.verifiedText}>{tr('सत्यापित ABHA')}</Text>
             </View>
           </View>
 
@@ -121,31 +122,31 @@ export const MemberHealthDetailScreen = ({ route, navigation }) => {
               borderColor="rgba(255,255,255,0.3)"
             />
             <View style={styles.abhaInfo}>
-              <Text style={styles.abhaName}>{member.name}</Text>
+              <Text style={styles.abhaName}>{tr(member.name)}</Text>
               <Text style={styles.abhaSub}>
-                {member.relation} • {member.age} वर्ष • {member.gender}
+                {tr(member.relation)} • {tr(member.age)}{' '}{tr('वर्ष •')}{' '}{tr(member.gender)}
               </Text>
-              <Text style={styles.abhaIdText}>ABHA: {member.abha_id || '91-4521-8834-0192'}</Text>
+              <Text style={styles.abhaIdText}>{tr('ABHA:')}{' '}{tr(member.abha_id || '91-4521-8834-0192')}</Text>
             </View>
           </View>
 
           <View style={styles.abhaBottomRow}>
             <View>
-              <Text style={styles.metaLabel}>ब्लड ग्रुप</Text>
-              <Text style={styles.metaValue}>{member.blood_group || 'B+'}</Text>
+              <Text style={styles.metaLabel}>{tr('ब्लड ग्रुप')}</Text>
+              <Text style={styles.metaValue}>{tr(member.blood_group || 'B+')}</Text>
             </View>
             {member.rch_id && (
               <View>
-                <Text style={styles.metaLabel}>RCH ID</Text>
-                <Text style={styles.metaValue}>{member.rch_id}</Text>
+                <Text style={styles.metaLabel}>{tr('RCH ID')}</Text>
+                <Text style={styles.metaValue}>{tr(member.rch_id)}</Text>
               </View>
             )}
             <TouchableOpacity
               style={styles.downloadBtn}
-              onPress={() => Alert.alert('ABHA कार्ड डाउनलोड', 'डिजिटल ABHA कार्ड आपके फोन में सुरक्षित रूप से डाउनलोड हो गया है।')}
+              onPress={() => Alert.alert(tr('ABHA कार्ड डाउनलोड'), tr('डिजिटल ABHA कार्ड आपके फोन में सुरक्षित रूप से डाउनलोड हो गया है।'))}
             >
               <Ionicons name="download-outline" size={14} color="#FFFFFF" />
-              <Text style={styles.downloadText}>डाउनलोड</Text>
+              <Text style={styles.downloadText}>{tr('डाउनलोड')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -164,7 +165,7 @@ export const MemberHealthDetailScreen = ({ route, navigation }) => {
               onPress={() => setActiveTab(tab.id)}
             >
               <Text style={[styles.tabButtonText, activeTab === tab.id && styles.tabButtonTextActive]}>
-                {tab.label}
+                {tr(tab.label)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -177,8 +178,8 @@ export const MemberHealthDetailScreen = ({ route, navigation }) => {
             <View style={styles.statusBanner}>
               <Ionicons name="information-circle" size={20} color={colors.primary} />
               <View style={{ flex: 1 }}>
-                <Text style={styles.statusCategory}>{member.category}</Text>
-                <Text style={styles.statusSub}>{member.status || 'नियमित स्वास्थ्य निगरानी सक्रिय'}</Text>
+                <Text style={styles.statusCategory}>{tr(member.category)}</Text>
+                <Text style={styles.statusSub}>{tr(member.status || 'नियमित स्वास्थ्य निगरानी सक्रिय')}</Text>
               </View>
             </View>
 
@@ -186,14 +187,14 @@ export const MemberHealthDetailScreen = ({ route, navigation }) => {
             <View style={styles.sectionCard}>
               <View style={styles.sectionTitleRow}>
                 <Ionicons name="document-text-outline" size={18} color={colors.primary} />
-                <Text style={styles.sectionTitle}>स्वास्थ्य परामर्श एवं टिप्पणी</Text>
+                <Text style={styles.sectionTitle}>{tr('स्वास्थ्य परामर्श एवं टिप्पणी')}</Text>
               </View>
               <Text style={styles.notesText}>
-                {member.doctor_notes || 'सभी स्वास्थ्य मानक सामान्य स्तर पर हैं। नियमित भोजन व पानी का ध्यान रखें।'}
+                {tr(member.doctor_notes || 'सभी स्वास्थ्य मानक सामान्य स्तर पर हैं। नियमित भोजन व पानी का ध्यान रखें।')}
               </Text>
               <View style={styles.doctorBadge}>
                 <Ionicons name="medkit-outline" size={14} color={colors.teal} />
-                <Text style={styles.doctorBadgeText}>PHC काशी • डॉ. आर. के. श्रीवास्तव</Text>
+                <Text style={styles.doctorBadgeText}>{tr('PHC काशी • डॉ. आर. के. श्रीवास्तव')}</Text>
               </View>
             </View>
 
@@ -204,7 +205,7 @@ export const MemberHealthDetailScreen = ({ route, navigation }) => {
               activeOpacity={0.8}
             >
               <Ionicons name="calendar" size={18} color="#FFFFFF" />
-              <Text style={styles.primaryActionText}>{member.name} के लिए आशा भेंट मांगें</Text>
+              <Text style={styles.primaryActionText}>{tr(member.name)}{' '}{tr('के लिए आशा भेंट मांगें')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -212,29 +213,29 @@ export const MemberHealthDetailScreen = ({ route, navigation }) => {
         {/* Tab Content: Vitals */}
         {activeTab === 'vitals' && (
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>शारीरिक जांच इतिहास (Vitals History)</Text>
+            <Text style={styles.sectionTitle}>{tr('शारीरिक जांच इतिहास (Vitals History)')}</Text>
             {(member.vitals || [
               { date: '28-10-2026', bp: '118/76 mmHg', weight: '54 kg', hb: '9.2 g/dL' }
             ]).map((v, i) => (
               <View key={i} style={styles.vitalCard}>
                 <View style={styles.vitalDateRow}>
                   <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
-                  <Text style={styles.vitalDate}>{formatDate(v.date)}</Text>
-                  <Text style={styles.vitalBy}>जांचकर्ता: आशा सुनीता देवी</Text>
+                  <Text style={styles.vitalDate}>{tr(formatDate(v.date))}</Text>
+                  <Text style={styles.vitalBy}>{tr('जांचकर्ता: आशा सुनीता देवी')}</Text>
                 </View>
                 <View style={styles.vitalGrid}>
                   <View style={styles.vitalMetric}>
-                    <Text style={styles.vitalLabel}>रक्तचाप (BP)</Text>
-                    <Text style={styles.vitalValue}>{v.bp}</Text>
+                    <Text style={styles.vitalLabel}>{tr('रक्तचाप (BP)')}</Text>
+                    <Text style={styles.vitalValue}>{tr(v.bp)}</Text>
                   </View>
                   <View style={styles.vitalMetric}>
-                    <Text style={styles.vitalLabel}>वजन (Weight)</Text>
-                    <Text style={styles.vitalValue}>{v.weight}</Text>
+                    <Text style={styles.vitalLabel}>{tr('वजन (Weight)')}</Text>
+                    <Text style={styles.vitalValue}>{tr(v.weight)}</Text>
                   </View>
                   {v.hb && (
                     <View style={styles.vitalMetric}>
-                      <Text style={styles.vitalLabel}>हीमोग्लोबिन (Hb)</Text>
-                      <Text style={[styles.vitalValue, { color: colors.danger }]}>{v.hb}</Text>
+                      <Text style={styles.vitalLabel}>{tr('हीमोग्लोबिन (Hb)')}</Text>
+                      <Text style={[styles.vitalValue, { color: colors.danger }]}>{tr(v.hb)}</Text>
                     </View>
                   )}
                 </View>
@@ -246,7 +247,7 @@ export const MemberHealthDetailScreen = ({ route, navigation }) => {
         {/* Tab Content: Vaccines */}
         {activeTab === 'vaccines' && (
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>टीकाकरण स्थिति (Immunization)</Text>
+            <Text style={styles.sectionTitle}>{tr('टीकाकरण स्थिति (Immunization)')}</Text>
             {(member.immunizations || [
               { vaccine: 'TT-1 (Tetanus Toxoid)', date: '14-09-2026', status: 'Given' },
               { vaccine: 'TT-2 Booster', date: '12-11-2026', status: 'Due Soon' }
@@ -254,12 +255,12 @@ export const MemberHealthDetailScreen = ({ route, navigation }) => {
               <View key={i} style={styles.vaccineRow}>
                 <View style={[styles.vaccineDot, { backgroundColor: vac.status === 'Given' ? colors.teal : colors.warning }]} />
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.vaccineName}>{vac.vaccine}</Text>
-                  <Text style={styles.vaccineDate}>तारीख: {formatDate(vac.date)}</Text>
+                  <Text style={styles.vaccineName}>{tr(vac.vaccine)}</Text>
+                  <Text style={styles.vaccineDate}>{tr('तारीख:')}{' '}{tr(formatDate(vac.date))}</Text>
                 </View>
                 <View style={[styles.vaccineBadge, { backgroundColor: vac.status === 'Given' ? '#ECFDF5' : '#FEF3C7' }]}>
                   <Text style={[styles.vaccineBadgeText, { color: vac.status === 'Given' ? '#065F46' : '#92400E' }]}>
-                    {vac.status === 'Given' ? 'लगाया गया' : 'देय (Due)'}
+                    {tr(vac.status === 'Given' ? 'लगाया गया' : 'देय (Due)')}
                   </Text>
                 </View>
               </View>
@@ -270,13 +271,13 @@ export const MemberHealthDetailScreen = ({ route, navigation }) => {
         {/* Tab Content: Schemes */}
         {activeTab === 'schemes' && (
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>नामित सरकारी स्वास्थ्य योजनाएं</Text>
+            <Text style={styles.sectionTitle}>{tr('नामित सरकारी स्वास्थ्य योजनाएं')}</Text>
             {(member.schemes || ['आयुष्मान भारत (PM-JAY)']).map((scheme, i) => (
               <View key={i} style={styles.schemeItem}>
                 <Ionicons name="ribbon" size={20} color={colors.primary} />
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.schemeItemTitle}>{scheme}</Text>
-                  <Text style={styles.schemeItemSub}>सक्रिय लाभार्थी • 100% निःशुल्क चिकित्सा सुविधा</Text>
+                  <Text style={styles.schemeItemTitle}>{tr(scheme)}</Text>
+                  <Text style={styles.schemeItemSub}>{tr('सक्रिय लाभार्थी • 100% निःशुल्क चिकित्सा सुविधा')}</Text>
                 </View>
                 <Ionicons name="checkmark-circle" size={18} color="#10B981" />
               </View>
@@ -295,24 +296,23 @@ export const MemberHealthDetailScreen = ({ route, navigation }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>गृह भेंट का अनुरोध</Text>
+              <Text style={styles.modalTitle}>{tr('गृह भेंट का अनुरोध')}</Text>
               <TouchableOpacity onPress={() => setShowRequestModal(false)}>
                 <Ionicons name="close" size={24} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.modalSubtitle}>
-              लाभार्थी: <Text style={{ fontWeight: '700', color: colors.textPrimary }}>{member.name}</Text> ({member.relation})
+            <Text style={styles.modalSubtitle}>{tr('लाभार्थी:')}{' '}<Text style={{ fontWeight: '600', color: colors.textPrimary }}>{tr(member.name)}</Text> ({tr(member.relation)})
             </Text>
 
-            <Text style={styles.modalLabel}>संदेश / समस्या का विवरण:</Text>
+            <Text style={styles.modalLabel}>{tr('संदेश / समस्या का विवरण:')}</Text>
             <TextInput
               style={styles.textInput}
               multiline
               numberOfLines={4}
               value={requestText}
               onChangeText={setRequestText}
-              placeholder="आशा दीदी को अपनी समस्या बताएं..."
+              placeholder={tr('आशा दीदी को अपनी समस्या बताएं...')}
               placeholderTextColor={colors.textMuted}
             />
 
@@ -321,7 +321,7 @@ export const MemberHealthDetailScreen = ({ route, navigation }) => {
                 style={styles.cancelBtn}
                 onPress={() => setShowRequestModal(false)}
               >
-                <Text style={styles.cancelBtnText}>रद्द करें</Text>
+                <Text style={styles.cancelBtnText}>{tr('रद्द करें')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.submitBtn, isSubmitting && { opacity: 0.7 }]}
@@ -333,7 +333,7 @@ export const MemberHealthDetailScreen = ({ route, navigation }) => {
                 ) : (
                   <>
                     <Ionicons name="send" size={16} color="#FFFFFF" />
-                    <Text style={styles.submitBtnText}>अनुरोध भेजें</Text>
+                    <Text style={styles.submitBtnText}>{tr('अनुरोध भेजें')}</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -348,7 +348,7 @@ export const MemberHealthDetailScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC'
+    backgroundColor: '#F5F7FB'
   },
   header: {
     flexDirection: 'row',
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0'
+    borderBottomColor: '#E8ECF3'
   },
   backButton: {
     padding: 8
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: radius.pill
@@ -382,14 +382,14 @@ const styles = StyleSheet.create({
   headerActionText: {
     ...typography.caption,
     color: '#FFFFFF',
-    fontWeight: '700'
+    fontWeight: '600'
   },
   scrollContent: {
     padding: 16,
     paddingBottom: 110
   },
   abhaCard: {
-    backgroundColor: '#0F172A',
+    backgroundColor: '#0B1220',
     borderRadius: radius.lg,
     padding: 18,
     marginBottom: 16,
@@ -401,18 +401,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#1E293B',
+    borderBottomColor: '#0B1220',
     paddingBottom: 10
   },
   flagBadge: {
-    backgroundColor: '#1E293B',
+    backgroundColor: '#0B1220',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: radius.sm
   },
   flagText: {
     ...typography.caption,
-    color: '#94A3B8',
+    color: '#98A2B8',
     fontSize: 10
   },
   verifiedChip: {
@@ -427,7 +427,7 @@ const styles = StyleSheet.create({
   verifiedText: {
     ...typography.caption,
     color: '#34D399',
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 10
   },
   abhaMainRow: {
@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#334155',
+    backgroundColor: '#3A4560',
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -450,11 +450,11 @@ const styles = StyleSheet.create({
   abhaName: {
     ...typography.heading2,
     color: '#FFFFFF',
-    fontWeight: '700'
+    fontWeight: '600'
   },
   abhaSub: {
     ...typography.bodySmall,
-    color: '#94A3B8',
+    color: '#98A2B8',
     marginTop: 2
   },
   abhaIdText: {
@@ -462,31 +462,30 @@ const styles = StyleSheet.create({
     color: '#38BDF8',
     fontWeight: '600',
     marginTop: 4,
-    letterSpacing: 1
   },
   abhaBottomRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#1E293B',
+    borderTopColor: '#0B1220',
     paddingTop: 12
   },
   metaLabel: {
     ...typography.caption,
-    color: '#64748B',
+    color: '#69748C',
     fontSize: 10
   },
   metaValue: {
     ...typography.bodySmall,
-    color: '#F1F5F9',
-    fontWeight: '700'
+    color: '#F1F4FA',
+    fontWeight: '600'
   },
   downloadBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.ink,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: radius.sm
@@ -498,7 +497,7 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#E8ECF3',
     borderRadius: radius.pill,
     padding: 3,
     marginBottom: 16
@@ -521,23 +520,23 @@ const styles = StyleSheet.create({
   },
   tabButtonTextActive: {
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   statusBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EAF1FF',
     borderRadius: radius.md,
     padding: 14,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#BFDBFE'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   statusCategory: {
     ...typography.bodyMedium,
     color: colors.primary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   statusSub: {
     ...typography.caption,
@@ -550,7 +549,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     ...shadows.subtle
   },
   sectionTitleRow: {
@@ -562,7 +561,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     ...typography.heading3,
     color: colors.textPrimary,
-    fontWeight: '700',
+    fontWeight: '600',
     marginBottom: 12
   },
   notesText: {
@@ -579,7 +578,7 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: radius.sm,
     borderWidth: 1,
-    borderColor: '#CCFBF1'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   doctorBadgeText: {
     ...typography.caption,
@@ -591,7 +590,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     paddingVertical: 14,
     borderRadius: radius.md,
     marginTop: 8
@@ -601,12 +600,12 @@ const styles = StyleSheet.create({
     color: '#FFFFFF'
   },
   vitalCard: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F5F7FB',
     borderRadius: radius.md,
     padding: 12,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#E2E8F0'
+    borderColor: 'rgba(11, 18, 32, 0.06)'
   },
   vitalDateRow: {
     flexDirection: 'row',
@@ -614,13 +613,13 @@ const styles = StyleSheet.create({
     gap: 6,
     marginBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: '#E8ECF3',
     paddingBottom: 6
   },
   vitalDate: {
     ...typography.caption,
     color: colors.textPrimary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   vitalBy: {
     ...typography.caption,
@@ -643,7 +642,7 @@ const styles = StyleSheet.create({
   vitalValue: {
     ...typography.bodyMedium,
     color: colors.textPrimary,
-    fontWeight: '700',
+    fontWeight: '600',
     marginTop: 2
   },
   vaccineRow: {
@@ -652,7 +651,7 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9'
+    borderBottomColor: '#F1F4FA'
   },
   vaccineDot: {
     width: 10,
@@ -676,7 +675,7 @@ const styles = StyleSheet.create({
   },
   vaccineBadgeText: {
     ...typography.caption,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   schemeItem: {
     flexDirection: 'row',
@@ -684,12 +683,12 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9'
+    borderBottomColor: '#F1F4FA'
   },
   schemeItemTitle: {
     ...typography.bodyMedium,
     color: colors.textPrimary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   schemeItemSub: {
     ...typography.caption,
@@ -717,7 +716,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     ...typography.heading2,
     color: colors.textPrimary,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   modalSubtitle: {
     ...typography.bodySmall,
@@ -730,10 +729,10 @@ const styles = StyleSheet.create({
     marginBottom: 6
   },
   textInput: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F5F7FB',
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     padding: 12,
     ...typography.bodyMedium,
     color: colors.textPrimary,
@@ -750,7 +749,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: 'rgba(11, 18, 32, 0.06)',
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -764,7 +763,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ink,
     paddingVertical: 12,
     borderRadius: radius.md
   },
