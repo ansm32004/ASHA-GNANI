@@ -11,6 +11,9 @@ import { useLanguageStore } from './src/store/languageStore';
 import { useAppStore } from './src/store/appStore';
 import { colors } from './src/theme';
 import { AppBackdrop } from './src/components/common/AppBackdrop';
+import { WebAlertHost, installWebAlert } from './src/components/common/WebAlertHost';
+
+installWebAlert();
 import { notificationService } from './src/services/notifications/notificationService';
 import './src/localisation'; // initialize i18n
 
@@ -64,6 +67,7 @@ export default function App() {
           <NavigationContainer theme={navigationTheme}>
             <RootNavigator key={i18n.language} />
           </NavigationContainer>
+          <WebAlertHost />
         </View>
       </View>
     </SafeAreaProvider>

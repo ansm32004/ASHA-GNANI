@@ -52,9 +52,9 @@ export const HouseholdDetailScreen = ({ route, navigation }) => {
 
   const tabs = [
     { key: 'overview', label: 'Overview' },
-    { key: 'members', label: `Members (${(household.members || []).length})` },
-    { key: 'visits', label: `Visits (${visits.length})` },
-    { key: 'tasks', label: `Tasks (${tasks.length})` }
+    { key: 'members', label: `${tr('Members')} (${(household.members || []).length})` },
+    { key: 'visits', label: `${tr('Visits')} (${visits.length})` },
+    { key: 'tasks', label: `${tr('Tasks')} (${tasks.length})` }
   ];
 
   return (
